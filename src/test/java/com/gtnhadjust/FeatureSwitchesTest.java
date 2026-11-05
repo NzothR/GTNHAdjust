@@ -129,4 +129,20 @@ public class FeatureSwitchesTest {
             disabled.selectMixins(MODS, false)
                 .isEmpty());
     }
+
+    @Test
+    public void gtsrDiagnosticsCanBeDisabledWithoutDisablingOtherFeatures() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("gtsr"));
+        assertEquals(
+            Arrays.asList("diagnostic.GtsrRecipeAuditMixin"),
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false));
+        Files.write(file, Arrays.asList("gtsrDiagnostics=false"), StandardCharsets.ISO_8859_1);
+        assertTrue(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .isEmpty());
+    }
 }

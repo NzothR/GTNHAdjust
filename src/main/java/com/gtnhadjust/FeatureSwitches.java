@@ -20,18 +20,21 @@ final class FeatureSwitches {
     private static final String GREENHOUSE = "steamGreenhouse";
     private static final String CARPENTER = "carpenterRecipes";
     private static final String TERMINAL = "quickTerminal";
+    private static final String GTSR_DIAGNOSTICS = "gtsrDiagnostics";
 
     final boolean cropBreeder;
     final boolean steamGreenhouse;
     final boolean carpenterRecipes;
     final boolean quickTerminal;
+    final boolean gtsrDiagnostics;
 
     private FeatureSwitches(boolean cropBreeder, boolean steamGreenhouse, boolean carpenterRecipes,
-        boolean quickTerminal) {
+        boolean quickTerminal, boolean gtsrDiagnostics) {
         this.cropBreeder = cropBreeder;
         this.steamGreenhouse = steamGreenhouse;
         this.carpenterRecipes = carpenterRecipes;
         this.quickTerminal = quickTerminal;
+        this.gtsrDiagnostics = gtsrDiagnostics;
     }
 
     static FeatureSwitches load(Path file) {
@@ -40,6 +43,7 @@ final class FeatureSwitches {
         defaults.setProperty(GREENHOUSE, "true");
         defaults.setProperty(CARPENTER, "true");
         defaults.setProperty(TERMINAL, "true");
+        defaults.setProperty(GTSR_DIAGNOSTICS, "true");
         try {
             Files.createDirectories(file.getParent());
             if (!Files.exists(file)) {
@@ -59,7 +63,8 @@ final class FeatureSwitches {
                 read(values, CROP),
                 read(values, GREENHOUSE),
                 read(values, CARPENTER),
-                read(values, TERMINAL));
+                read(values, TERMINAL),
+                read(values, GTSR_DIAGNOSTICS));
             LOG.info(
                 "Feature switches: cropBreeder=" + result.cropBreeder
                     + ", steamGreenhouse="
@@ -67,11 +72,13 @@ final class FeatureSwitches {
                     + ", carpenterRecipes="
                     + result.carpenterRecipes
                     + ", quickTerminal="
-                    + result.quickTerminal);
+                    + result.quickTerminal
+                    + ", gtsrDiagnostics="
+                    + result.gtsrDiagnostics);
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
-            return new FeatureSwitches(false, false, false, false);
+            return new FeatureSwitches(false, false, false, false, false);
         }
     }
 
@@ -103,6 +110,7 @@ final class FeatureSwitches {
             mixins.add("gtnl.SteamGreenhouseParallelMixin");
             if (client) mixins.add("gtnl.SteamGreenhouseGuiMixin");
         }
+        if (gtsrDiagnostics && loadedMods.contains("gtsr")) mixins.add("diagnostic.GtsrRecipeAuditMixin");
         return mixins;
     }
 }
