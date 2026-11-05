@@ -1,0 +1,10 @@
+{
+  "modListVersion": 2,
+  "modList": [{
+    "modid": "${modId}",
+    "name": "${modName}",
+    "description": "Personal adjustments for GT New Horizons.",
+    "version": "${modVersion}",
+    "mcversion": "${minecraftVersion}"
+  }]
+}
