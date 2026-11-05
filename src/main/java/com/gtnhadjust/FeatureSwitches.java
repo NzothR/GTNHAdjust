@@ -119,7 +119,7 @@ final class FeatureSwitches {
         }
         if (gtsrDiagnostics && loadedMods.contains("gtsr")) mixins.add("diagnostic.GtsrRecipeAuditMixin");
         if (gtsrRecipeSpeedCompatibility && loadedMods.contains("gtsr") && loadedMods.contains("gtneverreset")) {
-            mixins.add("fix.GtsrRecipeSpeedExclusionMixin");
+            mixins.add("fix.GtsrRegistrationScopeMixin");
             mixins.add("fix.GtsrRecipeMapSpeedExclusionMixin");
         }
         return mixins;

@@ -5,6 +5,7 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import com.gtnhadjust.GTNHAdjust;
 import com.gtnhadjust.recipe.GtsrRecipeMapPolicy;
+import com.gtnhadjust.recipe.GtsrRegistrationScope;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 
@@ -20,12 +21,13 @@ public abstract class GtsrRecipeMapSpeedExclusionMixin {
 
     @WrapMethod(method = "compileRecipe", remap = false)
     private GTRecipe gtnhadjust$preserveGtsrPoolDuration(GTRecipe recipe, Operation<GTRecipe> original) {
-        if (recipe == null || recipeMap == null || !GtsrRecipeMapPolicy.isExclusive(recipeMap.unlocalizedName))
+        if (recipe == null || recipeMap == null
+            || !(GtsrRegistrationScope.active() || GtsrRecipeMapPolicy.isExclusive(recipeMap.unlocalizedName)))
             return original.call(recipe);
         int duration = recipe.mDuration;
         GTRecipe result = original.call(recipe);
         if (GTNHAdjust.debug && recipe.mDuration != duration) GTNHAdjust.LOG.info(
-            "GTSR recipe pool {}: restored duration from {} to {} ticks",
+            "GTSR recipe in pool {}: restored duration from {} to {} ticks",
             recipeMap.unlocalizedName,
             recipe.mDuration,
             duration);

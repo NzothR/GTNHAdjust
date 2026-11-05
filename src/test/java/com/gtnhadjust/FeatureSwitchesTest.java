@@ -156,7 +156,7 @@ public class FeatureSwitchesTest {
             StandardCharsets.ISO_8859_1);
         Set<String> mods = new HashSet<>(Arrays.asList("gtsr", "gtneverreset"));
         assertEquals(
-            Arrays.asList("fix.GtsrRecipeSpeedExclusionMixin", "fix.GtsrRecipeMapSpeedExclusionMixin"),
+            Arrays.asList("fix.GtsrRegistrationScopeMixin", "fix.GtsrRecipeMapSpeedExclusionMixin"),
             FeatureSwitches.load(file)
                 .selectMixins(mods, false));
         mods.remove("gtneverreset");
