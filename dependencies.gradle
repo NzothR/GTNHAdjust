@@ -40,5 +40,6 @@ dependencies {
     compileOnly(files("ref/libs/modularui2-instance.jar"))
     compileOnly(elytraModpackVersion.gtnhdev("CropsNH") as String) { transitive = false }
     compileOnly(elytraModpackVersion.gtnhdev("GTNHLib") as String) { transitive = false }
+    compileOnly(elytraModpackVersion.gtnhdev("ForestryMC") as String) { transitive = false }
     compileOnly(elytraModpackVersion.gtnhdev("GT5-Unofficial") as String) { transitive = false }
 }

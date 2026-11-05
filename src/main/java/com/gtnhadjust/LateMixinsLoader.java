@@ -26,7 +26,6 @@ public class LateMixinsLoader implements ILateMixinLoader {
         }
         if (loadedMods.contains("sciencenotleisure") && loadedMods.contains("cropsnh")) {
             mixins.add("gtnl.SteamGreenhouseParallelMixin");
-            mixins.add("gtnl.SteamGreenhouseTooltipMixin");
             if (FMLLaunchHandler.side()
                 .isClient()) mixins.add("gtnl.SteamGreenhouseGuiMixin");
         }
