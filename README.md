@@ -51,7 +51,7 @@ gtsrRecipeSpeedCompatibility=true
 
 `gtsrDiagnostics` 控制 GTSteamReborn 2.1.9 的只读配方核查诊断注入；开启 `general.debug` 后记录 WS-1 的实际配方和不一致的物品、流体数组，供排查启动崩溃，不改变配方及校验结果。升级 GTSteamReborn 后如注入不兼容，可将该项设为 `false` 并重启。
 
-`gtsrRecipeSpeedCompatibility` 修复 GTSteamReborn 2.1.9 的工业配方自检与 GT-Never-Reset 全局配方加速之间的冲突：自检使用加速后的预期耗时，仍检查能耗、材料、流体等其余字段。该修复不修改加速配置或实际配方；客户端和服务端应使用一致开关。
+`gtsrRecipeSpeedCompatibility` 修复 GTSteamReborn 2.1.9 的繁荣工业配方自检与 GT-Never-Reset 全局配方加速之间的冲突：注册在通用配方池中的繁荣工业配方，以及 `gtsr.recipe.` 命名空间的独有配方池，都保留注册时的原始耗时；其余配方仍使用全局加速。自检保持不变，客户端和服务端应使用一致开关。
 
 终端调整以 GT-Never-Reset 0.1.29、NEI 2.8.171、AE2 rv3-beta-1095 为基准。客户端与服务端必须安装相同版本的本模组，并将 `quickTerminal` 设置为相同值：该功能扩展了终端配方转移的数据包。旧配置文件没有该项时默认为 `true`；要关闭时手动添加 `quickTerminal=false` 并重启两端。普通 `+` 传入配方，Shift/Alt + `+` 进一步自动编码；匹配到收藏配方时优先使用收藏的材料和产物，未匹配的槽位保留 NEI 当前材料。编码后只有一个产出槽位的样板才会尝试自动上传；失败或多产出时保留在终端编码槽。自动上传使用已同步的接口名称来确定候选，由服务端验证接口和空位并写入；如果客户端尚未收到接口列表，可能找不到本地化名称的目标。接口搜索仍遵循 GT-Never-Reset 的 `fillSearchFromNeiRecipes` 设置。终端的详细调试日志可在 `config/gtnhadjust.cfg` 中的 `quickTerminal.debug` 开启，默认关闭。
 
