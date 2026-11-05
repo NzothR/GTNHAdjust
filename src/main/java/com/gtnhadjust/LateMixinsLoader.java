@@ -1,7 +1,6 @@
 package com.gtnhadjust;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -18,7 +17,14 @@ public class LateMixinsLoader implements ILateMixinLoader {
 
     @Override
     public List<String> getMixins(Set<String> loadedMods) {
-        if (!loadedMods.contains("gtneverreset")) return Collections.emptyList();
-        return Arrays.asList("CropBreedingRulesMixin", "LargeCropBreederMixin");
+        List<String> mixins = new ArrayList<>();
+        if (loadedMods.contains("gtneverreset")) {
+            mixins.add("CropBreedingRulesMixin");
+            mixins.add("LargeCropBreederMixin");
+        }
+        if (loadedMods.contains("sciencenotleisure") && loadedMods.contains("cropsnh")) {
+            mixins.add("fix.gtnl.SteamGreenhouseSubsoilFix");
+        }
+        return mixins;
     }
 }
