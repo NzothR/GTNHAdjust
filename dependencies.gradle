@@ -33,6 +33,9 @@
  *
  * For more details, see https://docs.gradle.org/8.0.1/userguide/java_library_plugin.html#sec:java_library_configurations_graph
  */
+def elytraModpackVersion = project.extensions.getByName("elytraModpackVersion")
 dependencies {
-    //runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.7.69-GTNH:dev")
+    compileOnly(files("ref/libs/gtneverreset-0.1.29.jar"))
+    compileOnly(elytraModpackVersion.gtnhdev("CropsNH") as String) { transitive = false }
+    compileOnly(elytraModpackVersion.gtnhdev("GT5-Unofficial") as String) { transitive = false }
 }
