@@ -41,6 +41,7 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void loadComplete(FMLLoadCompleteEvent event) {
-        if (Loader.isModLoaded("Forestry") && Loader.isModLoaded("gregtech")) CarpenterRecipes.register();
+        if (FeatureConfig.get().carpenterRecipes && Loader.isModLoaded("Forestry") && Loader.isModLoaded("gregtech"))
+            CarpenterRecipes.register();
     }
 }

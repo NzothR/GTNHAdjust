@@ -34,4 +34,16 @@ Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅�
 
 游戏首次加载后可在 `config/gtnhadjust.cfg` 的 `general.debug` 开启调试日志，默认关闭。
 
+### 功能开关
+
+首次启动时会生成 `config/gtnhadjust-features.properties`。修改后重启游戏或服务端；客户端和服务端应保持一致：
+
+```properties
+cropBreeder=true
+steamGreenhouse=true
+carpenterRecipes=true
+```
+
+分别控制大型作物杂交机调整、蒸汽温室调整、木工机静态组装机配方。设为 `false` 时，对应 Mixin 不会被加入加载列表，配方功能则不会注册任何配方。配置文件无法读取时三个功能均关闭；个别值不是 `true` 或 `false` 时对应功能关闭，并在日志记录原因。此前写入的世界数据和物品不会自动迁移，关闭温室调整前应取出超过原容量的种子。
+
 `gtnl.steamGreenhouseMaxSeeds` 是服务端配置，范围 1–64，默认 64，重启后生效。界面的容量使用服务端同步值。降低上限前请先取出超出新上限的种子；否则 GTNL 会阻止温室运行，直到取出多余种子。
