@@ -145,4 +145,37 @@ public class FeatureSwitchesTest {
                 .selectMixins(mods, false)
                 .isEmpty());
     }
+
+    @Test
+    public void gtsrSpeedFixRequiresBothModsAndCanBeDisabledIndependently() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Files.write(
+            file,
+            Arrays.asList("cropBreeder=false", "quickTerminal=false", "gtsrDiagnostics=false"),
+            StandardCharsets.ISO_8859_1);
+        Set<String> mods = new HashSet<>(Arrays.asList("gtsr", "gtneverreset"));
+        assertEquals(
+            Arrays.asList("fix.GtsrRecipeSpeedAuditMixin"),
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false));
+        mods.remove("gtneverreset");
+        assertTrue(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .isEmpty());
+        mods.add("gtneverreset");
+        Files.write(
+            file,
+            Arrays.asList(
+                "cropBreeder=false",
+                "quickTerminal=false",
+                "gtsrDiagnostics=false",
+                "gtsrRecipeSpeedCompatibility=false"),
+            StandardCharsets.ISO_8859_1);
+        assertTrue(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .isEmpty());
+    }
 }
