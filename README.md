@@ -42,8 +42,13 @@ Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅�
 cropBreeder=true
 steamGreenhouse=true
 carpenterRecipes=true
+quickTerminal=true
 ```
 
-分别控制大型作物杂交机调整、蒸汽温室调整、木工机静态组装机配方。设为 `false` 时，对应 Mixin 不会被加入加载列表，配方功能则不会注册任何配方。配置文件无法读取时三个功能均关闭；个别值不是 `true` 或 `false` 时对应功能关闭，并在日志记录原因。此前写入的世界数据和物品不会自动迁移，关闭温室调整前应取出超过原容量的种子。
+分别控制大型作物杂交机调整、蒸汽温室调整、木工机静态组装机配方、GT-Never-Reset 二合一无线终端调整。设为 `false` 时，对应 Mixin 不会被加入加载列表，配方功能则不会注册任何配方。配置文件无法读取时所有功能均关闭；个别值不是 `true` 或 `false` 时对应功能关闭，并在日志记录原因。此前写入的世界数据和物品不会自动迁移，关闭温室调整前应取出超过原容量的种子。
+
+终端调整以 GT-Never-Reset 0.1.29、NEI 2.8.171、AE2 rv3-beta-1095 为基准。客户端与服务端必须安装相同版本的本模组，并将 `quickTerminal` 设置为相同值：该功能扩展了终端配方转移的数据包。旧配置文件没有该项时默认为 `true`；要关闭时手动添加 `quickTerminal=false` 并重启两端。普通 `+` 传入配方，Shift/Alt + `+` 进一步自动编码；匹配到收藏配方时优先使用收藏的材料和产物，未匹配的槽位保留 NEI 当前材料。编码后只有一个产出槽位的样板才会尝试自动上传；失败或多产出时保留在终端编码槽。自动上传使用已同步的接口名称来确定候选，由服务端验证接口和空位并写入；如果客户端尚未收到接口列表，可能找不到本地化名称的目标。接口搜索仍遵循 GT-Never-Reset 的 `fillSearchFromNeiRecipes` 设置。终端的详细调试日志可在 `config/gtnhadjust.cfg` 中的 `quickTerminal.debug` 开启，默认关闭。
+
+构建还需要将实例的 `NotEnoughItems-2.8.171-GTNH.jar` 和 `appliedenergistics2-rv3-beta-1095-GTNH.jar` 分别复制为 `ref/libs/nei-instance.jar` 和 `ref/libs/ae2-instance.jar`。
 
 `gtnl.steamGreenhouseMaxSeeds` 是服务端配置，范围 1–64，默认 64，重启后生效。界面的容量使用服务端同步值。降低上限前请先取出超出新上限的种子；否则 GTNL 会阻止温室运行，直到取出多余种子。

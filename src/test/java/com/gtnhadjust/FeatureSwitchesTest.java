@@ -32,11 +32,11 @@ public class FeatureSwitchesTest {
         assertTrue(Files.isRegularFile(file));
         assertTrue(switches.carpenterRecipes);
         assertEquals(
-            4,
+            9,
             switches.selectMixins(MODS, true)
                 .size());
         assertEquals(
-            3,
+            5,
             switches.selectMixins(MODS, false)
                 .size());
     }
@@ -47,7 +47,8 @@ public class FeatureSwitchesTest {
             .toPath();
         Files.write(
             file,
-            Arrays.asList("cropBreeder=false", "steamGreenhouse=false", "carpenterRecipes=false"),
+            Arrays
+                .asList("cropBreeder=false", "steamGreenhouse=false", "carpenterRecipes=false", "quickTerminal=false"),
             StandardCharsets.ISO_8859_1);
         FeatureSwitches switches = FeatureSwitches.load(file);
         assertFalse(switches.carpenterRecipes);
@@ -65,14 +66,21 @@ public class FeatureSwitchesTest {
             .toPath();
         Files.write(
             file,
-            Arrays.asList("cropBreeder=false", "steamGreenhouse=unexpected", "carpenterRecipes=true"),
+            Arrays.asList(
+                "cropBreeder=false",
+                "steamGreenhouse=unexpected",
+                "carpenterRecipes=true",
+                "quickTerminal=false"),
             StandardCharsets.ISO_8859_1);
         FeatureSwitches switches = FeatureSwitches.load(file);
         assertTrue(switches.carpenterRecipes);
         assertTrue(
             switches.selectMixins(MODS, true)
                 .isEmpty());
-        Files.write(file, Arrays.asList("cropBreeder=true", "steamGreenhouse=false"), StandardCharsets.ISO_8859_1);
+        Files.write(
+            file,
+            Arrays.asList("cropBreeder=true", "steamGreenhouse=false", "quickTerminal=false"),
+            StandardCharsets.ISO_8859_1);
         List<String> mixins = FeatureSwitches.load(file)
             .selectMixins(MODS, true);
         assertEquals(Arrays.asList("CropBreedingRulesMixin", "LargeCropBreederMixin"), mixins);
@@ -86,6 +94,39 @@ public class FeatureSwitchesTest {
         assertFalse(switches.carpenterRecipes);
         assertTrue(
             switches.selectMixins(MODS, true)
+                .isEmpty());
+    }
+
+    @Test
+    public void terminalMixinsAreOneSwitchAcrossBothSides() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Files.write(
+            file,
+            Arrays.asList("cropBreeder=false", "steamGreenhouse=false", "quickTerminal=true"),
+            StandardCharsets.ISO_8859_1);
+        FeatureSwitches enabled = FeatureSwitches.load(file);
+        assertEquals(
+            5,
+            enabled.selectMixins(MODS, true)
+                .size());
+        assertEquals(
+            2,
+            enabled.selectMixins(MODS, false)
+                .size());
+        assertTrue(
+            enabled.selectMixins(new HashSet<>(), true)
+                .isEmpty());
+        Files.write(
+            file,
+            Arrays.asList("cropBreeder=false", "steamGreenhouse=false", "quickTerminal=false"),
+            StandardCharsets.ISO_8859_1);
+        FeatureSwitches disabled = FeatureSwitches.load(file);
+        assertTrue(
+            disabled.selectMixins(MODS, true)
+                .isEmpty());
+        assertTrue(
+            disabled.selectMixins(MODS, false)
                 .isEmpty());
     }
 }
