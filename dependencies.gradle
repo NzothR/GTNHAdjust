@@ -37,6 +37,8 @@ def elytraModpackVersion = project.extensions.getByName("elytraModpackVersion")
 dependencies {
     compileOnly(files("ref/libs/gtneverreset-0.1.29.jar"))
     compileOnly(files("ref/libs/gtnl-instance.jar"))
+    compileOnly(files("ref/libs/modularui2-instance.jar"))
     compileOnly(elytraModpackVersion.gtnhdev("CropsNH") as String) { transitive = false }
+    compileOnly(elytraModpackVersion.gtnhdev("GTNHLib") as String) { transitive = false }
     compileOnly(elytraModpackVersion.gtnhdev("GT5-Unofficial") as String) { transitive = false }
 }

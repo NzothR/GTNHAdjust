@@ -14,11 +14,19 @@ public class GTNHAdjust {
     public static final String MOD_ID = "gtnhadjust";
     public static final Logger LOG = LogManager.getLogger(MOD_ID);
     public static boolean debug;
+    public static int steamGreenhouseMaxSeeds = 64;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         Configuration config = new Configuration(event.getSuggestedConfigurationFile());
         debug = config.getBoolean("debug", Configuration.CATEGORY_GENERAL, false, "Log crop breeder adjustments.");
+        steamGreenhouseMaxSeeds = config.getInt(
+            "steamGreenhouseMaxSeeds",
+            "gtnl",
+            64,
+            1,
+            64,
+            "Steam greenhouse maximum seed count; server setting, restart required. Remove excess seeds before lowering.");
         if (config.hasChanged()) config.save();
     }
 }

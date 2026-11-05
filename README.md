@@ -4,7 +4,7 @@
 
 当前适配 GT-Never-Reset 0.1.29：大型作物杂交机的五级电压调整为 ULV 至 EV，杂交基础耗电为 8 EU/t；新入档及新产出的种子属性为 31/31/31。已有档案不主动修改，洗种功耗保持 512 EU/t。其他版本的目标字节码可能不同，升级后需要重新核对注入点。
 
-针对 GTNL `dev-290` 的蒸汽温室修复位于 `mixins/fix/gtnl`。当某作物的全部底土要求可由同一个原版方块满足时，机器会在生长检查中虚拟提供该方块；其他底土仍按 GTNL 的方式从输入总线提供。种床等级和其他生长条件仍由原逻辑检查。升级 GTNL 后应复查并按需移除该修复。
+针对 GTNL `dev-290` 的蒸汽温室，种子总容量默认为 64，最多仍为 4 个品种；机器按有效种子数计算产出，底土规则沿用 GTNL 原逻辑。界面可设置 0–4 次蒸汽超频，每次将耗能乘 4、运行时间减半。升级 GTNL 后应重新核对注入点。
 
 ## 构建
 
@@ -26,4 +26,8 @@ Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅�
 
 同样将实例中的 `sciencenotleisure-dev-290-fde37b9871fd-f93edbe8c425.jar` 复制为 `ref/libs/gtnl-instance.jar`；已验证文件的 SHA-256 为 `977335c74149afdbf280f15506fb59bd1b97e126acb3807be770d0e0b3374840`。
 
-游戏首次加载后可在 `config/gtnhadjust.cfg` 的 `general.debug` 开启调试日志，默认关闭。温室日志记录作物是否找到可虚拟提供的原版底土。
+将实例中的 `modularui2-2.3.94-1.7.10.jar` 复制为 `ref/libs/modularui2-instance.jar`；已验证文件的 SHA-256 为 `5fee68e74b5d20eb5b2e8a5de668c74a1975bd0f8a6f463ed2be98844803dfdc`。
+
+游戏首次加载后可在 `config/gtnhadjust.cfg` 的 `general.debug` 开启调试日志，默认关闭。
+
+`gtnl.steamGreenhouseMaxSeeds` 是服务端配置，范围 1–64，默认 64，重启后生效。界面的容量使用服务端同步值。降低上限前请先取出超出新上限的种子；否则 GTNL 会阻止温室运行，直到取出多余种子。

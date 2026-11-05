@@ -7,6 +7,8 @@ import java.util.Set;
 import com.gtnewhorizon.gtnhmixins.ILateMixinLoader;
 import com.gtnewhorizon.gtnhmixins.LateMixin;
 
+import cpw.mods.fml.relauncher.FMLLaunchHandler;
+
 @LateMixin
 public class LateMixinsLoader implements ILateMixinLoader {
 
@@ -23,7 +25,10 @@ public class LateMixinsLoader implements ILateMixinLoader {
             mixins.add("LargeCropBreederMixin");
         }
         if (loadedMods.contains("sciencenotleisure") && loadedMods.contains("cropsnh")) {
-            mixins.add("fix.gtnl.SteamGreenhouseSubsoilFix");
+            mixins.add("gtnl.SteamGreenhouseParallelMixin");
+            mixins.add("gtnl.SteamGreenhouseTooltipMixin");
+            if (FMLLaunchHandler.side()
+                .isClient()) mixins.add("gtnl.SteamGreenhouseGuiMixin");
         }
         return mixins;
     }
