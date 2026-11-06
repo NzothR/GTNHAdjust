@@ -32,11 +32,11 @@ public class FeatureSwitchesTest {
         assertTrue(Files.isRegularFile(file));
         assertTrue(switches.carpenterRecipes);
         assertEquals(
-            9,
+            10,
             switches.selectMixins(MODS, true)
                 .size());
         assertEquals(
-            5,
+            6,
             switches.selectMixins(MODS, false)
                 .size());
     }
@@ -47,8 +47,12 @@ public class FeatureSwitchesTest {
             .toPath();
         Files.write(
             file,
-            Arrays
-                .asList("cropBreeder=false", "steamGreenhouse=false", "carpenterRecipes=false", "quickTerminal=false"),
+            Arrays.asList(
+                "cropBreeder=false",
+                "steamGreenhouse=false",
+                "carpenterRecipes=false",
+                "quickTerminal=false",
+                "patternDeduplication=false"),
             StandardCharsets.ISO_8859_1);
         FeatureSwitches switches = FeatureSwitches.load(file);
         assertFalse(switches.carpenterRecipes);
@@ -70,7 +74,8 @@ public class FeatureSwitchesTest {
                 "cropBreeder=false",
                 "steamGreenhouse=unexpected",
                 "carpenterRecipes=true",
-                "quickTerminal=false"),
+                "quickTerminal=false",
+                "patternDeduplication=false"),
             StandardCharsets.ISO_8859_1);
         FeatureSwitches switches = FeatureSwitches.load(file);
         assertTrue(switches.carpenterRecipes);
@@ -79,7 +84,11 @@ public class FeatureSwitchesTest {
                 .isEmpty());
         Files.write(
             file,
-            Arrays.asList("cropBreeder=true", "steamGreenhouse=false", "quickTerminal=false"),
+            Arrays.asList(
+                "cropBreeder=true",
+                "steamGreenhouse=false",
+                "quickTerminal=false",
+                "patternDeduplication=false"),
             StandardCharsets.ISO_8859_1);
         List<String> mixins = FeatureSwitches.load(file)
             .selectMixins(MODS, true);
@@ -103,7 +112,11 @@ public class FeatureSwitchesTest {
             .toPath();
         Files.write(
             file,
-            Arrays.asList("cropBreeder=false", "steamGreenhouse=false", "quickTerminal=true"),
+            Arrays.asList(
+                "cropBreeder=false",
+                "steamGreenhouse=false",
+                "quickTerminal=true",
+                "patternDeduplication=false"),
             StandardCharsets.ISO_8859_1);
         FeatureSwitches enabled = FeatureSwitches.load(file);
         assertEquals(
@@ -119,7 +132,11 @@ public class FeatureSwitchesTest {
                 .isEmpty());
         Files.write(
             file,
-            Arrays.asList("cropBreeder=false", "steamGreenhouse=false", "quickTerminal=false"),
+            Arrays.asList(
+                "cropBreeder=false",
+                "steamGreenhouse=false",
+                "quickTerminal=false",
+                "patternDeduplication=false"),
             StandardCharsets.ISO_8859_1);
         FeatureSwitches disabled = FeatureSwitches.load(file);
         assertTrue(
@@ -152,7 +169,11 @@ public class FeatureSwitchesTest {
             .toPath();
         Files.write(
             file,
-            Arrays.asList("cropBreeder=false", "quickTerminal=false", "gtsrDiagnostics=false"),
+            Arrays.asList(
+                "cropBreeder=false",
+                "quickTerminal=false",
+                "gtsrDiagnostics=false",
+                "patternDeduplication=false"),
             StandardCharsets.ISO_8859_1);
         Set<String> mods = new HashSet<>(Arrays.asList("gtsr", "gtneverreset"));
         assertEquals(
@@ -171,7 +192,31 @@ public class FeatureSwitchesTest {
                 "cropBreeder=false",
                 "quickTerminal=false",
                 "gtsrDiagnostics=false",
-                "gtsrRecipeSpeedCompatibility=false"),
+                "gtsrRecipeSpeedCompatibility=false",
+                "patternDeduplication=false"),
+            StandardCharsets.ISO_8859_1);
+        assertTrue(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .isEmpty());
+    }
+
+    @Test
+    public void patternDeduplicationHasIndependentSwitch() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Files.write(
+            file,
+            Arrays.asList("cropBreeder=false", "quickTerminal=false", "patternDeduplication=true"),
+            StandardCharsets.ISO_8859_1);
+        Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset"));
+        assertEquals(
+            Arrays.asList("terminal.PatternAssemblyDedupMixin"),
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false));
+        Files.write(
+            file,
+            Arrays.asList("cropBreeder=false", "quickTerminal=false", "patternDeduplication=false"),
             StandardCharsets.ISO_8859_1);
         assertTrue(
             FeatureSwitches.load(file)

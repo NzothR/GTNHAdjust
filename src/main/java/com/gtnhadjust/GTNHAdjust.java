@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.gtnhadjust.recipe.CarpenterRecipes;
+import com.gtnhadjust.terminal.TerminalNotifications;
 
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
@@ -28,6 +29,7 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
+        if (FeatureConfig.get().quickTerminal) TerminalNotifications.init();
         Configuration config = new Configuration(event.getSuggestedConfigurationFile());
         debug = config.getBoolean("debug", Configuration.CATEGORY_GENERAL, false, "Log crop breeder adjustments.");
         terminalDebug = config
