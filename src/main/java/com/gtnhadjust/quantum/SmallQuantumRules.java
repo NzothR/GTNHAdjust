@@ -11,7 +11,7 @@ public final class SmallQuantumRules {
     }
 
     public static double durationMultiplier(int coilLevel) {
-        return Math.max(0.1, 1.3 - 0.1 * Math.max(1, coilLevel));
+        return Math.max(1, 11 - Math.max(1, coilLevel)) / 10.0;
     }
 
     public static double energyMultiplier(int glassLevel, int coilLevel) {
