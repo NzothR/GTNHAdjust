@@ -146,8 +146,9 @@ def main():
               '        Collection<GTRecipe> recipes = builder.addTo(SmallQuantumRecipes.MAP);',
               '        if (recipes.isEmpty()) com.gtnhadjust.GTNHAdjust.LOG.warn("Fixed small quantum recipe {} was rejected", source);',
               '        else {',
-              '            for (GTRecipe recipe : recipes) recipe.mDuration = duration;',
-              '            if (com.gtnhadjust.GTNHAdjust.debug) com.gtnhadjust.GTNHAdjust.LOG.info("Registered small quantum recipe {} (duration {} ticks)", source, duration);',
+              '            int adjusted = SmallQuantumRules.recipeDuration(duration, com.gtnhadjust.GTNHAdjust.smallQuantumRecipeTimeMultiplier);',
+              '            for (GTRecipe recipe : recipes) recipe.mDuration = adjusted;',
+              '            if (com.gtnhadjust.GTNHAdjust.debug) com.gtnhadjust.GTNHAdjust.LOG.info("Registered small quantum recipe {} (base {} ticks, adjusted {} ticks)", source, duration, adjusted);',
               '        }',
               '    }', '}']
     TARGET.write_text('\n'.join(lines) + '\n', encoding='utf8')

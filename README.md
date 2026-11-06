@@ -66,7 +66,7 @@ patternDeduplication=true
 
 支持批处理和无损超频；白铜线圈使用 100% 配方耗时，线圈每升一级减少 10 个百分点，最低为 10%。
 
-该机器配方是基于 GT5、Crops NH、GTNL、GTRH、Twist Space Technology 和 123Technology 的固定快照，不在游戏启动时扫描其他配方池；不包含原始输入或产物已有 1 份的配方。27 条快照中，GTRH 的两条水处理配方分别使用不消耗的 1 号和 2 号电路。快照以来源模组的原始配方耗时为起点，每次降压耗时乘以 4；GT-Never-Reset 的全局加速不会改变此快照。每份物品或流体产物单独按 `10000 / 产物种数` 概率判定，精度为万分之一。控制器的组装机配方指定 1024 秒，不随全局加速改变。
+该机器配方是基于 GT5、Crops NH、GTNL、GTRH、Twist Space Technology 和 123Technology 的固定快照，不在游戏启动时扫描其他配方池；不包含原始输入或产物已有 1 份的配方。27 条快照中，GTRH 的两条水处理配方分别使用不消耗的 1 号和 2 号电路。快照以来源模组的原始配方耗时为起点，每次降压耗时乘以 4；再乘以 `config/gtnhadjust.cfg` 中 `quantum.recipeTimeMultiplier`，默认为 0.1，修改后重启并保持客户端和服务端一致。结果向上取整且至少为 1 tick，之后再计算线圈和超频；GT-Never-Reset 的全局加速不会重复作用。每份物品或流体产物单独按 `10000 / 产物种数` 概率判定，精度为万分之一。控制器的组装机配方指定 1024 秒，不受该倍率影响。
 
 机器使用 `config/gtnhadjust.cfg` 的 `quantum.smallQuantumMteId`，默认 `31991`。客户端和服务端必须一致，取得或放置机器之后不要改动；关闭功能前应先移除现有机器。开启 `general.debug` 可记录配方处理等诊断信息。
 

@@ -1,5 +1,8 @@
 package com.gtnhadjust.quantum;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 /** Machine bonuses use logical glass and coil levels, both starting at one. */
 public final class SmallQuantumRules {
 
@@ -12,6 +15,14 @@ public final class SmallQuantumRules {
 
     public static double durationMultiplier(int coilLevel) {
         return Math.max(1, 11 - Math.max(1, coilLevel)) / 10.0;
+    }
+
+    public static int recipeDuration(int duration, double multiplier) {
+        BigDecimal result = BigDecimal.valueOf(duration)
+            .multiply(BigDecimal.valueOf(multiplier))
+            .setScale(0, RoundingMode.CEILING);
+        if (result.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) >= 0) return Integer.MAX_VALUE;
+        return Math.max(1, result.intValue());
     }
 
     public static double energyMultiplier(int glassLevel, int coilLevel) {

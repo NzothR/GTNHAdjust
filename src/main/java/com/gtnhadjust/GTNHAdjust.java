@@ -32,6 +32,7 @@ public class GTNHAdjust {
     public static boolean terminalDebug;
     public static boolean patternDeduplication;
     public static int steamGreenhouseMaxSeeds = 64;
+    public static double smallQuantumRecipeTimeMultiplier = 0.1;
     private int superFragmentMteId = 31990;
     private int smallQuantumMteId = 31991;
 
@@ -68,6 +69,19 @@ public class GTNHAdjust {
             2048,
             32766,
             "Stable machine ID for the small quantum manipulator. Do not change after obtaining or placing it; client and server must match.");
+        smallQuantumRecipeTimeMultiplier = config.get(
+            "quantum",
+            "recipeTimeMultiplier",
+            0.1,
+            "Multiplier applied to reduced small quantum recipes before coil bonuses and overclocking; minimum one tick. Restart required; client and server must match.",
+            0.000001,
+            100.0)
+            .getDouble(0.1);
+        if (!Double.isFinite(smallQuantumRecipeTimeMultiplier) || smallQuantumRecipeTimeMultiplier < 0.000001
+            || smallQuantumRecipeTimeMultiplier > 100.0) {
+            LOG.warn("Invalid quantum recipe time multiplier {}; using 0.1", smallQuantumRecipeTimeMultiplier);
+            smallQuantumRecipeTimeMultiplier = 0.1;
+        }
         if (config.hasChanged()) config.save();
     }
 
