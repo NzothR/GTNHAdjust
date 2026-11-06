@@ -5,9 +5,6 @@ from pathlib import Path
 SOURCE = Path('ref/GT5-Unofficial/src/main/java/gtPlusPlus/xmod/gregtech/loaders/recipe/RecipeLoaderChemicalSkips.java')
 TARGET = Path('src/main/java/com/gtnhadjust/quantum/SmallQuantumSnapshot.java')
 VOLTAGES = {'ZPM': 122880, 'UV': 491520, 'UHV': 1966080, 'UEV': 7864320, 'UIV': 31457280}
-# The user's client and server both use GTNR recipe speed mode 2, multiplier 0.1.
-# Capture the source recipe's actual duration once, before conversion, to keep this snapshot static.
-SOURCE_DURATION_MULTIPLIER = 0.1
 
 # Static entries from the installed GTNH instance; never read these mods at game startup.
 # Groups are item inputs, item outputs, fluid inputs, fluid outputs, followed by EU/t, ticks and a fixed circuit.
@@ -90,14 +87,13 @@ def main():
         groups = [[amount(e) for e in grab(block, name)] for name in ('itemInputs', 'itemOutputs', 'fluidInputs', 'fluidOutputs')]
         if any(x[3] <= 1 for group in groups for x in group): continue
         eu = VOLTAGES[grab(block, 'eut')[0].split('_')[-1]]
-        ticks = max(1, int(400 * SOURCE_DURATION_MULTIPLIER))
+        ticks = 400
         while eu > 32 and all(x[3] > 1 for group in groups for x in group):
             groups = [[(*x[:3], (x[3] + 1) // 2) for x in group] for group in groups]
             eu = max(32, (eu + 3) // 4); ticks *= 4
         recipes.append((str(idx), groups, eu, ticks, None))
     for name, *parts in EXTRA:
         raw_groups, eu, ticks, circuit = parts[:4], parts[4], parts[5], parts[6]
-        ticks = max(1, int(ticks * SOURCE_DURATION_MULTIPLIER))
         groups = [[amount(e) for e in group] for group in raw_groups]
         if any(x[3] == 1 for group in groups for x in group): raise ValueError(name + ' cannot be halved')
         while eu > 32 and all(x[3] == 0 or x[3] > 1 for group in groups for x in group):

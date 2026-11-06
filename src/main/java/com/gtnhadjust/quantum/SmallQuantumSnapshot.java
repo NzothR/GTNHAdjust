@@ -44,9 +44,9 @@ final class SmallQuantumSnapshot {
                     WerkstoffLoader.Ruthenium.get(OrePrefixes.dust, 2))
                 .outputChances(chances(6, 1666))
                 .fluidOutputChances(chances(0, 1666))
-                .duration(40960)
+                .duration(409600)
                 .eut(480),
-            40960,
+            409600,
             "0");
         // QFT source recipe 1; fixed output chance 3333/10000.
         add(
@@ -58,9 +58,9 @@ final class SmallQuantumSnapshot {
                     WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.dust, 2))
                 .outputChances(chances(3, 3333))
                 .fluidOutputChances(chances(0, 3333))
-                .duration(40960)
+                .duration(409600)
                 .eut(480),
-            40960,
+            409600,
             "1");
         // QFT source recipe 2; fixed output chance 3333/10000.
         add(
@@ -72,9 +72,9 @@ final class SmallQuantumSnapshot {
                     Materials.Osmiridium.getDust(2))
                 .outputChances(chances(3, 3333))
                 .fluidOutputChances(chances(0, 3333))
-                .duration(40960)
+                .duration(409600)
                 .eut(480),
-            40960,
+            409600,
             "2");
         // QFT source recipe 3; fixed output chance 3333/10000.
         add(
@@ -83,9 +83,9 @@ final class SmallQuantumSnapshot {
                 .itemOutputs(Materials.Osmium.getDust(2), Materials.Iridium.getDust(2), Materials.Osmiridium.getDust(2))
                 .outputChances(chances(3, 3333))
                 .fluidOutputChances(chances(0, 3333))
-                .duration(40960)
+                .duration(409600)
                 .eut(480),
-            40960,
+            409600,
             "3");
         // QFT source recipe 4; fixed output chance 2500/10000.
         add(
@@ -98,9 +98,9 @@ final class SmallQuantumSnapshot {
                     WerkstoffLoader.RhodiumPlatedPalladium.get(OrePrefixes.dust, 2))
                 .outputChances(chances(4, 2500))
                 .fluidOutputChances(chances(0, 2500))
-                .duration(40960)
+                .duration(409600)
                 .eut(480),
-            40960,
+            409600,
             "4");
         // QFT source recipe 5; fixed output chance 2500/10000.
         add(
@@ -113,9 +113,9 @@ final class SmallQuantumSnapshot {
                     WerkstoffLoader.Ruthenium.get(OrePrefixes.dust, 2))
                 .outputChances(chances(4, 2500))
                 .fluidOutputChances(chances(0, 2500))
-                .duration(40960)
+                .duration(409600)
                 .eut(480),
-            40960,
+            409600,
             "5");
         // QFT source recipe 6; fixed output chance 1666/10000.
         add(
@@ -135,9 +135,9 @@ final class SmallQuantumSnapshot {
                     Materials.Polybenzimidazole.getMolten(144))
                 .outputChances(chances(0, 1666))
                 .fluidOutputChances(chances(6, 1666))
-                .duration(163840)
+                .duration(1638400)
                 .eut(32),
-            163840,
+            1638400,
             "6");
         // QFT source recipe 7; fixed output chance 2500/10000.
         add(
@@ -154,9 +154,9 @@ final class SmallQuantumSnapshot {
                     Materials.Rubber.getMolten(1152))
                 .outputChances(chances(0, 2500))
                 .fluidOutputChances(chances(4, 2500))
-                .duration(40960)
+                .duration(409600)
                 .eut(120),
-            40960,
+            409600,
             "7");
         // QFT source recipe 9; fixed output chance 2500/10000.
         add(
@@ -169,9 +169,9 @@ final class SmallQuantumSnapshot {
                     Materials.Indium.getDust(4))
                 .outputChances(chances(4, 2500))
                 .fluidOutputChances(chances(0, 2500))
-                .duration(10240)
+                .duration(102400)
                 .eut(1920),
-            10240,
+            102400,
             "9");
         // QFT source recipe 10; fixed output chance 1666/10000.
         add(
@@ -186,9 +186,9 @@ final class SmallQuantumSnapshot {
                     MaterialsElements.getInstance().HAFNIUM.getDust(4))
                 .outputChances(chances(6, 1666))
                 .fluidOutputChances(chances(0, 1666))
-                .duration(10240)
+                .duration(102400)
                 .eut(1920),
-            10240,
+            102400,
             "10");
         // QFT source recipe 11; fixed output chance 1666/10000.
         add(
@@ -203,9 +203,9 @@ final class SmallQuantumSnapshot {
                     Materials.Plutonium241.getDust(2))
                 .outputChances(chances(6, 1666))
                 .fluidOutputChances(chances(0, 1666))
-                .duration(40960)
+                .duration(409600)
                 .eut(480),
-            40960,
+            409600,
             "11");
         // QFT source recipe 13; fixed output chance 2000/10000.
         add(
@@ -219,9 +219,9 @@ final class SmallQuantumSnapshot {
                     Materials.Lanthanum.getDust(2))
                 .outputChances(chances(5, 2000))
                 .fluidOutputChances(chances(0, 2000))
-                .duration(40960)
+                .duration(409600)
                 .eut(1920),
-            40960,
+            409600,
             "13");
         // QFT source recipe 14; fixed output chance 2000/10000.
         add(
@@ -235,9 +235,9 @@ final class SmallQuantumSnapshot {
                     Materials.Lanthanum.getDust(4))
                 .outputChances(chances(5, 2000))
                 .fluidOutputChances(chances(0, 2000))
-                .duration(10240)
+                .duration(102400)
                 .eut(7680),
-            10240,
+            102400,
             "14");
         // QFT source recipe 16; fixed output chance 3333/10000.
         add(
@@ -253,9 +253,9 @@ final class SmallQuantumSnapshot {
                 .fluidOutputs(Materials.PrismaticAcid.getFluid(2000), Materials.Strontium.getMolten(144))
                 .outputChances(chances(1, 3333))
                 .fluidOutputChances(chances(2, 3333))
-                .duration(10240)
+                .duration(102400)
                 .eut(7680),
-            10240,
+            102400,
             "16");
         // QFT source recipe 17; fixed output chance 3333/10000.
         add(
@@ -270,9 +270,9 @@ final class SmallQuantumSnapshot {
                     Materials.GrowthMediumSterilized.getFluid(16000))
                 .outputChances(chances(1, 3333))
                 .fluidOutputChances(chances(2, 3333))
-                .duration(40960)
+                .duration(409600)
                 .eut(7680),
-            40960,
+            409600,
             "17");
         // QFT source recipe 18; fixed output chance 2500/10000.
         add(
@@ -286,9 +286,9 @@ final class SmallQuantumSnapshot {
                     Materials.Kevlar.getMolten(288))
                 .outputChances(chances(0, 2500))
                 .fluidOutputChances(chances(4, 2500))
-                .duration(40960)
+                .duration(409600)
                 .eut(30720),
-            40960,
+            409600,
             "18");
         // QFT source recipe 19; fixed output chance 3333/10000.
         add(
@@ -301,9 +301,9 @@ final class SmallQuantumSnapshot {
                     Materials.Kevlar.getMolten(288))
                 .outputChances(chances(0, 3333))
                 .fluidOutputChances(chances(3, 3333))
-                .duration(40960)
+                .duration(409600)
                 .eut(30720),
-            40960,
+            409600,
             "19");
         // QFT source recipe 20; fixed output chance 2500/10000.
         add(
@@ -320,9 +320,9 @@ final class SmallQuantumSnapshot {
                     Materials.Platinum.getMolten(1152))
                 .outputChances(chances(0, 2500))
                 .fluidOutputChances(chances(4, 2500))
-                .duration(40960)
+                .duration(409600)
                 .eut(480),
-            40960,
+            409600,
             "20");
         // QFT source recipe 21; fixed output chance 2500/10000.
         add(
@@ -335,9 +335,9 @@ final class SmallQuantumSnapshot {
                     Materials.BioMediumRaw.getFluid(128000))
                 .outputChances(chances(1, 2500))
                 .fluidOutputChances(chances(3, 2500))
-                .duration(640)
+                .duration(6400)
                 .eut(1966080),
-            640,
+            6400,
             "21");
         // QFT source recipe 22; fixed output chance 2500/10000.
         add(
@@ -352,9 +352,9 @@ final class SmallQuantumSnapshot {
                     WerkstoffMaterialPool.Iodine.getFluidOrGas(4000))
                 .outputChances(chances(2, 2500))
                 .fluidOutputChances(chances(2, 2500))
-                .duration(10240)
+                .duration(102400)
                 .eut(122880),
-            10240,
+            102400,
             "22");
         // QFT source recipe CropsNH; fixed output chance 3333/10000.
         add(
@@ -369,9 +369,9 @@ final class SmallQuantumSnapshot {
                     Materials.Iridium.getMolten(144))
                 .outputChances(chances(0, 3333))
                 .fluidOutputChances(chances(3, 3333))
-                .duration(163840)
+                .duration(1638400)
                 .eut(120),
-            163840,
+            1638400,
             "CropsNH");
         // QFT source recipe GTNL; fixed output chance 2500/10000.
         add(
@@ -387,9 +387,9 @@ final class SmallQuantumSnapshot {
                     Materials.Indium.getDust(4))
                 .outputChances(chances(4, 2500))
                 .fluidOutputChances(chances(0, 2500))
-                .duration(10240)
+                .duration(102400)
                 .eut(1920),
-            10240,
+            102400,
             "GTNL");
         // QFT source recipe GTRH-water-1; fixed output chance 2500/10000.
         add(
@@ -403,9 +403,9 @@ final class SmallQuantumSnapshot {
                 .circuit(1)
                 .outputChances(chances(0, 2500))
                 .fluidOutputChances(chances(4, 2500))
-                .duration(2621440)
+                .duration(26214400)
                 .eut(32),
-            2621440,
+            26214400,
             "GTRH-water-1");
         // QFT source recipe GTRH-water-2; fixed output chance 2500/10000.
         add(
@@ -419,9 +419,9 @@ final class SmallQuantumSnapshot {
                 .circuit(2)
                 .outputChances(chances(0, 2500))
                 .fluidOutputChances(chances(4, 2500))
-                .duration(41943040)
+                .duration(419430400)
                 .eut(32),
-            41943040,
+            419430400,
             "GTRH-water-2");
         // QFT source recipe TST; fixed output chance 2000/10000.
         add(
@@ -435,9 +435,9 @@ final class SmallQuantumSnapshot {
                     WerkstoffLoader.Thorium232.get(OrePrefixes.dust, 2))
                 .outputChances(chances(5, 2000))
                 .fluidOutputChances(chances(0, 2000))
-                .duration(40960)
+                .duration(409600)
                 .eut(1920),
-            40960,
+            409600,
             "TST");
         // QFT source recipe OTH-machines; fixed output chance 1250/10000.
         add(
@@ -460,9 +460,9 @@ final class SmallQuantumSnapshot {
                     FluidRegistry.getFluidStack("mud.red.slurry", 119989))
                 .outputChances(chances(6, 1250))
                 .fluidOutputChances(chances(2, 1250))
-                .duration(3072)
+                .duration(31488)
                 .eut(480950),
-            3072,
+            31488,
             "OTH-machines");
         // QFT source recipe OTH-wood; fixed output chance 5000/10000.
         add(
@@ -475,9 +475,9 @@ final class SmallQuantumSnapshot {
                 .itemOutputs(Materials.IronWood.getDust(1), Materials.Steeleaf.getDust(1))
                 .outputChances(chances(2, 5000))
                 .fluidOutputChances(chances(0, 5000))
-                .duration(45056)
+                .duration(466944)
                 .eut(30060),
-            45056,
+            466944,
             "OTH-wood");
     }
 

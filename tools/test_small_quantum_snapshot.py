@@ -18,7 +18,7 @@ class SnapshotTest(unittest.TestCase):
         source = written[0]
         self.assertEqual(source.count('// QFT source recipe '), 27)
         self.assertIn('PTMetallicPowder.get(OrePrefixes.dust, 1)', source)
-        self.assertIn('.duration(40960).eut(480)', source)
+        self.assertIn('.duration(409600).eut(480)', source)
         self.assertIn('.outputChances(chances(6, 1666))', source)
         self.assertIn('copyAmountUnsafe(512, ItemList.Circuit_Chip_Biocell.get(1))', source)
         self.assertIn('copyAmountUnsafe(128, getModItem(GalaxySpace.ID', source)
