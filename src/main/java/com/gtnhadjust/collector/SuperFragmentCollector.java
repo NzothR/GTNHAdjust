@@ -119,9 +119,8 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     public void collectTooltipStructureRequirements(List<StructureError> errors) {
         checkHatchMin(errors, InputBus, 1);
         checkHatchMin(errors, OutputBus, 1);
-        checkHatchMin(errors, InputHatch, 1);
         checkHatchMin(errors, OutputHatch, 1);
-        checkExoticAndNormalEnergyHatches(errors);
+        if (mEnergyHatches.isEmpty() && mExoticEnergyHatches.isEmpty()) checkHatchMin(errors, Energy, 1);
         if (shouldCheckMaintenance()) checkHatchMin(errors, Maintenance, 1);
     }
 
@@ -157,7 +156,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             .addCasing("其余外壳", "洁净不锈钢机械方块", false)
             .addInputBus("1+", "任意外壳", 1)
             .addOutputBus("1+", "任意外壳", 1)
-            .addInputHatch("1+", "任意外壳", 1)
+            .addInputHatch("0+", "任意外壳；暮色森林特殊配方需要", 1)
             .addOutputHatch("1+", "任意外壳", 1)
             .addEnergyHatch("1+", "任意外壳", 1)
             .addMaintenanceHatch("1+", "任意外壳", 1)
