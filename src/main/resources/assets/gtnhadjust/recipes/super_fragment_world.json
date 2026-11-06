@@ -1,0 +1,4726 @@
+{
+  "source": "GT-Never-Reset 0.1.29",
+  "recipes": [
+    {
+      "dimension": "DimensionOverworld",
+      "mode": "items",
+      "duration": 4363,
+      "eut": 192,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "BrownLimonite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "YellowLimonite",
+          "meta": 0,
+          "amount": 24,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "BandedIron",
+          "meta": 0,
+          "amount": 24,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Malachite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "block",
+          "name": "stone",
+          "meta": 0,
+          "amount": 704,
+          "chance": 10000
+        },
+        {
+          "kind": "dust",
+          "name": "Stone",
+          "meta": 0,
+          "amount": 704,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "Deepslate",
+          "meta": 0,
+          "amount": 704,
+          "chance": 10000
+        },
+        {
+          "kind": "stoneDust",
+          "name": "Deepslate",
+          "meta": 0,
+          "amount": 704,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Soapstone",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Talc",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "GlauconiteSand",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pentlandite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Grossular",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Spessartine",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrolusite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Tantalite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Chalcopyrite",
+          "meta": 0,
+          "amount": 128,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Zeolite",
+          "meta": 0,
+          "amount": 24,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Cassiterite",
+          "meta": 0,
+          "amount": 72,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Realgar",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Iron",
+          "meta": 0,
+          "amount": 24,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrite",
+          "meta": 0,
+          "amount": 24,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Copper",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Galena",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Silver",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Lead",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Tin",
+          "meta": 0,
+          "amount": 80,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Redstone",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Ruby",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Cinnabar",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Apatite",
+          "meta": 0,
+          "amount": 80,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "TricalciumPhosphate",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Graphite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Diamond",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Coal",
+          "meta": 0,
+          "amount": 144,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Garnierite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Nickel",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Cobaltite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Bentonite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Magnetite",
+          "meta": 0,
+          "amount": 96,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Olivine",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Almandine",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrope",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sapphire",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "GreenSapphire",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "VanadiumMagnetite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Gold",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Lazurite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sodalite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Lapis",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Calcite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Kyanite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Mica",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pollucite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "GarnetRed",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "GarnetYellow",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Amethyst",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Opal",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "BasalticMineralSand",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "GraniticMineralSand",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "FullersEarth",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Gypsum",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "RockSalt",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Salt",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Lepidolite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Spodumene",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "CassiteriteSand",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "GarnetSand",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Asbestos",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Diatomite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Oilsands",
+          "meta": 0,
+          "amount": 128,
+          "chance": 10000
+        },
+        {
+          "kind": "block",
+          "name": "dirt",
+          "meta": 0,
+          "amount": 16,
+          "chance": 6000
+        },
+        {
+          "kind": "block",
+          "name": "gravel",
+          "meta": 0,
+          "amount": 16,
+          "chance": 4000
+        },
+        {
+          "kind": "block",
+          "name": "sand",
+          "meta": 0,
+          "amount": 16,
+          "chance": 3000
+        },
+        {
+          "kind": "item",
+          "name": "clay_ball",
+          "meta": 0,
+          "amount": 64,
+          "chance": 2000
+        },
+        {
+          "kind": "block",
+          "name": "sapling",
+          "meta": 0,
+          "amount": 8,
+          "chance": 2000
+        },
+        {
+          "kind": "block",
+          "name": "sapling",
+          "meta": 1,
+          "amount": 8,
+          "chance": 2000
+        },
+        {
+          "kind": "block",
+          "name": "sapling",
+          "meta": 2,
+          "amount": 8,
+          "chance": 2000
+        },
+        {
+          "kind": "block",
+          "name": "sapling",
+          "meta": 3,
+          "amount": 8,
+          "chance": 2000
+        },
+        {
+          "kind": "mod",
+          "name": "CherrySapling",
+          "meta": 0,
+          "amount": 8,
+          "chance": 2000
+        },
+        {
+          "kind": "mod",
+          "name": "MangrovePropagule",
+          "meta": 0,
+          "amount": 8,
+          "chance": 2000
+        },
+        {
+          "kind": "item",
+          "name": "reeds",
+          "meta": 0,
+          "amount": 8,
+          "chance": 2000
+        },
+        {
+          "kind": "item",
+          "name": "leather",
+          "meta": 0,
+          "amount": 4,
+          "chance": 500
+        },
+        {
+          "kind": "item",
+          "name": "string",
+          "meta": 0,
+          "amount": 8,
+          "chance": 500
+        },
+        {
+          "kind": "ic2",
+          "name": "rubberSapling",
+          "meta": 0,
+          "amount": 4,
+          "chance": 1000
+        },
+        {
+          "kind": "mod",
+          "name": "Honeycomb",
+          "meta": 0,
+          "amount": 1,
+          "chance": 2000
+        },
+        {
+          "kind": "mod",
+          "name": "TotemOfUndying",
+          "meta": 0,
+          "amount": 1,
+          "chance": 10
+        },
+        {
+          "kind": "block",
+          "name": "soul_sand",
+          "meta": 0,
+          "amount": 4,
+          "chance": 5
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionOverworld",
+          "meta": 0,
+          "amount": 24,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "lava",
+          "amount": 1000,
+          "chance": 500
+        },
+        {
+          "name": "RawOil",
+          "amount": 1000,
+          "chance": 2000
+        }
+      ],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionOverworld",
+      "mode": "fluids",
+      "drill": "Steel",
+      "drillChance": 100,
+      "duration": 1200,
+      "eut": 48,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionOverworld",
+          "meta": 0,
+          "amount": 6,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "SaltWater",
+          "amount": 1000,
+          "chance": 10000
+        },
+        {
+          "name": "OilHeavy",
+          "amount": 2000,
+          "chance": 10000
+        },
+        {
+          "name": "RawOil",
+          "amount": 3000,
+          "chance": 10000
+        },
+        {
+          "name": "Oil",
+          "amount": 3000,
+          "chance": 10000
+        },
+        {
+          "name": "OilLight",
+          "amount": 3000,
+          "chance": 10000
+        },
+        {
+          "name": "NaturalGas",
+          "amount": 1750,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionOverworld",
+      "mode": "fluids",
+      "drill": "Titanium",
+      "drillChance": 90,
+      "duration": 1200,
+      "eut": 48,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionOverworld",
+          "meta": 0,
+          "amount": 6,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "SaltWater",
+          "amount": 16000,
+          "chance": 10000
+        },
+        {
+          "name": "OilHeavy",
+          "amount": 32000,
+          "chance": 10000
+        },
+        {
+          "name": "RawOil",
+          "amount": 48000,
+          "chance": 10000
+        },
+        {
+          "name": "Oil",
+          "amount": 48000,
+          "chance": 10000
+        },
+        {
+          "name": "OilLight",
+          "amount": 48000,
+          "chance": 10000
+        },
+        {
+          "name": "NaturalGas",
+          "amount": 28000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionOverworld",
+      "mode": "fluids",
+      "drill": "NaquadahAlloy",
+      "drillChance": 80,
+      "duration": 1200,
+      "eut": 48,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionOverworld",
+          "meta": 0,
+          "amount": 6,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "SaltWater",
+          "amount": 128000,
+          "chance": 10000
+        },
+        {
+          "name": "OilHeavy",
+          "amount": 256000,
+          "chance": 10000
+        },
+        {
+          "name": "RawOil",
+          "amount": 384000,
+          "chance": 10000
+        },
+        {
+          "name": "Oil",
+          "amount": 384000,
+          "chance": 10000
+        },
+        {
+          "name": "OilLight",
+          "amount": 384000,
+          "chance": 10000
+        },
+        {
+          "name": "NaturalGas",
+          "amount": 224000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionOverworld",
+      "mode": "fluids",
+      "drill": "Neutronium",
+      "drillChance": 70,
+      "duration": 1200,
+      "eut": 48,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionOverworld",
+          "meta": 0,
+          "amount": 6,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "SaltWater",
+          "amount": 1024000,
+          "chance": 10000
+        },
+        {
+          "name": "OilHeavy",
+          "amount": 2048000,
+          "chance": 10000
+        },
+        {
+          "name": "RawOil",
+          "amount": 3072000,
+          "chance": 10000
+        },
+        {
+          "name": "Oil",
+          "amount": 3072000,
+          "chance": 10000
+        },
+        {
+          "name": "OilLight",
+          "amount": 3072000,
+          "chance": 10000
+        },
+        {
+          "name": "NaturalGas",
+          "amount": 1792000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionOverworld",
+      "mode": "fluids",
+      "drill": "Infinity",
+      "drillChance": 60,
+      "duration": 1200,
+      "eut": 48,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionOverworld",
+          "meta": 0,
+          "amount": 6,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "SaltWater",
+          "amount": 2147483647,
+          "chance": 10000
+        },
+        {
+          "name": "OilHeavy",
+          "amount": 2147483647,
+          "chance": 10000
+        },
+        {
+          "name": "RawOil",
+          "amount": 2147483647,
+          "chance": 10000
+        },
+        {
+          "name": "Oil",
+          "amount": 2147483647,
+          "chance": 10000
+        },
+        {
+          "name": "OilLight",
+          "amount": 2147483647,
+          "chance": 10000
+        },
+        {
+          "name": "NaturalGas",
+          "amount": 2147483647,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionNether",
+      "mode": "items",
+      "duration": 2141,
+      "eut": 104,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "Bastnasite",
+          "meta": 0,
+          "amount": 72,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Monazite",
+          "meta": 0,
+          "amount": 28,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Neodymium",
+          "meta": 0,
+          "amount": 28,
+          "chance": 10000
+        },
+        {
+          "kind": "block",
+          "name": "netherrack",
+          "meta": 0,
+          "amount": 384,
+          "chance": 10000
+        },
+        {
+          "kind": "dust",
+          "name": "Netherrack",
+          "meta": 0,
+          "amount": 384,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "Basalt",
+          "meta": 0,
+          "amount": 384,
+          "chance": 10000
+        },
+        {
+          "kind": "dust",
+          "name": "Basalt",
+          "meta": 0,
+          "amount": 384,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Redstone",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Ruby",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Cinnabar",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Saltpeter",
+          "meta": 0,
+          "amount": 36,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Diatomite",
+          "meta": 0,
+          "amount": 36,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Electrotine",
+          "meta": 0,
+          "amount": 36,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Alunite",
+          "meta": 0,
+          "amount": 20,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Beryllium",
+          "meta": 0,
+          "amount": 76,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Emerald",
+          "meta": 0,
+          "amount": 52,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Grossular",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrolusite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Tantalite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Wulfenite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Molybdenite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Molybdenum",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Powellite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Quartzite",
+          "meta": 0,
+          "amount": 96,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "CertusQuartz",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Barite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Tetrahedrite",
+          "meta": 0,
+          "amount": 72,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Copper",
+          "meta": 0,
+          "amount": 36,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Stibnite",
+          "meta": 0,
+          "amount": 20,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "BrownLimonite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "YellowLimonite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "BandedIron",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Gold",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "BlueTopaz",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Topaz",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Chalcocite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Bornite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "NetherQuartz",
+          "meta": 0,
+          "amount": 96,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sulfur",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sphalerite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "block",
+          "name": "soul_sand",
+          "meta": 0,
+          "amount": 16,
+          "chance": 6000
+        },
+        {
+          "kind": "mod",
+          "name": "SoulSoil",
+          "meta": 0,
+          "amount": 16,
+          "chance": 3000
+        },
+        {
+          "kind": "mod",
+          "name": "AncientDebris",
+          "meta": 0,
+          "amount": 4,
+          "chance": 500
+        },
+        {
+          "kind": "mod",
+          "name": "CrimsonFungus",
+          "meta": 0,
+          "amount": 8,
+          "chance": 2000
+        },
+        {
+          "kind": "mod",
+          "name": "WarpedFungus",
+          "meta": 0,
+          "amount": 8,
+          "chance": 2000
+        },
+        {
+          "kind": "item",
+          "name": "nether_wart",
+          "meta": 0,
+          "amount": 12,
+          "chance": 200
+        },
+        {
+          "kind": "item",
+          "name": "blaze_rod",
+          "meta": 0,
+          "amount": 8,
+          "chance": 500
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionNether",
+          "meta": 0,
+          "amount": 13,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "lava",
+          "amount": 8000,
+          "chance": 5000
+        }
+      ],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionNether",
+      "mode": "fluids",
+      "drill": "Steel",
+      "drillChance": 100,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionNether",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Lava",
+          "amount": 2500,
+          "chance": 10000
+        },
+        {
+          "name": "NaturalGas",
+          "amount": 3000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionNether",
+      "mode": "fluids",
+      "drill": "Titanium",
+      "drillChance": 90,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionNether",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Lava",
+          "amount": 40000,
+          "chance": 10000
+        },
+        {
+          "name": "NaturalGas",
+          "amount": 48000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionNether",
+      "mode": "fluids",
+      "drill": "NaquadahAlloy",
+      "drillChance": 80,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionNether",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Lava",
+          "amount": 320000,
+          "chance": 10000
+        },
+        {
+          "name": "NaturalGas",
+          "amount": 384000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionNether",
+      "mode": "fluids",
+      "drill": "Neutronium",
+      "drillChance": 70,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionNether",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Lava",
+          "amount": 2560000,
+          "chance": 10000
+        },
+        {
+          "name": "NaturalGas",
+          "amount": 3072000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionNether",
+      "mode": "fluids",
+      "drill": "Infinity",
+      "drillChance": 60,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionNether",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Lava",
+          "amount": 2147483647,
+          "chance": 10000
+        },
+        {
+          "name": "NaturalGas",
+          "amount": 2147483647,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionEnd",
+      "mode": "items",
+      "duration": 1731,
+      "eut": 56,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "Naquadah",
+          "meta": 0,
+          "amount": 96,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Plutonium",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "block",
+          "name": "end_stone",
+          "meta": 0,
+          "amount": 384,
+          "chance": 10000
+        },
+        {
+          "kind": "dust",
+          "name": "Endstone",
+          "meta": 0,
+          "amount": 384,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Magnetite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "VanadiumMagnetite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Gold",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Scheelite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Tungstate",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Lithium",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Bauxite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Ilmenite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Aluminium",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Bornite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Cooperite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Platinum",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Palladium",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pitchblende",
+          "meta": 0,
+          "amount": 80,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Uraninite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "block",
+          "name": "dragon_egg",
+          "meta": 0,
+          "amount": 1,
+          "chance": 5
+        },
+        {
+          "kind": "mod",
+          "name": "DragonBreath",
+          "meta": 0,
+          "amount": 1,
+          "chance": 500
+        },
+        {
+          "kind": "mod",
+          "name": "ShulkerShell",
+          "meta": 0,
+          "amount": 8,
+          "chance": 2000
+        },
+        {
+          "kind": "mod",
+          "name": "ChorusFruit",
+          "meta": 0,
+          "amount": 16,
+          "chance": 4000
+        },
+        {
+          "kind": "mod",
+          "name": "ChorusFlower",
+          "meta": 0,
+          "amount": 1,
+          "chance": 500
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionEnd",
+          "meta": 0,
+          "amount": 7,
+          "chance": 50
+        }
+      ],
+      "fluids": [],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionTwilight",
+      "mode": "items",
+      "duration": 2024,
+      "eut": 80,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "BlueTopaz",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Topaz",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "Diorite",
+          "meta": 0,
+          "amount": 528,
+          "chance": 10000
+        },
+        {
+          "kind": "oreDust",
+          "name": "Diorite",
+          "meta": 0,
+          "amount": 512,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "NetherQuartz",
+          "meta": 0,
+          "amount": 52,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Barite",
+          "meta": 0,
+          "amount": 54,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Quartzite",
+          "meta": 0,
+          "amount": 102,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Beryllium",
+          "meta": 0,
+          "amount": 76,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Emerald",
+          "meta": 0,
+          "amount": 52,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Saltpeter",
+          "meta": 0,
+          "amount": 36,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Diatomite",
+          "meta": 0,
+          "amount": 36,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Electrotine",
+          "meta": 0,
+          "amount": 36,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Alunite",
+          "meta": 0,
+          "amount": 20,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "CertusQuartz",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sulfur",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sphalerite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Copper",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Stibnite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Wulfenite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Molybdenite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Molybdenum",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Powellite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "block",
+          "name": "dirt",
+          "meta": 0,
+          "amount": 16,
+          "chance": 6000
+        },
+        {
+          "kind": "block",
+          "name": "sand",
+          "meta": 0,
+          "amount": 16,
+          "chance": 6000
+        },
+        {
+          "kind": "block",
+          "name": "gravel",
+          "meta": 0,
+          "amount": 16,
+          "chance": 6000
+        },
+        {
+          "kind": "mod",
+          "name": "Andesite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 6000
+        },
+        {
+          "kind": "mod",
+          "name": "Granite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 6000
+        },
+        {
+          "kind": "mod",
+          "name": "RedGranite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 6000
+        },
+        {
+          "kind": "mod",
+          "name": "Marble",
+          "meta": 0,
+          "amount": 16,
+          "chance": 6000
+        },
+        {
+          "kind": "mod",
+          "name": "SkyStone",
+          "meta": 0,
+          "amount": 16,
+          "chance": 500
+        },
+        {
+          "kind": "dust",
+          "name": "DamascusSteel",
+          "meta": 0,
+          "amount": 1,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionTwilight",
+          "meta": 0,
+          "amount": 9,
+          "chance": 50
+        }
+      ],
+      "fluids": [],
+      "extraSteelAndLubricant": true
+    },
+    {
+      "dimension": "DimensionMoon",
+      "mode": "items",
+      "duration": 560,
+      "eut": 32,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "Uraninite",
+          "meta": 0,
+          "amount": 128,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Thorium",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Plutonium",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "MoonStone",
+          "meta": 0,
+          "amount": 256,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Bauxite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Ilmenite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Aluminium",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Bastnasite",
+          "meta": 0,
+          "amount": 72,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Monazite",
+          "meta": 0,
+          "amount": 28,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Neodymium",
+          "meta": 0,
+          "amount": 28,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pitchblende",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionMoon",
+          "meta": 0,
+          "amount": 4,
+          "chance": 50
+        }
+      ],
+      "fluids": [],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionMoon",
+      "mode": "fluids",
+      "drill": "Steel",
+      "drillChance": 100,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMoon",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Helium3",
+          "amount": 1800,
+          "chance": 10000
+        },
+        {
+          "name": "Helium",
+          "amount": 3000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionMoon",
+      "mode": "fluids",
+      "drill": "Titanium",
+      "drillChance": 90,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMoon",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Helium3",
+          "amount": 28800,
+          "chance": 10000
+        },
+        {
+          "name": "Helium",
+          "amount": 48000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionMoon",
+      "mode": "fluids",
+      "drill": "NaquadahAlloy",
+      "drillChance": 80,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMoon",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Helium3",
+          "amount": 230400,
+          "chance": 10000
+        },
+        {
+          "name": "Helium",
+          "amount": 384000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionMoon",
+      "mode": "fluids",
+      "drill": "Neutronium",
+      "drillChance": 70,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMoon",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Helium3",
+          "amount": 1843200,
+          "chance": 10000
+        },
+        {
+          "name": "Helium",
+          "amount": 3072000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionMoon",
+      "mode": "fluids",
+      "drill": "Infinity",
+      "drillChance": 60,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMoon",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Helium3",
+          "amount": 2147483647,
+          "chance": 10000
+        },
+        {
+          "name": "Helium",
+          "amount": 2147483647,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionMars",
+      "mode": "items",
+      "duration": 811,
+      "eut": 24,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "Bornite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Cooperite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Platinum",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Palladium",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "MarsStone",
+          "meta": 0,
+          "amount": 192,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Scheelite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Tungstate",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Lithium",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Apatite",
+          "meta": 0,
+          "amount": 54,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "TricalciumPhosphate",
+          "meta": 0,
+          "amount": 54,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrochlore",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionMars",
+          "meta": 0,
+          "amount": 3,
+          "chance": 50
+        }
+      ],
+      "fluids": [],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionMars",
+      "mode": "fluids",
+      "drill": "Steel",
+      "drillChance": 100,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMars",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Radon",
+          "amount": 800,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionMars",
+      "mode": "fluids",
+      "drill": "Titanium",
+      "drillChance": 90,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMars",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Radon",
+          "amount": 12800,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionMars",
+      "mode": "fluids",
+      "drill": "NaquadahAlloy",
+      "drillChance": 80,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMars",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Radon",
+          "amount": 102400,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionMars",
+      "mode": "fluids",
+      "drill": "Neutronium",
+      "drillChance": 70,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMars",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Radon",
+          "amount": 819200,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionMars",
+      "mode": "fluids",
+      "drill": "Infinity",
+      "drillChance": 60,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMars",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Radon",
+          "amount": 2147483647,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionVenus",
+      "mode": "items",
+      "duration": 768,
+      "eut": 24,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "Bentonite",
+          "meta": 0,
+          "amount": 26,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Magnetite",
+          "meta": 0,
+          "amount": 26,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Olivine",
+          "meta": 0,
+          "amount": 50,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "GlauconiteSand",
+          "meta": 0,
+          "amount": 26,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "VenusRock",
+          "meta": 0,
+          "amount": 192,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sulfur",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sphalerite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Magnesite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Desh",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionVenus",
+          "meta": 0,
+          "amount": 3,
+          "chance": 50
+        }
+      ],
+      "fluids": [],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionVenus",
+      "mode": "fluids",
+      "drill": "Steel",
+      "drillChance": 100,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionVenus",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "SulfuricAcid",
+          "amount": 2500,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionVenus",
+      "mode": "fluids",
+      "drill": "Titanium",
+      "drillChance": 90,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionVenus",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "SulfuricAcid",
+          "amount": 40000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionVenus",
+      "mode": "fluids",
+      "drill": "NaquadahAlloy",
+      "drillChance": 80,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionVenus",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "SulfuricAcid",
+          "amount": 320000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionVenus",
+      "mode": "fluids",
+      "drill": "Neutronium",
+      "drillChance": 70,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionVenus",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "SulfuricAcid",
+          "amount": 2560000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionVenus",
+      "mode": "fluids",
+      "drill": "Infinity",
+      "drillChance": 60,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionVenus",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "SulfuricAcid",
+          "amount": 2147483647,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionMercury",
+      "mode": "items",
+      "duration": 440,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "Cobalt",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Calorite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Magnesite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "MercuryRock",
+          "meta": 0,
+          "amount": 128,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Garnierite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Nickel",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Cobaltite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pentlandite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionMercury",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionMercury",
+      "mode": "fluids",
+      "drill": "Steel",
+      "drillChance": 100,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMercury",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Deuterium",
+          "amount": 3000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionMercury",
+      "mode": "fluids",
+      "drill": "Titanium",
+      "drillChance": 90,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMercury",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Deuterium",
+          "amount": 48000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionMercury",
+      "mode": "fluids",
+      "drill": "NaquadahAlloy",
+      "drillChance": 80,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMercury",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Deuterium",
+          "amount": 384000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionMercury",
+      "mode": "fluids",
+      "drill": "Neutronium",
+      "drillChance": 70,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMercury",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Deuterium",
+          "amount": 3072000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionMercury",
+      "mode": "fluids",
+      "drill": "Infinity",
+      "drillChance": 60,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionMercury",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Deuterium",
+          "amount": 2147483647,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionCeres",
+      "mode": "items",
+      "duration": 1200,
+      "eut": 32,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "Quartzite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "CertusQuartz",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Barite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "CeresRock",
+          "meta": 0,
+          "amount": 256,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Wulfenite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Molybdenite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Molybdenum",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Powellite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Bastnasite",
+          "meta": 0,
+          "amount": 72,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Monazite",
+          "meta": 0,
+          "amount": 28,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Neodymium",
+          "meta": 0,
+          "amount": 28,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Gold",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Ostrum",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionCeres",
+          "meta": 0,
+          "amount": 4,
+          "chance": 50
+        }
+      ],
+      "fluids": [],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionCeres",
+      "mode": "fluids",
+      "drill": "Steel",
+      "drillChance": 100,
+      "duration": 800,
+      "eut": 32,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionCeres",
+          "meta": 0,
+          "amount": 4,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Neon",
+          "amount": 2500,
+          "chance": 10000
+        },
+        {
+          "name": "Krypton",
+          "amount": 2500,
+          "chance": 10000
+        },
+        {
+          "name": "Radon",
+          "amount": 2500,
+          "chance": 10000
+        },
+        {
+          "name": "Xenon",
+          "amount": 2500,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionCeres",
+      "mode": "fluids",
+      "drill": "Titanium",
+      "drillChance": 90,
+      "duration": 800,
+      "eut": 32,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionCeres",
+          "meta": 0,
+          "amount": 4,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Neon",
+          "amount": 40000,
+          "chance": 10000
+        },
+        {
+          "name": "Krypton",
+          "amount": 40000,
+          "chance": 10000
+        },
+        {
+          "name": "Radon",
+          "amount": 40000,
+          "chance": 10000
+        },
+        {
+          "name": "Xenon",
+          "amount": 40000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionCeres",
+      "mode": "fluids",
+      "drill": "NaquadahAlloy",
+      "drillChance": 80,
+      "duration": 800,
+      "eut": 32,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionCeres",
+          "meta": 0,
+          "amount": 4,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Neon",
+          "amount": 320000,
+          "chance": 10000
+        },
+        {
+          "name": "Krypton",
+          "amount": 320000,
+          "chance": 10000
+        },
+        {
+          "name": "Radon",
+          "amount": 320000,
+          "chance": 10000
+        },
+        {
+          "name": "Xenon",
+          "amount": 320000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionCeres",
+      "mode": "fluids",
+      "drill": "Neutronium",
+      "drillChance": 70,
+      "duration": 800,
+      "eut": 32,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionCeres",
+          "meta": 0,
+          "amount": 4,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Neon",
+          "amount": 2560000,
+          "chance": 10000
+        },
+        {
+          "name": "Krypton",
+          "amount": 2560000,
+          "chance": 10000
+        },
+        {
+          "name": "Radon",
+          "amount": 2560000,
+          "chance": 10000
+        },
+        {
+          "name": "Xenon",
+          "amount": 2560000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionCeres",
+      "mode": "fluids",
+      "drill": "Infinity",
+      "drillChance": 60,
+      "duration": 800,
+      "eut": 32,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionCeres",
+          "meta": 0,
+          "amount": 4,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Neon",
+          "amount": 2147483647,
+          "chance": 10000
+        },
+        {
+          "name": "Krypton",
+          "amount": 2147483647,
+          "chance": 10000
+        },
+        {
+          "name": "Radon",
+          "amount": 2147483647,
+          "chance": 10000
+        },
+        {
+          "name": "Xenon",
+          "amount": 2147483647,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionIo",
+      "mode": "items",
+      "duration": 728,
+      "eut": 32,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "Trona",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Cooperite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Celestine",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "IoStone",
+          "meta": 0,
+          "amount": 256,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Naquadah",
+          "meta": 0,
+          "amount": 96,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Plutonium",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Bentonite",
+          "meta": 0,
+          "amount": 26,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Magnetite",
+          "meta": 0,
+          "amount": 26,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Olivine",
+          "meta": 0,
+          "amount": 50,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "GlauconiteSand",
+          "meta": 0,
+          "amount": 26,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sulfur",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sphalerite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionIo",
+          "meta": 0,
+          "amount": 4,
+          "chance": 50
+        }
+      ],
+      "fluids": [],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionIo",
+      "mode": "fluids",
+      "drill": "Steel",
+      "drillChance": 100,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionIo",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "CoalGas",
+          "amount": 3000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionIo",
+      "mode": "fluids",
+      "drill": "Titanium",
+      "drillChance": 90,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionIo",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "CoalGas",
+          "amount": 48000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionIo",
+      "mode": "fluids",
+      "drill": "NaquadahAlloy",
+      "drillChance": 80,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionIo",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "CoalGas",
+          "amount": 384000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionIo",
+      "mode": "fluids",
+      "drill": "Neutronium",
+      "drillChance": 70,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionIo",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "CoalGas",
+          "amount": 3072000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionIo",
+      "mode": "fluids",
+      "drill": "Infinity",
+      "drillChance": 60,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionIo",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "CoalGas",
+          "amount": 2147483647,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionGanymede",
+      "mode": "items",
+      "duration": 928,
+      "eut": 40,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "BlueTopaz",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Topaz",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "GanymedeRock",
+          "meta": 0,
+          "amount": 320,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "NetherQuartz",
+          "meta": 0,
+          "amount": 52,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Barite",
+          "meta": 0,
+          "amount": 38,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Quartzite",
+          "meta": 0,
+          "amount": 38,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Bauxite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Ilmenite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Aluminium",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sulfur",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sphalerite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Zircon",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Grossular",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrolusite",
+          "meta": 0,
+          "amount": 24,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Tantalite",
+          "meta": 0,
+          "amount": 24,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionGanymede",
+          "meta": 0,
+          "amount": 5,
+          "chance": 50
+        }
+      ],
+      "fluids": [],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionGanymede",
+      "mode": "fluids",
+      "drill": "Steel",
+      "drillChance": 100,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionGanymede",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "HydrochloricAcid",
+          "amount": 3500,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionGanymede",
+      "mode": "fluids",
+      "drill": "Titanium",
+      "drillChance": 90,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionGanymede",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "HydrochloricAcid",
+          "amount": 56000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionGanymede",
+      "mode": "fluids",
+      "drill": "NaquadahAlloy",
+      "drillChance": 80,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionGanymede",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "HydrochloricAcid",
+          "amount": 448000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionGanymede",
+      "mode": "fluids",
+      "drill": "Neutronium",
+      "drillChance": 70,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionGanymede",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "HydrochloricAcid",
+          "amount": 3584000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionGanymede",
+      "mode": "fluids",
+      "drill": "Infinity",
+      "drillChance": 60,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionGanymede",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "HydrochloricAcid",
+          "amount": 2147483647,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionPluto",
+      "mode": "items",
+      "duration": 840,
+      "eut": 40,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "Uraninite",
+          "meta": 0,
+          "amount": 128,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Thorium",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Plutonium",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "PlutoStone",
+          "meta": 0,
+          "amount": 320,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Naquadah",
+          "meta": 0,
+          "amount": 96,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Copper",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Stibnite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Garnierite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Nickel",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Cobaltite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pentlandite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pitchblende",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionPluto",
+          "meta": 0,
+          "amount": 5,
+          "chance": 50
+        }
+      ],
+      "fluids": [],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionPluto",
+      "mode": "fluids",
+      "drill": "Steel",
+      "drillChance": 100,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionPluto",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "NitricAcid",
+          "amount": 3000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionPluto",
+      "mode": "fluids",
+      "drill": "Titanium",
+      "drillChance": 90,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionPluto",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "NitricAcid",
+          "amount": 48000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionPluto",
+      "mode": "fluids",
+      "drill": "NaquadahAlloy",
+      "drillChance": 80,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionPluto",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "NitricAcid",
+          "amount": 384000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionPluto",
+      "mode": "fluids",
+      "drill": "Neutronium",
+      "drillChance": 70,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionPluto",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "NitricAcid",
+          "amount": 3072000,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionPluto",
+      "mode": "fluids",
+      "drill": "Infinity",
+      "drillChance": 60,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionPluto",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "NitricAcid",
+          "amount": 2147483647,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionEnceladus",
+      "mode": "items",
+      "duration": 960,
+      "eut": 24,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "Bornite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Cooperite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Platinum",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Palladium",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "EnceladusRock",
+          "meta": 0,
+          "amount": 192,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Bentonite",
+          "meta": 0,
+          "amount": 26,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Magnetite",
+          "meta": 0,
+          "amount": 26,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Olivine",
+          "meta": 0,
+          "amount": 50,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "GlauconiteSand",
+          "meta": 0,
+          "amount": 26,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Apatite",
+          "meta": 0,
+          "amount": 54,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "TricalciumPhosphate",
+          "meta": 0,
+          "amount": 54,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrochlore",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionEnceladus",
+          "meta": 0,
+          "amount": 3,
+          "chance": 50
+        }
+      ],
+      "fluids": [],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionEnceladus",
+      "mode": "fluids",
+      "drill": "Steel",
+      "drillChance": 100,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionEnceladus",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Chlorine",
+          "amount": 4200,
+          "chance": 10000
+        },
+        {
+          "name": "Fluorine",
+          "amount": 3200,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionEnceladus",
+      "mode": "fluids",
+      "drill": "Titanium",
+      "drillChance": 90,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionEnceladus",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Chlorine",
+          "amount": 67200,
+          "chance": 10000
+        },
+        {
+          "name": "Fluorine",
+          "amount": 51200,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionEnceladus",
+      "mode": "fluids",
+      "drill": "NaquadahAlloy",
+      "drillChance": 80,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionEnceladus",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Chlorine",
+          "amount": 537600,
+          "chance": 10000
+        },
+        {
+          "name": "Fluorine",
+          "amount": 409600,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionEnceladus",
+      "mode": "fluids",
+      "drill": "Neutronium",
+      "drillChance": 70,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionEnceladus",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Chlorine",
+          "amount": 4300800,
+          "chance": 10000
+        },
+        {
+          "name": "Fluorine",
+          "amount": 3276800,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionEnceladus",
+      "mode": "fluids",
+      "drill": "Infinity",
+      "drillChance": 60,
+      "duration": 400,
+      "eut": 16,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionEnceladus",
+          "meta": 0,
+          "amount": 2,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Chlorine",
+          "amount": 2147483647,
+          "chance": 10000
+        },
+        {
+          "name": "Fluorine",
+          "amount": 2147483647,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionTitan",
+      "mode": "items",
+      "duration": 780,
+      "eut": 32,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "Saltpeter",
+          "meta": 0,
+          "amount": 36,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Diatomite",
+          "meta": 0,
+          "amount": 36,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Electrotine",
+          "meta": 0,
+          "amount": 36,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Alunite",
+          "meta": 0,
+          "amount": 20,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "TitanStone",
+          "meta": 0,
+          "amount": 256,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Zircon",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Grossular",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrolusite",
+          "meta": 0,
+          "amount": 24,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Tantalite",
+          "meta": 0,
+          "amount": 24,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Magnesite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Desh",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Uraninite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pitchblende",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Thorium",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionTitan",
+          "meta": 0,
+          "amount": 4,
+          "chance": 50
+        }
+      ],
+      "fluids": [],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionTitan",
+      "mode": "fluids",
+      "drill": "Steel",
+      "drillChance": 100,
+      "duration": 600,
+      "eut": 24,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionTitan",
+          "meta": 0,
+          "amount": 3,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Benzene",
+          "amount": 1600,
+          "chance": 10000
+        },
+        {
+          "name": "Methane",
+          "amount": 2500,
+          "chance": 10000
+        },
+        {
+          "name": "CharcoalByproducts",
+          "amount": 2600,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionTitan",
+      "mode": "fluids",
+      "drill": "Titanium",
+      "drillChance": 90,
+      "duration": 600,
+      "eut": 24,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionTitan",
+          "meta": 0,
+          "amount": 3,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Benzene",
+          "amount": 25600,
+          "chance": 10000
+        },
+        {
+          "name": "Methane",
+          "amount": 40000,
+          "chance": 10000
+        },
+        {
+          "name": "CharcoalByproducts",
+          "amount": 41600,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionTitan",
+      "mode": "fluids",
+      "drill": "NaquadahAlloy",
+      "drillChance": 80,
+      "duration": 600,
+      "eut": 24,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionTitan",
+          "meta": 0,
+          "amount": 3,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Benzene",
+          "amount": 204800,
+          "chance": 10000
+        },
+        {
+          "name": "Methane",
+          "amount": 320000,
+          "chance": 10000
+        },
+        {
+          "name": "CharcoalByproducts",
+          "amount": 332800,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionTitan",
+      "mode": "fluids",
+      "drill": "Neutronium",
+      "drillChance": 70,
+      "duration": 600,
+      "eut": 24,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionTitan",
+          "meta": 0,
+          "amount": 3,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Benzene",
+          "amount": 1638400,
+          "chance": 10000
+        },
+        {
+          "name": "Methane",
+          "amount": 2560000,
+          "chance": 10000
+        },
+        {
+          "name": "CharcoalByproducts",
+          "amount": 2662400,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionTitan",
+      "mode": "fluids",
+      "drill": "Infinity",
+      "drillChance": 60,
+      "duration": 600,
+      "eut": 24,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionTitan",
+          "meta": 0,
+          "amount": 3,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "Benzene",
+          "amount": 2147483647,
+          "chance": 10000
+        },
+        {
+          "name": "Methane",
+          "amount": 2147483647,
+          "chance": 10000
+        },
+        {
+          "name": "CharcoalByproducts",
+          "amount": 2147483647,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionTriton",
+      "mode": "items",
+      "duration": 2179,
+      "eut": 80,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "Saltpeter",
+          "meta": 0,
+          "amount": 36,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Diatomite",
+          "meta": 0,
+          "amount": 36,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Electrotine",
+          "meta": 0,
+          "amount": 36,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Alunite",
+          "meta": 0,
+          "amount": 20,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "TritonStone",
+          "meta": 0,
+          "amount": 576,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sulfur",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sphalerite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Wulfenite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Molybdenite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Molybdenum",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Powellite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Trona",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Cooperite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Celestine",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Bastnasite",
+          "meta": 0,
+          "amount": 72,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Monazite",
+          "meta": 0,
+          "amount": 28,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Neodymium",
+          "meta": 0,
+          "amount": 28,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Bornite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Platinum",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Palladium",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Scheelite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Tungstate",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Lithium",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Cobalt",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Calorite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Magnesite",
+          "meta": 0,
+          "amount": 32,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Gold",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Ostrum",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "dust",
+          "name": "Ice",
+          "meta": 0,
+          "amount": 1,
+          "chance": 9500
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionTriton",
+          "meta": 0,
+          "amount": 10,
+          "chance": 50
+        }
+      ],
+      "fluids": [],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionBarnardC",
+      "mode": "items",
+      "duration": 1439,
+      "eut": 64,
+      "outputs": [
+        {
+          "kind": "ore",
+          "name": "Uraninite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Thorium",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Plutonium",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "block",
+          "name": "stone",
+          "meta": 0,
+          "amount": 448,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "BlueTopaz",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Topaz",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Quartzite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "CertusQuartz",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Barite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Naquadah",
+          "meta": 0,
+          "amount": 96,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Scheelite",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Tungstate",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Lithium",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sulfur",
+          "meta": 0,
+          "amount": 64,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrite",
+          "meta": 0,
+          "amount": 48,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Sphalerite",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Apatite",
+          "meta": 0,
+          "amount": 54,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "TricalciumPhosphate",
+          "meta": 0,
+          "amount": 54,
+          "chance": 10000
+        },
+        {
+          "kind": "ore",
+          "name": "Pyrochlore",
+          "meta": 0,
+          "amount": 16,
+          "chance": 10000
+        },
+        {
+          "kind": "mod",
+          "name": "BarnardaCLog",
+          "meta": 0,
+          "amount": 1,
+          "chance": 500
+        },
+        {
+          "kind": "mod",
+          "name": "BarnardaCLeaves",
+          "meta": 0,
+          "amount": 1,
+          "chance": 9500
+        },
+        {
+          "kind": "mod",
+          "name": "DimensionBarnardC",
+          "meta": 0,
+          "amount": 8,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "BarnardaAir",
+          "amount": 16000,
+          "chance": 2000
+        }
+      ],
+      "extraSteelAndLubricant": false
+    },
+    {
+      "dimension": "DimensionBarnardC",
+      "mode": "fluids",
+      "drill": "Steel",
+      "drillChance": 100,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionBarnardC",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "UnknowWater",
+          "amount": 600,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionBarnardC",
+      "mode": "fluids",
+      "drill": "Titanium",
+      "drillChance": 90,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionBarnardC",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "UnknowWater",
+          "amount": 9600,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionBarnardC",
+      "mode": "fluids",
+      "drill": "NaquadahAlloy",
+      "drillChance": 80,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionBarnardC",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "UnknowWater",
+          "amount": 76800,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionBarnardC",
+      "mode": "fluids",
+      "drill": "Neutronium",
+      "drillChance": 70,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionBarnardC",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "UnknowWater",
+          "amount": 614400,
+          "chance": 10000
+        }
+      ]
+    },
+    {
+      "dimension": "DimensionBarnardC",
+      "mode": "fluids",
+      "drill": "Infinity",
+      "drillChance": 60,
+      "duration": 200,
+      "eut": 8,
+      "outputs": [
+        {
+          "kind": "mod",
+          "name": "DimensionBarnardC",
+          "meta": 0,
+          "amount": 1,
+          "chance": 50
+        }
+      ],
+      "fluids": [
+        {
+          "name": "UnknowWater",
+          "amount": 2147483647,
+          "chance": 10000
+        }
+      ]
+    }
+  ]
+}
