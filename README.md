@@ -43,6 +43,7 @@ cropBreeder=true
 steamGreenhouse=true
 carpenterRecipes=true
 quickTerminal=true
+terminalInventoryFix=true
 gtsrDiagnostics=true
 gtsrRecipeSpeedCompatibility=true
 patternDeduplication=true
@@ -57,6 +58,8 @@ patternDeduplication=true
 `patternDeduplication` 单独控制 GT-Never-Reset 二合一无线终端的接口去重：手动放入或自动上传时，如果目标接口已有产物种类集合相同的样板，则拒绝写入。产物的物品或流体类型及 NBT 参与比较；数量、顺序和输入材料不参与。已有样板不会被删除，其他终端和总成本身的插入规则不变。自动上传的成功或阻断原因会写入 INFO 日志、玩家聊天栏及屏幕下方提示，不依赖调试日志开关。服务端与客户端需要安装同版本并保持终端与去重开关一致。
 
 终端调整以 GT-Never-Reset 0.1.29、NEI 2.8.171、AE2 rv3-beta-1095 为基准。客户端与服务端必须安装相同版本的本模组，并将 `quickTerminal` 设置为相同值：该功能扩展了终端配方转移的数据包。旧配置文件没有该项时默认为 `true`；要关闭时手动添加 `quickTerminal=false` 并重启两端。普通 `+` 传入配方，Shift/Alt + `+` 进一步自动编码；匹配到收藏配方时优先使用收藏的材料和产物，未匹配的槽位保留 NEI 当前材料。编码后只有一个产出槽位的样板才会尝试自动上传；失败或多产出时保留在终端编码槽。自动上传使用已同步的接口名称来确定候选，由服务端验证接口和空位并写入；如果客户端尚未收到接口列表，可能找不到本地化名称的目标。接口搜索仍遵循 GT-Never-Reset 的 `fillSearchFromNeiRecipes` 设置。终端的详细调试日志可在 `config/gtnhadjust.cfg` 中的 `quickTerminal.debug` 开启，默认关闭。
+
+`terminalInventoryFix` 独立控制二合一终端的客户端库存同步及 NEI 状态修复，基于 AE2 rv3-beta-1095、NEI 2.8.171 和 NotEnoughEnergistics 1.7.50。旧配置缺省启用，添加 `terminalInventoryFix=false` 并重启客户端可彻底停用相关 Mixin；服务端无需此修复。库存状态指示复用 NotEnoughEnergistics，未安装该模组时只启用库存数据包转发。
 
 构建还需要将实例的 `NotEnoughItems-2.8.171-GTNH.jar` 和 `appliedenergistics2-rv3-beta-1095-GTNH.jar` 分别复制为 `ref/libs/nei-instance.jar` 和 `ref/libs/ae2-instance.jar`。
 

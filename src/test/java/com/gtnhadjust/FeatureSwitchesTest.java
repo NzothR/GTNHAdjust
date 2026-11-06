@@ -32,7 +32,7 @@ public class FeatureSwitchesTest {
         assertTrue(Files.isRegularFile(file));
         assertTrue(switches.carpenterRecipes);
         assertEquals(
-            10,
+            12,
             switches.selectMixins(MODS, true)
                 .size());
         assertEquals(
@@ -52,7 +52,8 @@ public class FeatureSwitchesTest {
                 "steamGreenhouse=false",
                 "carpenterRecipes=false",
                 "quickTerminal=false",
-                "patternDeduplication=false"),
+                "patternDeduplication=false",
+                "terminalInventoryFix=false"),
             StandardCharsets.ISO_8859_1);
         FeatureSwitches switches = FeatureSwitches.load(file);
         assertFalse(switches.carpenterRecipes);
@@ -75,7 +76,8 @@ public class FeatureSwitchesTest {
                 "steamGreenhouse=unexpected",
                 "carpenterRecipes=true",
                 "quickTerminal=false",
-                "patternDeduplication=false"),
+                "patternDeduplication=false",
+                "terminalInventoryFix=false"),
             StandardCharsets.ISO_8859_1);
         FeatureSwitches switches = FeatureSwitches.load(file);
         assertTrue(switches.carpenterRecipes);
@@ -88,7 +90,8 @@ public class FeatureSwitchesTest {
                 "cropBreeder=true",
                 "steamGreenhouse=false",
                 "quickTerminal=false",
-                "patternDeduplication=false"),
+                "patternDeduplication=false",
+                "terminalInventoryFix=false"),
             StandardCharsets.ISO_8859_1);
         List<String> mixins = FeatureSwitches.load(file)
             .selectMixins(MODS, true);
@@ -116,7 +119,8 @@ public class FeatureSwitchesTest {
                 "cropBreeder=false",
                 "steamGreenhouse=false",
                 "quickTerminal=true",
-                "patternDeduplication=false"),
+                "patternDeduplication=false",
+                "terminalInventoryFix=false"),
             StandardCharsets.ISO_8859_1);
         FeatureSwitches enabled = FeatureSwitches.load(file);
         assertEquals(
@@ -136,7 +140,8 @@ public class FeatureSwitchesTest {
                 "cropBreeder=false",
                 "steamGreenhouse=false",
                 "quickTerminal=false",
-                "patternDeduplication=false"),
+                "patternDeduplication=false",
+                "terminalInventoryFix=false"),
             StandardCharsets.ISO_8859_1);
         FeatureSwitches disabled = FeatureSwitches.load(file);
         assertTrue(
@@ -221,6 +226,43 @@ public class FeatureSwitchesTest {
         assertTrue(
             FeatureSwitches.load(file)
                 .selectMixins(mods, false)
+                .isEmpty());
+    }
+
+    @Test
+    public void terminalInventoryFixIsIndependentAndClientOnly() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Files.write(
+            file,
+            Arrays.asList("cropBreeder=false", "quickTerminal=false", "patternDeduplication=false"),
+            StandardCharsets.ISO_8859_1);
+        Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset", "neenergistics"));
+        FeatureSwitches enabled = FeatureSwitches.load(file);
+        assertEquals(
+            Arrays.asList(
+                "fix.QuickTerminalInventoryPacketMixin",
+                "fix.QuickTerminalRecipeScreenMixin",
+                "fix.QuickTerminalPresenceMixin"),
+            enabled.selectMixins(mods, true));
+        assertTrue(
+            enabled.selectMixins(mods, false)
+                .isEmpty());
+        mods.remove("neenergistics");
+        assertEquals(
+            Arrays.asList("fix.QuickTerminalInventoryPacketMixin", "fix.QuickTerminalRecipeScreenMixin"),
+            enabled.selectMixins(mods, true));
+        Files.write(
+            file,
+            Arrays.asList(
+                "cropBreeder=false",
+                "quickTerminal=false",
+                "patternDeduplication=false",
+                "terminalInventoryFix=false"),
+            StandardCharsets.ISO_8859_1);
+        assertTrue(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, true)
                 .isEmpty());
     }
 }

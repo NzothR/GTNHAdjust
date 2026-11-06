@@ -23,6 +23,7 @@ final class FeatureSwitches {
     private static final String GTSR_DIAGNOSTICS = "gtsrDiagnostics";
     private static final String GTSR_RECIPE_SPEED = "gtsrRecipeSpeedCompatibility";
     private static final String PATTERN_DEDUP = "patternDeduplication";
+    private static final String TERMINAL_INVENTORY_FIX = "terminalInventoryFix";
 
     final boolean cropBreeder;
     final boolean steamGreenhouse;
@@ -31,10 +32,11 @@ final class FeatureSwitches {
     final boolean gtsrDiagnostics;
     final boolean gtsrRecipeSpeedCompatibility;
     final boolean patternDeduplication;
+    final boolean terminalInventoryFix;
 
     private FeatureSwitches(boolean cropBreeder, boolean steamGreenhouse, boolean carpenterRecipes,
         boolean quickTerminal, boolean gtsrDiagnostics, boolean gtsrRecipeSpeedCompatibility,
-        boolean patternDeduplication) {
+        boolean patternDeduplication, boolean terminalInventoryFix) {
         this.cropBreeder = cropBreeder;
         this.steamGreenhouse = steamGreenhouse;
         this.carpenterRecipes = carpenterRecipes;
@@ -42,6 +44,7 @@ final class FeatureSwitches {
         this.gtsrDiagnostics = gtsrDiagnostics;
         this.gtsrRecipeSpeedCompatibility = gtsrRecipeSpeedCompatibility;
         this.patternDeduplication = patternDeduplication;
+        this.terminalInventoryFix = terminalInventoryFix;
     }
 
     static FeatureSwitches load(Path file) {
@@ -53,6 +56,7 @@ final class FeatureSwitches {
         defaults.setProperty(GTSR_DIAGNOSTICS, "true");
         defaults.setProperty(GTSR_RECIPE_SPEED, "true");
         defaults.setProperty(PATTERN_DEDUP, "true");
+        defaults.setProperty(TERMINAL_INVENTORY_FIX, "true");
         try {
             Files.createDirectories(file.getParent());
             if (!Files.exists(file)) {
@@ -75,7 +79,8 @@ final class FeatureSwitches {
                 read(values, TERMINAL),
                 read(values, GTSR_DIAGNOSTICS),
                 read(values, GTSR_RECIPE_SPEED),
-                read(values, PATTERN_DEDUP));
+                read(values, PATTERN_DEDUP),
+                read(values, TERMINAL_INVENTORY_FIX));
             LOG.info(
                 "Feature switches: cropBreeder=" + result.cropBreeder
                     + ", steamGreenhouse="
@@ -89,11 +94,13 @@ final class FeatureSwitches {
                     + ", gtsrRecipeSpeedCompatibility="
                     + result.gtsrRecipeSpeedCompatibility
                     + ", patternDeduplication="
-                    + result.patternDeduplication);
+                    + result.patternDeduplication
+                    + ", terminalInventoryFix="
+                    + result.terminalInventoryFix);
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
-            return new FeatureSwitches(false, false, false, false, false, false, false);
+            return new FeatureSwitches(false, false, false, false, false, false, false, false);
         }
     }
 
@@ -132,6 +139,11 @@ final class FeatureSwitches {
         }
         if (patternDeduplication && loadedMods.contains("gtneverreset"))
             mixins.add("terminal.TerminalPatternDedupMixin");
+        if (client && terminalInventoryFix && loadedMods.contains("gtneverreset")) {
+            mixins.add("fix.QuickTerminalInventoryPacketMixin");
+            mixins.add("fix.QuickTerminalRecipeScreenMixin");
+            if (loadedMods.contains("neenergistics")) mixins.add("fix.QuickTerminalPresenceMixin");
+        }
         return mixins;
     }
 }
