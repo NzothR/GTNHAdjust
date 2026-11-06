@@ -110,20 +110,27 @@ public abstract class QuickTerminalContainerMixin {
                 gtnhadjust$report("未自动上传：鼠标上正持有物品，请先放下；样板已保留。");
                 return;
             }
-            int duplicates = 0, rejected = 0, available = 0;
+            int rejected = 0, available = 0;
             for (long id : ids) {
                 Object tracker = tracked.get(id);
                 if (tracker == null || !Boolean.TRUE.equals(Reflection.field(tracker, "online"))
                     || !Boolean.TRUE.equals(Reflection.field(tracker, "shouldDisplay"))) continue;
                 IInventory inventory = (IInventory) Reflection.field(tracker, "patterns");
                 available++;
+                if (GTNHAdjust.patternDeduplication && PatternDuplicates.contains(
+                    inventory,
+                    -1,
+                    pattern,
+                    ((ContainerQuickEncodingTerminal) (Object) this).getPlayerInv().player.worldObj)) {
+                    gtnhadjust$report("未自动上传：目标接口已有产物种类和 NBT 完全相同的样板；样板已保留。");
+                    return;
+                }
                 int slots = Math
                     .min(((Number) Reflection.field(tracker, "numSlots")).intValue(), inventory.getSizeInventory());
                 for (int slot = 0; slot < slots; slot++) {
                     if (inventory.getStackInSlot(slot) != null) continue;
                     if (!inventory.isItemValidForSlot(slot, pattern)) {
-                        if (PatternDuplicates.isAssemblyDuplicate(inventory, slot, pattern)) duplicates++;
-                        else rejected++;
+                        rejected++;
                         continue;
                     }
                     placeEncodedPattern(new InterfacePatternTarget(id, slot));
@@ -134,8 +141,7 @@ public abstract class QuickTerminalContainerMixin {
                     }
                 }
             }
-            if (duplicates > 0) gtnhadjust$report("未自动上传：匹配的样板总成已有完全相同的样板；样板已保留。");
-            else if (rejected > 0) gtnhadjust$report("未自动上传：接口拒绝接收样板（" + rejected + " 个槽位）；样板已保留。");
+            if (rejected > 0) gtnhadjust$report("未自动上传：接口拒绝接收样板（" + rejected + " 个槽位）；样板已保留。");
             else if (available == 0) gtnhadjust$report("未自动上传：匹配的接口离线、隐藏或已失效；样板已保留。");
             else gtnhadjust$report("未自动上传：匹配接口没有空样板槽，或写入失败；样板已保留。");
         } catch (ReflectiveOperationException | RuntimeException failure) {

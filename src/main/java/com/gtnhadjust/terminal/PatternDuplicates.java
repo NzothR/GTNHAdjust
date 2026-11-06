@@ -1,34 +1,55 @@
 package com.gtnhadjust.terminal;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
 
-import com.xyp.gtneverreset.common.machine.hatch.SuperMTEHatchCraftingInputME;
+import com.gtnhadjust.GTNHAdjust;
 
 import appeng.api.implementations.ICraftingPatternItem;
+import appeng.api.networking.crafting.ICraftingPatternDetails;
+import appeng.api.storage.data.IAEStack;
 
 public final class PatternDuplicates {
 
     private PatternDuplicates() {}
 
-    public static boolean contains(IInventory inventory, int excludeSlot, ItemStack candidate) {
-        if (inventory == null || candidate == null || !(candidate.getItem() instanceof ICraftingPatternItem))
-            return false;
-        for (int i = 0; i < inventory.getSizeInventory(); i++) {
-            if (i == excludeSlot) continue;
-            ItemStack existing = inventory.getStackInSlot(i);
-            if (existing != null && existing.isItemEqual(candidate)
-                && ItemStack.areItemStackTagsEqual(existing, candidate)) return true;
+    /** Returns null when a pattern cannot be decoded; empty output sets are never considered duplicates. */
+    public static Set<NBTTagCompound> outputKinds(ItemStack pattern, World world) {
+        if (pattern == null || world == null || !(pattern.getItem() instanceof ICraftingPatternItem)) return null;
+        try {
+            ICraftingPatternDetails details = ((ICraftingPatternItem) pattern.getItem())
+                .getPatternForItem(pattern, world);
+            if (details == null || details.getAEOutputs() == null) return null;
+            Set<NBTTagCompound> kinds = new HashSet<>();
+            for (IAEStack<?> output : details.getAEOutputs()) {
+                if (output == null || output.getStackSize() <= 0) continue;
+                IAEStack<?> normalized = output.copy()
+                    .reset()
+                    .setStackSize(1);
+                kinds.add(normalized.toNBTGeneric());
+            }
+            return kinds.isEmpty() ? null : kinds;
+        } catch (RuntimeException failure) {
+            if (GTNHAdjust.terminalDebug)
+                GTNHAdjust.LOG.info("Quick terminal: could not decode pattern outputs for duplicate check", failure);
+            return null;
         }
-        return false;
     }
 
-    public static boolean isAssemblyDuplicate(IInventory inventory, int slot, ItemStack candidate) {
-        try {
-            Object source = Reflection.field(inventory, "src");
-            return source instanceof SuperMTEHatchCraftingInputME && contains(inventory, slot, candidate);
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-            return false;
+    public static boolean contains(IInventory inventory, int excludeSlot, ItemStack candidate, World world) {
+        if (inventory == null) return false;
+        Set<NBTTagCompound> wanted = outputKinds(candidate, world);
+        if (wanted == null) return false;
+        for (int i = 0; i < inventory.getSizeInventory(); i++) {
+            if (i == excludeSlot) continue;
+            Set<NBTTagCompound> existing = outputKinds(inventory.getStackInSlot(i), world);
+            if (wanted.equals(existing)) return true;
         }
+        return false;
     }
 }

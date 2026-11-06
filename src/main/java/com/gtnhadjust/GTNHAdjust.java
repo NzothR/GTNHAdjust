@@ -25,11 +25,13 @@ public class GTNHAdjust {
     public static final Logger LOG = LogManager.getLogger(MOD_ID);
     public static boolean debug;
     public static boolean terminalDebug;
+    public static boolean patternDeduplication;
     public static int steamGreenhouseMaxSeeds = 64;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        if (FeatureConfig.get().quickTerminal) TerminalNotifications.init();
+        patternDeduplication = FeatureConfig.get().patternDeduplication;
+        if (FeatureConfig.get().quickTerminal || patternDeduplication) TerminalNotifications.init();
         Configuration config = new Configuration(event.getSuggestedConfigurationFile());
         debug = config.getBoolean("debug", Configuration.CATEGORY_GENERAL, false, "Log crop breeder adjustments.");
         terminalDebug = config

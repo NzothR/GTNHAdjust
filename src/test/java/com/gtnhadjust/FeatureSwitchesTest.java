@@ -211,7 +211,7 @@ public class FeatureSwitchesTest {
             StandardCharsets.ISO_8859_1);
         Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset"));
         assertEquals(
-            Arrays.asList("terminal.PatternAssemblyDedupMixin"),
+            Arrays.asList("terminal.TerminalPatternDedupMixin"),
             FeatureSwitches.load(file)
                 .selectMixins(mods, false));
         Files.write(

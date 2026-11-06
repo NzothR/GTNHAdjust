@@ -131,7 +131,7 @@ final class FeatureSwitches {
             mixins.add("fix.GtsrRecipeMapSpeedExclusionMixin");
         }
         if (patternDeduplication && loadedMods.contains("gtneverreset"))
-            mixins.add("terminal.PatternAssemblyDedupMixin");
+            mixins.add("terminal.TerminalPatternDedupMixin");
         return mixins;
     }
 }
