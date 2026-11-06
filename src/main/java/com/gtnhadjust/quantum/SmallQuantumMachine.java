@@ -28,6 +28,7 @@ import gregtech.api.render.TextureFactory;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.common.misc.GTStructureChannels;
 import gtPlusPlus.xmod.gregtech.common.blocks.textures.TexturesGtBlock;
 
 public final class SmallQuantumMachine extends MTEExtendedPowerMultiBlockBase<SmallQuantumMachine>
@@ -176,7 +177,8 @@ public final class SmallQuantumMachine extends MTEExtendedPowerMultiBlockBase<Sm
             .addElement('B', ofBlock(GregTechAPI.sBlockCasings3, 10))
             .addElement(
                 'C',
-                ofCoil((SmallQuantumMachine t, HeatingCoilLevel level) -> { t.coil = level; }, t -> t.coil))
+                GTStructureChannels.HEATING_COIL
+                    .use(ofCoil((SmallQuantumMachine t, HeatingCoilLevel level) -> { t.coil = level; }, t -> t.coil)))
             .addElement('D', ofBlock(GregTechAPI.sBlockCasings4, 1))
             .addElement('E', chainAllGlasses(-1, (SmallQuantumMachine t, Integer tier) -> t.glass = tier, t -> t.glass))
             .addElement(
@@ -269,6 +271,9 @@ public final class SmallQuantumMachine extends MTEExtendedPowerMultiBlockBase<Sm
             .addInputBus("可选", "顶部或底部洁净不锈钢机械方块", 1)
             .addInputHatch("可选", "顶部或底部洁净不锈钢机械方块", 1)
             .addOutputHatch("可选", "顶部或底部洁净不锈钢机械方块", 1)
+            .addStructureInfo("")
+            .addSubChannel(GTStructureChannels.HEATING_COIL)
+            .addSubChannel(GTStructureChannels.BOROGLASS)
             .toolTipFinisher();
     }
 }
