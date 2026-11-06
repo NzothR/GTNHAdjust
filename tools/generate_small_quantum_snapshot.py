@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 SOURCE = Path('ref/GT5-Unofficial/src/main/java/gtPlusPlus/xmod/gregtech/loaders/recipe/RecipeLoaderChemicalSkips.java')
-TARGET = Path('src/main/java/com/gtnhadjust/quantum/SmallQuantumSnapshot.java')
+TARGET = Path('src/main/java/com/gtnhadjust/machine/quantum/SmallQuantumSnapshot.java')
 VOLTAGES = {'ZPM': 122880, 'UV': 491520, 'UHV': 1966080, 'UEV': 7864320, 'UIV': 31457280}
 
 # Static entries from the installed GTNH instance; never read these mods at game startup.
@@ -112,7 +112,7 @@ def main():
         for b, bf in keys[i+1:]:
             if (a <= b and af <= bf) or (b <= a and bf <= af):
                 raise ValueError('Potential input conflict: assign fixed circuits before generating')
-    lines = ['package com.gtnhadjust.quantum;', '',
+    lines = ['package com.gtnhadjust.machine.quantum;', '',
              'import static gregtech.api.enums.Mods.GalaxySpace;',
              'import static gregtech.api.enums.Mods.NewHorizonsCoreMod;',
              'import static gregtech.api.util.GTModHandler.getModItem;', '',

@@ -5,10 +5,10 @@ import net.minecraftforge.common.config.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.gtnhadjust.collector.SuperFragmentRecipes;
-import com.gtnhadjust.collector.SuperFragmentRegistration;
-import com.gtnhadjust.quantum.SmallQuantumRecipes;
-import com.gtnhadjust.quantum.SmallQuantumRegistration;
+import com.gtnhadjust.machine.collector.SuperFragmentRecipes;
+import com.gtnhadjust.machine.collector.SuperFragmentRegistration;
+import com.gtnhadjust.machine.quantum.SmallQuantumRecipes;
+import com.gtnhadjust.machine.quantum.SmallQuantumRegistration;
 import com.gtnhadjust.recipe.CarpenterRecipes;
 import com.gtnhadjust.terminal.TerminalNotifications;
 

@@ -10,6 +10,16 @@ Forestry 木工机配方固定注册到 GT 普通组装机配方池。数据由�
 
 配方数据随模组发布，不再读取或写入旧版本的 `GTNHAdjust-carpenter-recipes.dat` 和 `GTNHAdjust-carpenter-circuits.cfg`。新增其他模组不会自动追加木工机配方；若要更新，应重新采集并审核静态数据。输入物品或流体不可用时，启动日志会报告跳过的配方。可在本机 `general_env` 环境运行 `python tools/audit_carpenter_data.py` 检查快照内部的无序输入冲突。
 
+## 代码分类
+
+- `com.gtnhadjust.mixins`：针对其他模组的 Mixin 注入，按目标功能和修复分类。
+- `com.gtnhadjust.machine`：本模组新增的机器；`collector` 和 `quantum` 分别包含对应机器、结构及配方。
+- `com.gtnhadjust.recipe`：独立于新增机器的配方调整与配方兼容逻辑。
+- `com.gtnhadjust.terminal`：二合一终端 Mixin 使用的辅助逻辑。
+- 根包负责模组入口、配置及 Mixin 加载；`tools` 存放开发用的数据生成和校验脚本。
+
+项目仍构建为单个模组，机器注册名、数值 ID、配方池名称及资源路径保持原有值。
+
 ## 构建
 
 使用 Java 25。PowerShell 示例（将 Gradle 缓存和临时文件保留在项目目录）：

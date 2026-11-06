@@ -1,4 +1,4 @@
-package com.gtnhadjust.quantum;
+package com.gtnhadjust.machine.quantum;
 
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static gregtech.api.enums.HatchElement.*;

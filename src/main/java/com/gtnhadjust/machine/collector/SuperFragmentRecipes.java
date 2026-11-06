@@ -1,4 +1,4 @@
-package com.gtnhadjust.collector;
+package com.gtnhadjust.machine.collector;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;

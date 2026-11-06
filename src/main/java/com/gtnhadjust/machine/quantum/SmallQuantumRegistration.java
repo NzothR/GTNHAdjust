@@ -1,4 +1,4 @@
-package com.gtnhadjust.quantum;
+package com.gtnhadjust.machine.quantum;
 
 import java.util.Collection;
 

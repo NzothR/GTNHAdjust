@@ -1,4 +1,4 @@
-package com.gtnhadjust.collector;
+package com.gtnhadjust.machine.collector;
 
 import net.minecraft.item.ItemStack;
 

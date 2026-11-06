@@ -28,13 +28,13 @@ class SnapshotTest(unittest.TestCase):
         self.assertIn('Materials.Water.getFluid(40)', source)
         self.assertIn('getModItem("gregtech", "gt.blockmachines", 0, 31027)', source)
         self.assertNotIn('quantumForceTransformerRecipes', source)
-        committed = Path('src/main/java/com/gtnhadjust/quantum/SmallQuantumSnapshot.java').read_text(encoding='utf8')
+        committed = Path('src/main/java/com/gtnhadjust/machine/quantum/SmallQuantumSnapshot.java').read_text(encoding='utf8')
         normalize = lambda text: re.sub(r'\s+', '', text[text.index('static void register()'):])
         self.assertEqual(normalize(source), normalize(committed))
 
     def test_geometry_matches_original(self):
         original = Path('ref/GT5-Unofficial/src/main/java/gtPlusPlus/xmod/gregtech/common/tileentities/machines/multi/production/MTEQuantumForceTransformer.java')
-        machine = Path('src/main/java/com/gtnhadjust/quantum/SmallQuantumMachine.java')
+        machine = Path('src/main/java/com/gtnhadjust/machine/quantum/SmallQuantumMachine.java')
         def shape(path):
             source = path.read_text(encoding='utf8')
             start = source.index('new String[][]')

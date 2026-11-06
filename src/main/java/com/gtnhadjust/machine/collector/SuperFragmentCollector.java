@@ -1,4 +1,4 @@
-package com.gtnhadjust.collector;
+package com.gtnhadjust.machine.collector;
 
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
