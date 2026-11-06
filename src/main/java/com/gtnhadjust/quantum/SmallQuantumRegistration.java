@@ -11,8 +11,10 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import gregtech.api.GregTechAPI;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
+import gregtech.api.enums.OrePrefixes;
 import gregtech.api.objects.OreDictItemStack;
 import gregtech.api.recipe.RecipeMaps;
+import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe;
 import gregtech.api.util.GTRecipeBuilder;
 import gregtech.api.util.GTUtility;
@@ -36,17 +38,40 @@ public final class SmallQuantumRegistration {
 
     public static void registerCrafting() {
         Block workbench = GameRegistry.findBlock("Avaritia", "Dire_Crafting");
-        if (workbench == null) throw new IllegalStateException("Missing Avaritia Dire_Crafting block");
+        String circuitName = OrePrefixes.circuit.get(Materials.HV)
+            .toString();
+        int circuitCount = GTOreDictUnificator.getOres(circuitName)
+            .size();
+        if (workbench == null || circuitCount == 0) {
+            GTNHAdjust.LOG.error(
+                "Small quantum controller recipe unavailable: workbench={}, {} entries={}",
+                workbench != null,
+                circuitName,
+                circuitCount);
+            return;
+        }
         ItemStack circuit = GTUtility.getIntegratedCircuit(24);
+        ItemStack pump = ItemList.Electric_Pump_HV.get(64);
+        ItemStack field = ItemList.Field_Generator_MV.get(64);
+        ItemStack arm = ItemList.Robot_Arm_HV.get(64);
+        if (circuit == null || pump == null
+            || field == null
+            || arm == null
+            || controller == null
+            || Materials.StyreneButadieneRubber.getMolten(10_000_000) == null) {
+            GTNHAdjust.LOG.error(
+                "Small quantum controller recipe unavailable: circuit={}, pump={}, field={}, arm={}, controller={}, rubber={}",
+                circuit != null,
+                pump != null,
+                field != null,
+                arm != null,
+                controller != null,
+                Materials.StyreneButadieneRubber.getMolten(10_000_000) != null);
+            return;
+        }
         circuit.stackSize = 0;
         Collection<GTRecipe> recipes = GTRecipeBuilder.builder()
-            .itemInputs(
-                new OreDictItemStack("circuitHV", 64),
-                ItemList.Electric_Pump_HV.get(64),
-                ItemList.Field_Generator_MV.get(64),
-                ItemList.Robot_Arm_HV.get(64),
-                new ItemStack(workbench, 32),
-                circuit)
+            .itemInputs(new OreDictItemStack(circuitName, 64), pump, field, arm, new ItemStack(workbench, 32), circuit)
             .fluidInputs(Materials.StyreneButadieneRubber.getMolten(10_000_000))
             .itemOutputs(controller())
             .duration(1024 * 20)

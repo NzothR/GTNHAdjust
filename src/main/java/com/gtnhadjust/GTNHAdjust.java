@@ -77,7 +77,6 @@ public class GTNHAdjust {
             && Loader.isModLoaded("Avaritia")) {
             SmallQuantumRegistration.registerMachine(smallQuantumMteId);
             SmallQuantumRecipes.initialize();
-            SmallQuantumRegistration.registerCrafting();
         }
         if (Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech")) {
             SuperFragmentRegistration.registerMachine(superFragmentMteId);
@@ -88,8 +87,11 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void loadComplete(FMLLoadCompleteEvent event) {
-        if (FeatureConfig.get().smallQuantumMachine && Loader.isModLoaded("gregtech") && Loader.isModLoaded("Avaritia"))
+        if (FeatureConfig.get().smallQuantumMachine && Loader.isModLoaded("gregtech")
+            && Loader.isModLoaded("Avaritia")) {
+            SmallQuantumRegistration.registerCrafting();
             SmallQuantumRecipes.register();
+        }
         if (FeatureConfig.get().carpenterRecipes && Loader.isModLoaded("Forestry") && Loader.isModLoaded("gregtech"))
             CarpenterRecipes.register();
         if (Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech")) SuperFragmentRecipes.register();
