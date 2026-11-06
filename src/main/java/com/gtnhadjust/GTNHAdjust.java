@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.gtnhadjust.machine.collector.SuperFragmentRecipes;
 import com.gtnhadjust.machine.collector.SuperFragmentRegistration;
+import com.gtnhadjust.machine.collector.TierDimensionItem;
 import com.gtnhadjust.machine.quantum.SmallQuantumRecipes;
 import com.gtnhadjust.machine.quantum.SmallQuantumRegistration;
 import com.gtnhadjust.recipe.CarpenterRecipes;
@@ -17,6 +18,7 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.registry.GameRegistry;
 
 @Mod(
     modid = GTNHAdjust.MOD_ID,
@@ -28,7 +30,15 @@ public class GTNHAdjust {
 
     public static final String MOD_ID = "gtnhadjust";
     public static final Logger LOG = LogManager.getLogger(MOD_ID);
+    public static TierDimensionItem tierDimension;
     public static boolean debug;
+    public static boolean singularityResourceRecipes;
+    public static boolean collectorBlackHole;
+    public static int collectorRecipeTicks = 128;
+    public static int collectorBaseParallel = 64;
+    public static int collectorBaseThreads = 8;
+    public static int collectorVoltageParallelMultiplier = 2;
+    public static int collectorVoltageThreads = 4;
     public static boolean terminalDebug;
     public static boolean patternDeduplication;
     public static int steamGreenhouseMaxSeeds = 64;
@@ -46,6 +56,11 @@ public class GTNHAdjust {
             Configuration.CATEGORY_GENERAL,
             false,
             "Log detailed diagnostics for supported machines and recipe registration.");
+        singularityResourceRecipes = config.getBoolean(
+            "singularityResourceRecipes",
+            "collector",
+            true,
+            "Register GT-Not-Hard resource pools in the super fragment collector. Restart required; client and server should match.");
         terminalDebug = config
             .getBoolean("debug", "quickTerminal", false, "Log quick terminal recipe transfers and automatic uploads.");
         steamGreenhouseMaxSeeds = config.getInt(
@@ -55,6 +70,46 @@ public class GTNHAdjust {
             1,
             64,
             "Steam greenhouse maximum seed count; server setting, restart required. Remove excess seeds before lowering.");
+        collectorRecipeTicks = config.getInt(
+            "recipeDurationTicks",
+            "collector",
+            128,
+            1,
+            1000000,
+            "Collector recipe base duration in ticks (20 ticks = 1 second). Restart required; client and server must match.");
+        collectorBaseParallel = config.getInt(
+            "baseParallel",
+            "collector",
+            64,
+            1,
+            1000000,
+            "Parallel limit per thread at LV voltage and HV glass. Restart required; client and server must match.");
+        collectorBaseThreads = config.getInt(
+            "baseThreads",
+            "collector",
+            8,
+            1,
+            256,
+            "Thread limit at LV voltage and HV glass, capped at 256. Restart required; client and server must match.");
+        collectorVoltageParallelMultiplier = config.getInt(
+            "voltageParallelMultiplier",
+            "collector",
+            2,
+            1,
+            16,
+            "Multiply parallel limit by this for every voltage tier above LV. Restart required; client and server must match.");
+        collectorVoltageThreads = config.getInt(
+            "voltageThreadsPerTier",
+            "collector",
+            4,
+            0,
+            256,
+            "Additional threads per voltage tier above LV, capped at 256 total. Restart required; client and server must match.");
+        collectorBlackHole = config.getBoolean(
+            "blackHoleRendering",
+            "collector",
+            true,
+            "Render the GregTech black hole in the formed super fragment collector. Server setting; restart required.");
         superFragmentMteId = config.getInt(
             "superFragmentMteId",
             "collector",
@@ -83,6 +138,8 @@ public class GTNHAdjust {
             smallQuantumRecipeTimeMultiplier = 0.1;
         }
         if (config.hasChanged()) config.save();
+        tierDimension = new TierDimensionItem();
+        GameRegistry.registerItem(tierDimension, "tier_dimension");
     }
 
     @Mod.EventHandler
@@ -108,6 +165,8 @@ public class GTNHAdjust {
         }
         if (FeatureConfig.get().carpenterRecipes && Loader.isModLoaded("Forestry") && Loader.isModLoaded("gregtech"))
             CarpenterRecipes.register();
-        if (Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech")) SuperFragmentRecipes.register();
+        if (Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech")) {
+            SuperFragmentRecipes.register();
+        }
     }
 }

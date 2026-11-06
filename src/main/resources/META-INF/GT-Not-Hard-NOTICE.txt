@@ -1,0 +1,3 @@
+GT-Not-Hard resource lists: https://github.com/z1564058782/GT-Not-Hard
+Source revision: e8b2133fe08e7182bfa0316bff43379c132218f7
+License as distributed by the source repository: GT-Not-Hard-LICENSE.txt

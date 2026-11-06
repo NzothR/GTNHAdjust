@@ -2,3 +2,26 @@ gt.blockmachines.gtnhadjust.super_fragment_collector.name=Super Fragment World C
 gtnhadjust.recipe.super_fragment_collection=Super Fragment World Collection
 gt.blockmachines.gtnhadjust.small_quantum.name=Xiaoyi's Small Quantum Manipulator
 gtnhadjust.recipe.small_quantum=Small Quantum Manipulation
+
+gtnhadjust.recipe.super_fragment_ore=Dimension Resources: Ores
+gtnhadjust.recipe.super_fragment_gem=Dimension Resources: Gems
+gtnhadjust.recipe.super_fragment_dust=Dimension Resources: Dusts
+gtnhadjust.recipe.super_fragment_ingot=Dimension Resources: Ingots
+gtnhadjust.recipe.super_fragment_fluid=Dimension Resources: Fluids
+
+gtnhadjust.collector.mode.20=Ore collection
+gtnhadjust.collector.mode.21=Gem collection
+gtnhadjust.collector.mode.22=Dust collection
+gtnhadjust.collector.mode.23=Ingot collection
+gtnhadjust.collector.mode.24=Fluid collection
+
+item.gtnhadjust.tier_dimension.0.name=T0 Dimension
+item.gtnhadjust.tier_dimension.1.name=T1 Dimension
+item.gtnhadjust.tier_dimension.2.name=T2 Dimension
+item.gtnhadjust.tier_dimension.3.name=T3 Dimension
+item.gtnhadjust.tier_dimension.4.name=T4 Dimension
+item.gtnhadjust.tier_dimension.5.name=T5 Dimension
+item.gtnhadjust.tier_dimension.6.name=T6 Dimension
+item.gtnhadjust.tier_dimension.7.name=T7 Dimension
+item.gtnhadjust.tier_dimension.8.name=T8 Dimension
+item.gtnhadjust.tier_dimension.9.name=T9 Dimension
