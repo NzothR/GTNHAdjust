@@ -44,6 +44,7 @@ steamGreenhouse=true
 carpenterRecipes=true
 quickTerminal=true
 terminalInventoryFix=true
+smallQuantumMachine=true
 gtsrDiagnostics=true
 gtsrRecipeSpeedCompatibility=true
 patternDeduplication=true
@@ -60,6 +61,12 @@ patternDeduplication=true
 终端调整以 GT-Never-Reset 0.1.29、NEI 2.8.171、AE2 rv3-beta-1095 为基准。客户端与服务端必须安装相同版本的本模组，并将 `quickTerminal` 设置为相同值：该功能扩展了终端配方转移的数据包。旧配置文件没有该项时默认为 `true`；要关闭时手动添加 `quickTerminal=false` 并重启两端。普通 `+` 传入配方，Shift/Alt + `+` 进一步自动编码；匹配到收藏配方时优先使用收藏的材料和产物，未匹配的槽位保留 NEI 当前材料。编码后只有一个产出槽位的样板才会尝试自动上传；失败或多产出时保留在终端编码槽。自动上传使用已同步的接口名称来确定候选，由服务端验证接口和空位并写入；如果客户端尚未收到接口列表，可能找不到本地化名称的目标。接口搜索仍遵循 GT-Never-Reset 的 `fillSearchFromNeiRecipes` 设置。终端的详细调试日志可在 `config/gtnhadjust.cfg` 中的 `quickTerminal.debug` 开启，默认关闭。
 
 `terminalInventoryFix` 独立控制二合一终端的客户端库存同步及 NEI 状态修复，基于 AE2 rv3-beta-1095、NEI 2.8.171 和 NotEnoughEnergistics 1.7.50。旧配置缺省启用，添加 `terminalInventoryFix=false` 并重启客户端可彻底停用相关 Mixin；服务端无需此修复。库存状态指示复用 NotEnoughEnergistics，未安装该模组时只启用库存数据包转发。
+
+`smallQuantumMachine` 控制小依的小型量子操纵者及其配方，客户端和服务端需一致，修改后重启。该机器按 GT5 5.09.54.265 原版 15×21×15 结构建造，使用坚固钢制机械方块、格栅机械方块、洁净不锈钢机械方块、等级线圈和等级玻璃；顶部或底部可放舱室。必须安装维护仓、能源仓、消声仓和输出总线，流体输出与输入舱室按配方需要选装；可使用多个普通或异能能源仓。原始污染 102400/秒，由消声仓减排。
+
+该机器配方是基于 GT5、Crops NH、GTNL、GTRH、Twist Space Technology 和 123Technology 的固定快照，不在游戏启动时扫描其他配方池；不包含原始输入或产物已有 1 份的配方。27 条快照中，GTRH 的两条水处理配方分别使用不消耗的 1 号和 2 号电路。快照以本机 GT-Never-Reset 全局配方加速 0.1 倍后的原始耗时为起点计算，并避免注册时重复加速；以后修改全局加速不会改变此快照。每份物品或流体产物单独按 `10000 / 产物种数` 概率判定，精度为万分之一。控制器的组装机配方指定 1024 秒，不随全局加速改变。
+
+机器使用 `config/gtnhadjust.cfg` 的 `quantum.smallQuantumMteId`，默认 `31991`。客户端和服务端必须一致，取得或放置机器之后不要改动；关闭功能前应先移除现有机器。开启 `general.debug` 可记录配方处理等诊断信息。
 
 构建还需要将实例的 `NotEnoughItems-2.8.171-GTNH.jar` 和 `appliedenergistics2-rv3-beta-1095-GTNH.jar` 分别复制为 `ref/libs/nei-instance.jar` 和 `ref/libs/ae2-instance.jar`。
 

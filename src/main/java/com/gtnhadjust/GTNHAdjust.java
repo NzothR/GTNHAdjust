@@ -7,6 +7,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.gtnhadjust.collector.SuperFragmentRecipes;
 import com.gtnhadjust.collector.SuperFragmentRegistration;
+import com.gtnhadjust.quantum.SmallQuantumRecipes;
+import com.gtnhadjust.quantum.SmallQuantumRegistration;
 import com.gtnhadjust.recipe.CarpenterRecipes;
 import com.gtnhadjust.terminal.TerminalNotifications;
 
@@ -31,13 +33,18 @@ public class GTNHAdjust {
     public static boolean patternDeduplication;
     public static int steamGreenhouseMaxSeeds = 64;
     private int superFragmentMteId = 31990;
+    private int smallQuantumMteId = 31991;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         patternDeduplication = FeatureConfig.get().patternDeduplication;
         if (FeatureConfig.get().quickTerminal || patternDeduplication) TerminalNotifications.init();
         Configuration config = new Configuration(event.getSuggestedConfigurationFile());
-        debug = config.getBoolean("debug", Configuration.CATEGORY_GENERAL, false, "Log crop breeder adjustments.");
+        debug = config.getBoolean(
+            "debug",
+            Configuration.CATEGORY_GENERAL,
+            false,
+            "Log detailed diagnostics for supported machines and recipe registration.");
         terminalDebug = config
             .getBoolean("debug", "quickTerminal", false, "Log quick terminal recipe transfers and automatic uploads.");
         steamGreenhouseMaxSeeds = config.getInt(
@@ -54,11 +61,24 @@ public class GTNHAdjust {
             2048,
             32766,
             "Stable GregTech machine ID for the super fragment collector. Do not change after placing or obtaining it; client and server must match.");
+        smallQuantumMteId = config.getInt(
+            "smallQuantumMteId",
+            "quantum",
+            31991,
+            2048,
+            32766,
+            "Stable machine ID for the small quantum manipulator. Do not change after obtaining or placing it; client and server must match.");
         if (config.hasChanged()) config.save();
     }
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
+        if (FeatureConfig.get().smallQuantumMachine && Loader.isModLoaded("gregtech")
+            && Loader.isModLoaded("Avaritia")) {
+            SmallQuantumRegistration.registerMachine(smallQuantumMteId);
+            SmallQuantumRecipes.initialize();
+            SmallQuantumRegistration.registerCrafting();
+        }
         if (Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech")) {
             SuperFragmentRegistration.registerMachine(superFragmentMteId);
             SuperFragmentRecipes.initialize();
@@ -68,6 +88,8 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void loadComplete(FMLLoadCompleteEvent event) {
+        if (FeatureConfig.get().smallQuantumMachine && Loader.isModLoaded("gregtech") && Loader.isModLoaded("Avaritia"))
+            SmallQuantumRecipes.register();
         if (FeatureConfig.get().carpenterRecipes && Loader.isModLoaded("Forestry") && Loader.isModLoaded("gregtech"))
             CarpenterRecipes.register();
         if (Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech")) SuperFragmentRecipes.register();

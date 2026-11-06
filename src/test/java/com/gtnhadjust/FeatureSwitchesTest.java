@@ -31,6 +31,7 @@ public class FeatureSwitchesTest {
         FeatureSwitches switches = FeatureSwitches.load(file);
         assertTrue(Files.isRegularFile(file));
         assertTrue(switches.carpenterRecipes);
+        assertTrue(switches.smallQuantumMachine);
         assertEquals(
             12,
             switches.selectMixins(MODS, true)
@@ -264,5 +265,15 @@ public class FeatureSwitchesTest {
             FeatureSwitches.load(file)
                 .selectMixins(mods, true)
                 .isEmpty());
+    }
+
+    @Test
+    public void smallQuantumMachineCanBeDisabledIndependently() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Files.write(file, Arrays.asList("smallQuantumMachine=false"), StandardCharsets.ISO_8859_1);
+        FeatureSwitches switches = FeatureSwitches.load(file);
+        assertFalse(switches.smallQuantumMachine);
+        assertTrue(switches.quickTerminal);
     }
 }
