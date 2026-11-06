@@ -9,7 +9,7 @@ public final class SmallQuantumRules {
     private SmallQuantumRules() {}
 
     public static int parallel(int glassLevel, int voltageTier) {
-        long base = 1L + 4L * (Math.max(1, glassLevel) - 1);
+        long base = 32L * Math.max(1, glassLevel);
         return (int) Math.min(Integer.MAX_VALUE, base << Math.min(Math.max(0, voltageTier - 1), 24));
     }
 

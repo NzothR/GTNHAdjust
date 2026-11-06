@@ -252,8 +252,8 @@ public final class SmallQuantumMachine extends MTEExtendedPowerMultiBlockBase<Sm
             .addInfo("以低压、低产量和较长时间运行量子操纵者配方")
             .addInfo(EnumChatFormatting.AQUA + "无需催化剂，支持批处理和无损超频")
             .addSeparator()
-            .addInfo(EnumChatFormatting.YELLOW + "LV 1 并行" + EnumChatFormatting.GRAY + "，每升一级电压并行翻倍")
-            .addInfo(EnumChatFormatting.AQUA + "硼玻璃" + EnumChatFormatting.GRAY + "基础并行 1，每升一级玻璃增加 4 基础并行")
+            .addInfo(EnumChatFormatting.YELLOW + "LV 32 并行" + EnumChatFormatting.GRAY + "，每升一级电压并行翻倍")
+            .addInfo(EnumChatFormatting.AQUA + "硼玻璃" + EnumChatFormatting.GRAY + "基础并行 32，每升一级玻璃增加 32 基础并行")
             .addInfo(EnumChatFormatting.GOLD + "白铜线圈" + EnumChatFormatting.GRAY + "耗时 100%，每升一级减少 10%，最低 10%")
             .addInfo(
                 "1 级玻璃和线圈耗能 " + EnumChatFormatting.RED + "150%" + EnumChatFormatting.GRAY + "；取较低等级，每升一级减少 10%，最低 10%")

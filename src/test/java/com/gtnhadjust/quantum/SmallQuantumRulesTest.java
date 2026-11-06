@@ -8,12 +8,12 @@ public class SmallQuantumRulesTest {
 
     @Test
     public void parallelUsesVoltageAndGlass() {
-        assertEquals(1, SmallQuantumRules.parallel(1, 1));
-        assertEquals(2, SmallQuantumRules.parallel(1, 2));
-        assertEquals(4, SmallQuantumRules.parallel(1, 3));
-        assertEquals(5, SmallQuantumRules.parallel(2, 1));
-        assertEquals(10, SmallQuantumRules.parallel(2, 2));
-        assertEquals(20, SmallQuantumRules.parallel(2, 3));
+        assertEquals(32, SmallQuantumRules.parallel(1, 1));
+        assertEquals(64, SmallQuantumRules.parallel(1, 2));
+        assertEquals(128, SmallQuantumRules.parallel(1, 3));
+        assertEquals(64, SmallQuantumRules.parallel(2, 1));
+        assertEquals(128, SmallQuantumRules.parallel(2, 2));
+        assertEquals(256, SmallQuantumRules.parallel(2, 3));
     }
 
     @Test
