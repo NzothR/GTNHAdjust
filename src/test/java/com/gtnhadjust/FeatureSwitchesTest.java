@@ -24,6 +24,15 @@ public class FeatureSwitchesTest {
         Arrays.asList("gtneverreset", "sciencenotleisure", "cropsnh"));
 
     @Test
+    public void lootSimulatorHasIndependentSwitch() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        assertTrue(FeatureSwitches.load(file).lootSimulator);
+        Files.write(file, Arrays.asList("lootSimulator=false"), StandardCharsets.ISO_8859_1);
+        assertFalse(FeatureSwitches.load(file).lootSimulator);
+    }
+
+    @Test
     public void soulVialExpansionRequiresEnderIoAndCanBeDisabledOnBothSides() throws Exception {
         Path file = folder.newFile()
             .toPath();
@@ -577,52 +586,4 @@ public class FeatureSwitchesTest {
                 .contains("fix.MatrixPatternRetryMixin"));
     }
 
-    @Test
-    public void crusherEquipmentFilterCanBeDisabledOnBothSides() throws Exception {
-        Path file = folder.newFile()
-            .toPath();
-        Set<String> mods = new HashSet<>(Arrays.asList("kubatech", "mobsinfo"));
-        String mixin = "fix.IndustrialCrusherEquipmentMixin";
-        FeatureSwitches enabled = FeatureSwitches.load(file);
-        assertTrue(
-            enabled.selectMixins(mods, true)
-                .contains(mixin));
-        assertTrue(
-            enabled.selectMixins(mods, false)
-                .contains(mixin));
-        assertFalse(
-            enabled.selectMixins(new HashSet<>(), false)
-                .contains(mixin));
-        Files.write(file, Arrays.asList("crusherEquipmentVoid=false"), StandardCharsets.ISO_8859_1);
-        FeatureSwitches disabled = FeatureSwitches.load(file);
-        assertFalse(
-            disabled.selectMixins(mods, true)
-                .contains(mixin));
-        assertFalse(
-            disabled.selectMixins(mods, false)
-                .contains(mixin));
-    }
-
-    @Test
-    public void crusherFixedLootingIsIndependent() throws Exception {
-        Path file = folder.newFile()
-            .toPath();
-        Set<String> mods = new HashSet<>(Arrays.asList("kubatech", "mobsinfo"));
-        String mixin = "fix.IndustrialCrusherLootingMixin";
-        assertTrue(
-            FeatureSwitches.load(file)
-                .selectMixins(mods, false)
-                .contains(mixin));
-        Files.write(file, Arrays.asList("crusherFixedLooting=false"), StandardCharsets.ISO_8859_1);
-        FeatureSwitches switches = FeatureSwitches.load(file);
-        assertFalse(
-            switches.selectMixins(mods, true)
-                .contains(mixin));
-        assertFalse(
-            switches.selectMixins(mods, false)
-                .contains(mixin));
-        assertTrue(
-            switches.selectMixins(mods, false)
-                .contains("fix.IndustrialCrusherEquipmentMixin"));
-    }
 }

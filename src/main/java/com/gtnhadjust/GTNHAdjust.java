@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import com.gtnhadjust.machine.collector.SuperFragmentRecipes;
 import com.gtnhadjust.machine.collector.SuperFragmentRegistration;
 import com.gtnhadjust.machine.collector.TierDimensionItem;
+import com.gtnhadjust.machine.loot.LootSimulatorRegistration;
 import com.gtnhadjust.machine.quantum.SmallQuantumRecipes;
 import com.gtnhadjust.machine.quantum.SmallQuantumRegistration;
 import com.gtnhadjust.recipe.CarpenterRecipes;
@@ -46,6 +47,7 @@ public class GTNHAdjust {
     public static double smallQuantumRecipeTimeMultiplier = 0.1;
     private int superFragmentMteId = 31990;
     private int smallQuantumMteId = 31991;
+    private int lootSimulatorMteId = 31992;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -127,6 +129,13 @@ public class GTNHAdjust {
             2048,
             32766,
             "Stable machine ID for the small quantum manipulator. Do not change after obtaining or placing it; client and server must match.");
+        lootSimulatorMteId = config.getInt(
+            "mteId",
+            "lootSimulator",
+            31992,
+            2048,
+            32766,
+            "Stable loot simulator controller ID. Do not change after obtaining or placing it; clients and servers must match.");
         smallQuantumRecipeTimeMultiplier = config.get(
             "quantum",
             "recipeTimeMultiplier",
@@ -149,6 +158,10 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
+        if (FeatureConfig.get().lootSimulator && Loader.isModLoaded("gregtech")
+            && Loader.isModLoaded("kubatech")
+            && Loader.isModLoaded("mobsinfo")
+            && Loader.isModLoaded("EnderIO")) LootSimulatorRegistration.registerMachine(lootSimulatorMteId);
         if (FeatureConfig.get().smallQuantumMachine && Loader.isModLoaded("gregtech")
             && Loader.isModLoaded("Avaritia")) {
             SmallQuantumRegistration.registerMachine(smallQuantumMteId);
@@ -163,6 +176,10 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void loadComplete(FMLLoadCompleteEvent event) {
+        if (FeatureConfig.get().lootSimulator && Loader.isModLoaded("gregtech")
+            && Loader.isModLoaded("kubatech")
+            && Loader.isModLoaded("mobsinfo")
+            && Loader.isModLoaded("EnderIO")) LootSimulatorRegistration.registerCrafting();
         if (FeatureConfig.get().smallQuantumMachine && Loader.isModLoaded("gregtech")
             && Loader.isModLoaded("Avaritia")) {
             SmallQuantumRegistration.registerCrafting();

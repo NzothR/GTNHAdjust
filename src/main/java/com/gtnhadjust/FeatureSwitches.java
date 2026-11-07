@@ -16,8 +16,7 @@ import java.util.logging.Logger;
 final class FeatureSwitches {
 
     private static final Logger LOG = Logger.getLogger("GTNHAdjust");
-    private static final String CRUSHER_FIXED_LOOTING = "crusherFixedLooting";
-    private static final String CRUSHER_EQUIPMENT_VOID = "crusherEquipmentVoid";
+    private static final String LOOT_SIMULATOR = "lootSimulator";
     private static final String CROP = "cropBreeder";
     private static final String GREENHOUSE = "steamGreenhouse";
     private static final String CARPENTER = "carpenterRecipes";
@@ -37,8 +36,7 @@ final class FeatureSwitches {
     private static final String NEO_ECO_CRAFTING_FIX = "neoEcoCraftingRefreshFix";
     private static final String SOUL_VIAL = "soulVialExpandedCapture";
 
-    final boolean crusherFixedLooting;
-    final boolean crusherEquipmentVoid;
+    final boolean lootSimulator;
     final boolean cropBreeder;
     final boolean steamGreenhouse;
     final boolean carpenterRecipes;
@@ -58,15 +56,13 @@ final class FeatureSwitches {
     final boolean matrixPatternLoadFix;
     final boolean soulVialExpandedCapture;
 
-    private FeatureSwitches(boolean crusherFixedLooting, boolean crusherEquipmentVoid, boolean cropBreeder,
-        boolean steamGreenhouse, boolean carpenterRecipes, boolean quickTerminal, boolean gtsrDiagnostics,
-        boolean gtsrRecipeSpeedCompatibility, boolean patternDeduplication, boolean terminalInventoryFix,
-        boolean smallQuantumMachine, boolean terminalCraftingRefreshFix, boolean craftingDiagnostics,
-        boolean neoEcoCraftingRefreshFix, boolean patternRecipeMapPreservation, boolean terminalNeiAlwaysShowPresence,
-        boolean terminalSmartIngredients, boolean matrixPatternDiagnostics, boolean matrixPatternLoadFix,
-        boolean soulVialExpandedCapture) {
-        this.crusherFixedLooting = crusherFixedLooting;
-        this.crusherEquipmentVoid = crusherEquipmentVoid;
+    private FeatureSwitches(boolean lootSimulator, boolean cropBreeder, boolean steamGreenhouse,
+        boolean carpenterRecipes, boolean quickTerminal, boolean gtsrDiagnostics, boolean gtsrRecipeSpeedCompatibility,
+        boolean patternDeduplication, boolean terminalInventoryFix, boolean smallQuantumMachine,
+        boolean terminalCraftingRefreshFix, boolean craftingDiagnostics, boolean neoEcoCraftingRefreshFix,
+        boolean patternRecipeMapPreservation, boolean terminalNeiAlwaysShowPresence, boolean terminalSmartIngredients,
+        boolean matrixPatternDiagnostics, boolean matrixPatternLoadFix, boolean soulVialExpandedCapture) {
+        this.lootSimulator = lootSimulator;
         this.cropBreeder = cropBreeder;
         this.steamGreenhouse = steamGreenhouse;
         this.carpenterRecipes = carpenterRecipes;
@@ -89,8 +85,7 @@ final class FeatureSwitches {
 
     static FeatureSwitches load(Path file) {
         Properties defaults = new Properties();
-        defaults.setProperty(CRUSHER_FIXED_LOOTING, "true");
-        defaults.setProperty(CRUSHER_EQUIPMENT_VOID, "true");
+        defaults.setProperty(LOOT_SIMULATOR, "true");
         defaults.setProperty(CROP, "true");
         defaults.setProperty(GREENHOUSE, "true");
         defaults.setProperty(CARPENTER, "true");
@@ -125,8 +120,7 @@ final class FeatureSwitches {
                 values.load(input);
             }
             FeatureSwitches result = new FeatureSwitches(
-                read(values, CRUSHER_FIXED_LOOTING),
-                read(values, CRUSHER_EQUIPMENT_VOID),
+                read(values, LOOT_SIMULATOR),
                 read(values, CROP),
                 read(values, GREENHOUSE),
                 read(values, CARPENTER),
@@ -146,9 +140,7 @@ final class FeatureSwitches {
                 read(values, MATRIX_PATTERN_LOAD_FIX),
                 read(values, SOUL_VIAL));
             LOG.info(
-                "Feature switches: crusherFixedLooting=" + result.crusherFixedLooting
-                    + ", crusherEquipmentVoid="
-                    + result.crusherEquipmentVoid
+                "Feature switches: lootSimulator=" + result.lootSimulator
                     + ", cropBreeder="
                     + result.cropBreeder
                     + ", steamGreenhouse="
@@ -207,7 +199,6 @@ final class FeatureSwitches {
                 false,
                 false,
                 false,
-                false,
                 false);
         }
     }
@@ -228,10 +219,6 @@ final class FeatureSwitches {
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
         if (soulVialExpandedCapture && loadedMods.contains("EnderIO")) mixins.add("fix.SoulVialCaptureMixin");
-        if (crusherFixedLooting && loadedMods.contains("kubatech") && loadedMods.contains("mobsinfo"))
-            mixins.add("fix.IndustrialCrusherLootingMixin");
-        if (crusherEquipmentVoid && loadedMods.contains("kubatech") && loadedMods.contains("mobsinfo"))
-            mixins.add("fix.IndustrialCrusherEquipmentMixin");
         if (cropBreeder && loadedMods.contains("gtneverreset")) {
             mixins.add("CropBreedingRulesMixin");
             mixins.add("LargeCropBreederMixin");

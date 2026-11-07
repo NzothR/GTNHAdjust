@@ -1,6 +1,7 @@
 gt.blockmachines.gtnhadjust.super_fragment_collector.name=Super Fragment World Collector
 gtnhadjust.recipe.super_fragment_collection=Super Fragment World Collection
 gt.blockmachines.gtnhadjust.small_quantum.name=Xiaoyi's Small Quantum Manipulator
+gt.blockmachines.gtnhadjust.loot_simulator.name=Loot Simulation Chamber
 gtnhadjust.recipe.small_quantum=Small Quantum Manipulation
 
 gtnhadjust.recipe.super_fragment_ore=Dimension Resources: Ores
