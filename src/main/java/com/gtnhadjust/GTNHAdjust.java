@@ -12,7 +12,6 @@ import com.gtnhadjust.machine.quantum.SmallQuantumRecipes;
 import com.gtnhadjust.machine.quantum.SmallQuantumRegistration;
 import com.gtnhadjust.recipe.CarpenterRecipes;
 import com.gtnhadjust.terminal.TerminalNotifications;
-import com.gtnhadjust.wand.CapturedMobEgg;
 
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
@@ -32,7 +31,6 @@ public class GTNHAdjust {
     public static final String MOD_ID = "gtnhadjust";
     public static final Logger LOG = LogManager.getLogger(MOD_ID);
     public static TierDimensionItem tierDimension;
-    public static CapturedMobEgg capturedMobEgg;
     public static boolean debug;
     public static boolean singularityResourceRecipes;
     public static boolean collectorBlackHole;
@@ -140,8 +138,6 @@ public class GTNHAdjust {
             smallQuantumRecipeTimeMultiplier = 0.1;
         }
         if (config.hasChanged()) config.save();
-        capturedMobEgg = new CapturedMobEgg();
-        GameRegistry.registerItem(capturedMobEgg, "captured_mob_egg");
         tierDimension = new TierDimensionItem();
         GameRegistry.registerItem(tierDimension, "tier_dimension");
         if (event.getSide()

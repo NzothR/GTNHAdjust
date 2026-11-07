@@ -24,27 +24,6 @@ public class FeatureSwitchesTest {
         Arrays.asList("gtneverreset", "sciencenotleisure", "cropsnh"));
 
     @Test
-    public void wandCaptureSwitchControlsBothSides() throws Exception {
-        Path file = folder.newFile()
-            .toPath();
-        FeatureSwitches enabled = FeatureSwitches.load(file);
-        assertTrue(
-            enabled.selectMixins(MODS, true)
-                .contains("fix.UniversalWandCaptureMixin"));
-        assertTrue(
-            enabled.selectMixins(MODS, false)
-                .contains("fix.UniversalWandCaptureMixin"));
-        Files.write(file, Arrays.asList("wandCaptureCompatibility=false"), StandardCharsets.ISO_8859_1);
-        FeatureSwitches disabled = FeatureSwitches.load(file);
-        assertFalse(
-            disabled.selectMixins(MODS, true)
-                .contains("fix.UniversalWandCaptureMixin"));
-        assertFalse(
-            disabled.selectMixins(MODS, false)
-                .contains("fix.UniversalWandCaptureMixin"));
-    }
-
-    @Test
     public void defaultsCreateFileAndSelectAll() throws Exception {
         Path file = folder.getRoot()
             .toPath()
@@ -54,11 +33,11 @@ public class FeatureSwitchesTest {
         assertTrue(switches.carpenterRecipes);
         assertTrue(switches.smallQuantumMachine);
         assertEquals(
-            18,
+            17,
             switches.selectMixins(MODS, true)
                 .size());
         assertEquals(
-            11,
+            10,
             switches.selectMixins(MODS, false)
                 .size());
     }
@@ -70,10 +49,8 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "steamGreenhouse=false",
@@ -100,10 +77,8 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "steamGreenhouse=unexpected",
@@ -121,7 +96,6 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
                 "cropBreeder=true",
@@ -154,10 +128,8 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "steamGreenhouse=false",
@@ -181,10 +153,8 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "steamGreenhouse=false",
@@ -228,10 +198,8 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "quickTerminal=false",
@@ -253,10 +221,8 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "quickTerminal=false",
@@ -278,10 +244,8 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "quickTerminal=false",
@@ -296,10 +260,8 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "quickTerminal=false",
@@ -319,10 +281,8 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "quickTerminal=false",
@@ -349,10 +309,8 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "quickTerminal=false",
@@ -383,10 +341,8 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "quickTerminal=false",
@@ -400,10 +356,8 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "quickTerminal=false",
@@ -451,7 +405,6 @@ public class FeatureSwitchesTest {
             file,
             Arrays.asList(
                 "patternRecipeMapPreservation=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "quickTerminal=false",
@@ -469,14 +422,12 @@ public class FeatureSwitchesTest {
             file,
             Arrays.asList(
                 "patternRecipeMapPreservation=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "quickTerminal=false",
                 "patternDeduplication=false",
                 "terminalCraftingRefreshFix=false",
                 "terminalInventoryFix=false",
-                "wandCaptureCompatibility=false",
                 "matrixPatternLoadFix=false",
                 "craftingDiagnostics=true"),
             StandardCharsets.ISO_8859_1);
