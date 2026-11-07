@@ -92,7 +92,10 @@ neoEcoCraftingRefreshFix=false
 craftingDiagnostics=false
 matrixPatternDiagnostics=false
 matrixPatternLoadFix=true
+wandCaptureCompatibility=true
 ```
+
+`wandCaptureCompatibility` 扩展 GT-Never-Reset 0.1.32 无用之杖的生物捕捉：对原功能找不到刷怪蛋、但有实体注册名的生物，额外掉落本模组的刷怪蛋，包括神秘时代 4 的血腥教徒及原版凋零、末影龙。右键方块生成新的对应生物，不保存原生物数据；本模组刷怪蛋不等同于原版或其他模组的刷怪蛋。仍须开启 GTNR 的生物捕捉并正常触发死亡掉落事件。默认开启，设为 `false` 后不加载 Mixin；客户端和服务端使用相同版本和开关，修改后重启。已获得的本模组刷怪蛋仍可使用。开启 `general.debug` 可查看回退捕捉诊断。
 
 `craftingDiagnostics` 默认关闭，设为 `true` 并重启后记录工厂输入与匹配、总成更新、AE 合成缓存事件、存储通知及客户端数据包；日志可能很多，排查完成后应关闭并重启。
 

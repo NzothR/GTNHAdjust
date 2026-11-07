@@ -35,6 +35,7 @@ final class FeatureSwitches {
     private static final String NEI_ALWAYS_SHOW_PRESENCE = "terminalNeiAlwaysShowPresence";
     private static final String PATTERN_MAP_PRESERVATION = "patternRecipeMapPreservation";
     private static final String NEO_ECO_CRAFTING_FIX = "neoEcoCraftingRefreshFix";
+    private static final String WAND_CAPTURE = "wandCaptureCompatibility";
 
     final boolean crusherFixedLooting;
     final boolean crusherEquipmentVoid;
@@ -55,13 +56,15 @@ final class FeatureSwitches {
     final boolean terminalSmartIngredients;
     final boolean matrixPatternDiagnostics;
     final boolean matrixPatternLoadFix;
+    final boolean wandCaptureCompatibility;
 
     private FeatureSwitches(boolean crusherFixedLooting, boolean crusherEquipmentVoid, boolean cropBreeder,
         boolean steamGreenhouse, boolean carpenterRecipes, boolean quickTerminal, boolean gtsrDiagnostics,
         boolean gtsrRecipeSpeedCompatibility, boolean patternDeduplication, boolean terminalInventoryFix,
         boolean smallQuantumMachine, boolean terminalCraftingRefreshFix, boolean craftingDiagnostics,
         boolean neoEcoCraftingRefreshFix, boolean patternRecipeMapPreservation, boolean terminalNeiAlwaysShowPresence,
-        boolean terminalSmartIngredients, boolean matrixPatternDiagnostics, boolean matrixPatternLoadFix) {
+        boolean terminalSmartIngredients, boolean matrixPatternDiagnostics, boolean matrixPatternLoadFix,
+        boolean wandCaptureCompatibility) {
         this.crusherFixedLooting = crusherFixedLooting;
         this.crusherEquipmentVoid = crusherEquipmentVoid;
         this.cropBreeder = cropBreeder;
@@ -81,6 +84,7 @@ final class FeatureSwitches {
         this.terminalSmartIngredients = terminalSmartIngredients;
         this.matrixPatternDiagnostics = matrixPatternDiagnostics;
         this.matrixPatternLoadFix = matrixPatternLoadFix;
+        this.wandCaptureCompatibility = wandCaptureCompatibility;
     }
 
     static FeatureSwitches load(Path file) {
@@ -104,6 +108,7 @@ final class FeatureSwitches {
         defaults.setProperty(SMART_INGREDIENTS, "true");
         defaults.setProperty(MATRIX_PATTERN_DIAGNOSTICS, "false");
         defaults.setProperty(MATRIX_PATTERN_LOAD_FIX, "true");
+        defaults.setProperty(WAND_CAPTURE, "true");
         try {
             Files.createDirectories(file.getParent());
             if (!Files.exists(file)) {
@@ -138,7 +143,8 @@ final class FeatureSwitches {
                 read(values, NEI_ALWAYS_SHOW_PRESENCE),
                 read(values, SMART_INGREDIENTS),
                 read(values, MATRIX_PATTERN_DIAGNOSTICS, false),
-                read(values, MATRIX_PATTERN_LOAD_FIX));
+                read(values, MATRIX_PATTERN_LOAD_FIX),
+                read(values, WAND_CAPTURE));
             LOG.info(
                 "Feature switches: crusherFixedLooting=" + result.crusherFixedLooting
                     + ", crusherEquipmentVoid="
@@ -176,11 +182,14 @@ final class FeatureSwitches {
                     + ", matrixPatternDiagnostics="
                     + result.matrixPatternDiagnostics
                     + ", matrixPatternLoadFix="
-                    + result.matrixPatternLoadFix);
+                    + result.matrixPatternLoadFix
+                    + ", wandCaptureCompatibility="
+                    + result.wandCaptureCompatibility);
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
             return new FeatureSwitches(
+                false,
                 false,
                 false,
                 false,
@@ -218,6 +227,8 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (wandCaptureCompatibility && loadedMods.contains("gtneverreset"))
+            mixins.add("fix.UniversalWandCaptureMixin");
         if (crusherFixedLooting && loadedMods.contains("kubatech") && loadedMods.contains("mobsinfo"))
             mixins.add("fix.IndustrialCrusherLootingMixin");
         if (crusherEquipmentVoid && loadedMods.contains("kubatech") && loadedMods.contains("mobsinfo"))
