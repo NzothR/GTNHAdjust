@@ -1,5 +1,7 @@
 package com.gtnhadjust.machine.collector;
 
+import static gregtech.api.util.GTRecipeConstants.COMPRESSION_TIER;
+
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
@@ -52,6 +54,7 @@ final class SingularityResources {
             if (stream == null) throw new IllegalStateException("Missing " + path);
             Data data = new Gson().fromJson(new InputStreamReader(stream, StandardCharsets.UTF_8), Data.class);
             int registered = 0;
+            int compressedMarkers = 0;
             MaterialCatalog catalog = new MaterialCatalog();
             List<Map<String, List<ItemStack>>> tierItems = new ArrayList<>();
             List<Map<String, List<FluidStack>>> tierFluids = new ArrayList<>();
@@ -77,6 +80,21 @@ final class SingularityResources {
                 }
                 ingredients.get(tier)
                     .add(new ItemStack(marker, 1, 0));
+                Collection<GTRecipe> compression = GTRecipeBuilder.builder()
+                    .itemInputs(new ItemStack(marker, 9, 0))
+                    .itemOutputs(new ItemStack(GTNHAdjust.tierDimension, 1, tier))
+                    .metadata(COMPRESSION_TIER, 2)
+                    .duration(128)
+                    .eut(512)
+                    .addTo(RecipeMaps.compressorRecipes);
+                if (compression.isEmpty()) {
+                    GTNHAdjust.LOG
+                        .warn("Singularity: compression recipe for dimension {} rejected", dimension.getKey());
+                } else {
+                    // GTNR's global recipe-speed adjustment must not alter this fixed base duration.
+                    for (GTRecipe recipe : compression) recipe.mDuration = 128;
+                    compressedMarkers += compression.size();
+                }
                 Map<String, Pool> pools = new LinkedHashMap<>();
                 for (Map.Entry<String, Resource[]> mode : dimension.getValue()
                     .entrySet()) {
@@ -162,6 +180,7 @@ final class SingularityResources {
                 }
             }
             GTNHAdjust.LOG.info("Registered {} GT-Not-Hard dimension resource pools", registered);
+            GTNHAdjust.LOG.info("Registered {} black hole dimension marker compression recipes", compressedMarkers);
             if (unresolved && GTNHAdjust.debug) exportRegistry();
         } catch (Exception error) {
             throw new IllegalStateException("Cannot register GT-Not-Hard resource pools", error);
