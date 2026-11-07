@@ -6,6 +6,7 @@ import net.minecraft.util.ChatComponentText;
 
 import com.gtnhadjust.GTNHAdjust;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
@@ -23,14 +24,21 @@ public final class TerminalNotifications {
 
     public static void init() {
         CHANNEL.registerMessage(Handler.class, Message.class, 0, Side.CLIENT);
+        if (FMLCommonHandler.instance()
+            .getSide()
+            .isClient()) ClientNotice.init();
     }
 
     public static void report(EntityPlayer player, String message) {
         GTNHAdjust.LOG.info("Quick terminal: {}", message);
         if (!(player instanceof EntityPlayerMP)) return;
         EntityPlayerMP recipient = (EntityPlayerMP) player;
-        recipient.addChatMessage(new ChatComponentText("§b[样板终端] §r" + message));
+        recipient.addChatMessage(new ChatComponentText(format(message)));
         CHANNEL.sendTo(new Message(message), recipient);
+    }
+
+    public static String format(String message) {
+        return (message.startsWith("自动上传成功：") ? "§a" : "§c") + "[样板终端] §f" + message;
     }
 
     public static final class Message implements IMessage {
