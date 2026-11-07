@@ -17,6 +17,7 @@ import java.util.Random;
 import java.util.UUID;
 
 import net.minecraft.entity.EntityList;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
@@ -38,6 +39,7 @@ import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.gtnhadjust.GTNHAdjust;
 import com.kuba6000.mobsinfo.api.IChanceModifier;
 import com.kuba6000.mobsinfo.api.MobDrop;
+import com.kuba6000.mobsinfo.api.MobRecipe;
 import com.mojang.authlib.GameProfile;
 
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -56,10 +58,9 @@ import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.common.misc.GTStructureChannels;
 import gtPlusPlus.xmod.gregtech.common.blocks.textures.TexturesGtBlock;
 import kubatech.config.Config;
-import kubatech.loaders.MobHandlerLoader;
 
 /**
- * Simulates the EEC's normal, zero-looting drop records without spawning mobs.
+ * Simulates processed MobsInfo drop records with the EEC's zero-looting rules without spawning mobs.
  * Drop chance handling follows KubaTech's MobHandlerLoader (Copyright 2022-2024 kuba6000, LGPL-3.0-or-later).
  */
 public final class LootSimulator extends MTEExtendedPowerMultiBlockBase<LootSimulator>
@@ -74,6 +75,31 @@ public final class LootSimulator extends MTEExtendedPowerMultiBlockBase<LootSimu
     private IStructureDefinition<LootSimulator> structure;
     private HeatingCoilLevel coil = HeatingCoilLevel.None;
     private final Random random = new Random();
+    private final Map<String, CachedMob> mobCopies = new HashMap<>();
+
+    private static final class CachedMob {
+
+        final MobRecipe recipe;
+        final EntityLiving entity;
+
+        CachedMob(MobRecipe recipe, EntityLiving entity) {
+            this.recipe = recipe;
+            this.entity = entity;
+        }
+    }
+
+    private EntityLiving mobCopy(String type, MobRecipe recipe) {
+        CachedMob cached = mobCopies.get(type);
+        if (cached != null && cached.recipe == recipe) return cached.entity;
+        EntityLiving entity = null;
+        try {
+            entity = recipe.createEntityCopy();
+        } catch (ReflectiveOperationException | RuntimeException error) {
+            GTNHAdjust.LOG.warn("Loot simulator cannot create a MobsInfo entity copy for {}", type, error);
+        }
+        mobCopies.put(type, new CachedMob(recipe, entity));
+        return entity;
+    }
 
     public LootSimulator(int id, String name, String display) {
         super(id, name, display);
@@ -147,7 +173,7 @@ public final class LootSimulator extends MTEExtendedPowerMultiBlockBase<LootSimu
             if (input == null || input.stackSize <= 0) continue;
             String type = mobType(input);
             if (type == null || type.isEmpty()) continue;
-            MobHandlerLoader.MobEECRecipe recipe = MobHandlerLoader.recipeMap.get(type);
+            MobRecipe recipe = MobRecipe.getRecipeByEntityName(type);
             Class<?> entityClass = EntityList.stringToClassMapping.get(type);
             if (recipe == null && (entityClass == null || !EntityLivingBase.class.isAssignableFrom(entityClass)))
                 continue;
@@ -157,10 +183,9 @@ public final class LootSimulator extends MTEExtendedPowerMultiBlockBase<LootSimu
             targets += count;
             xp += LootSimulatorRules.experience(count, coil.getTier());
             if (recipe == null) {
-                if (GTNHAdjust.debug) GTNHAdjust.LOG.info("Loot simulator: no EEC data for {}", type);
+                if (GTNHAdjust.debug) GTNHAdjust.LOG.info("Loot simulator: no processed MobsInfo data for {}", type);
                 continue;
             }
-            recipe.entityCopy.setPosition(tile.getXCoord(), tile.getYCoord(), tile.getZCoord());
             boolean hasModifiers = false;
             for (MobDrop drop : recipe.mOutputs) {
                 if (drop != null && !drop.chanceModifiers.isEmpty()) {
@@ -182,6 +207,9 @@ public final class LootSimulator extends MTEExtendedPowerMultiBlockBase<LootSimu
                 }
                 continue;
             }
+            EntityLiving entity = mobCopy(type, recipe);
+            if (entity == null) continue;
+            entity.setPosition(tile.getXCoord(), tile.getYCoord(), tile.getZCoord());
             for (int i = 0; i < count; i++) {
                 List<ItemStack> kill = new ArrayList<>();
                 for (MobDrop drop : recipe.mOutputs) {
@@ -191,7 +219,7 @@ public final class LootSimulator extends MTEExtendedPowerMultiBlockBase<LootSimu
                         || isEquipment(drop.stack)) continue;
                     double probability = drop.chance / 100.0;
                     for (IChanceModifier modifier : drop.chanceModifiers)
-                        probability = modifier.apply(probability, world, kill, player, recipe.entityCopy);
+                        probability = modifier.apply(probability, world, kill, player, entity);
                     int chance = (int) (probability * 100.0);
                     if (drop.playerOnly && chance != 0)
                         chance = Math.max(1, (int) (chance * Config.MobHandler.playerOnlyDropsModifier));
