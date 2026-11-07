@@ -276,4 +276,29 @@ public class FeatureSwitchesTest {
         assertFalse(switches.smallQuantumMachine);
         assertTrue(switches.quickTerminal);
     }
+    @Test
+    public void crusherEquipmentFilterCanBeDisabledOnBothSides() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("kubatech", "mobsinfo"));
+        String mixin = "fix.IndustrialCrusherEquipmentMixin";
+        FeatureSwitches enabled = FeatureSwitches.load(file);
+        assertTrue(
+            enabled.selectMixins(mods, true)
+                .contains(mixin));
+        assertTrue(
+            enabled.selectMixins(mods, false)
+                .contains(mixin));
+        assertFalse(
+            enabled.selectMixins(new HashSet<>(), false)
+                .contains(mixin));
+        Files.write(file, Arrays.asList("crusherEquipmentVoid=false"), StandardCharsets.ISO_8859_1);
+        FeatureSwitches disabled = FeatureSwitches.load(file);
+        assertFalse(
+            disabled.selectMixins(mods, true)
+                .contains(mixin));
+        assertFalse(
+            disabled.selectMixins(mods, false)
+                .contains(mixin));
+    }
 }

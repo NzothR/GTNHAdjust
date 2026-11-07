@@ -35,6 +35,7 @@
  */
 def elytraModpackVersion = project.extensions.getByName("elytraModpackVersion")
 dependencies {
+    compileOnly("com.github.GTNewHorizons:Mobs-Info:0.6.0-GTNH:dev") { transitive = false }
     compileOnly(files("ref/libs/gtneverreset-0.1.32.jar"))
     compileOnly(files("ref/libs/gtnl-instance.jar"))
     compileOnly(files("ref/libs/modularui2-instance.jar"))
