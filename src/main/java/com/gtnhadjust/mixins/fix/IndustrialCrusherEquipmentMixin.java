@@ -1,12 +1,20 @@
 package com.gtnhadjust.mixins.fix;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import net.minecraft.item.ItemArmor;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
+import net.minecraft.item.ItemTool;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.kuba6000.mobsinfo.api.MobDrop;
 
@@ -27,5 +35,20 @@ public abstract class IndustrialCrusherEquipmentMixin {
         return drops.stream()
             .filter(drop -> drop.damages == null && drop.enchantable == null)
             .iterator();
+    }
+
+    // Infernal mobs add their drops after the normal MobDrop loop, so filter the final result too.
+    @Inject(method = "generateOutputs", at = @At("RETURN"), cancellable = true, remap = false)
+    private void gtnhadjust$filterFinalOutputs(CallbackInfoReturnable<ItemStack[]> cir) {
+        cir.setReturnValue(
+            Arrays.stream(cir.getReturnValue())
+                .filter(stack -> !gtnhadjust$isEquipment(stack))
+                .toArray(ItemStack[]::new));
+    }
+
+    private static boolean gtnhadjust$isEquipment(ItemStack stack) {
+        return stack != null && (stack.isItemStackDamageable() || stack.getItem() instanceof ItemArmor
+            || stack.getItem() instanceof ItemSword
+            || stack.getItem() instanceof ItemTool);
     }
 }
