@@ -301,4 +301,26 @@ public class FeatureSwitchesTest {
             disabled.selectMixins(mods, false)
                 .contains(mixin));
     }
+    @Test
+    public void crusherFixedLootingIsIndependent() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("kubatech", "mobsinfo"));
+        String mixin = "fix.IndustrialCrusherLootingMixin";
+        assertTrue(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .contains(mixin));
+        Files.write(file, Arrays.asList("crusherFixedLooting=false"), StandardCharsets.ISO_8859_1);
+        FeatureSwitches switches = FeatureSwitches.load(file);
+        assertFalse(
+            switches.selectMixins(mods, true)
+                .contains(mixin));
+        assertFalse(
+            switches.selectMixins(mods, false)
+                .contains(mixin));
+        assertTrue(
+            switches.selectMixins(mods, false)
+                .contains("fix.IndustrialCrusherEquipmentMixin"));
+    }
 }

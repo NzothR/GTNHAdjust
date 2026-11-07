@@ -12,9 +12,9 @@ Forestry 木工机配方固定注册到 GT 普通组装机配方池。数据由�
 
 ## 工业屠宰场装备销毁
 
-GTNH 2.9.0（GregTech/KubaTech 5.09.54.265、MobsInfo 0.6.2）的工业屠宰场默认自动销毁装备掉落。沿用 123Technology 噬魂监狱的条件，在生成前过滤带随机耐久或随机附魔标记的掉落记录，不更改机器的并行、时运、耗电或输入武器。开启时屏蔽原有过滤逻辑，机器原有过滤按钮不影响结果。
+GTNH 2.9.0（GregTech/KubaTech 5.09.54.265、MobsInfo 0.6.2）的工业屠宰场默认自动销毁装备掉落。沿用 123Technology 噬魂监狱的条件，在生成前过滤带随机耐久或随机附魔标记的掉落记录，不更改机器的并行、耗电或输入武器。机器的时运固定为 10，普通、批处理和仪式模式均生效，不再取决于武器时运。开启时屏蔽原有过滤逻辑，机器原有过滤按钮不影响结果。
 
-`crusherEquipmentVoid` 默认开启，修改后重启客户端和服务端并保持配置一致；设为 `false` 时不加载对应 Mixin。
+`crusherEquipmentVoid` 和 `crusherFixedLooting` 分别控制装备销毁和固定时运，均默认开启；修改后重启客户端和服务端并保持配置一致，设为 `false` 时不加载对应 Mixin。
 
 ## 超级碎片世界采集器配方
 
@@ -72,6 +72,7 @@ Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅�
 
 ```properties
 crusherEquipmentVoid=true
+crusherFixedLooting=true
 cropBreeder=true
 steamGreenhouse=true
 carpenterRecipes=true

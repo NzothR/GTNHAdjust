@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 final class FeatureSwitches {
 
     private static final Logger LOG = Logger.getLogger("GTNHAdjust");
+    private static final String CRUSHER_FIXED_LOOTING = "crusherFixedLooting";
     private static final String CRUSHER_EQUIPMENT_VOID = "crusherEquipmentVoid";
     private static final String CROP = "cropBreeder";
     private static final String GREENHOUSE = "steamGreenhouse";
@@ -27,6 +28,7 @@ final class FeatureSwitches {
     private static final String TERMINAL_INVENTORY_FIX = "terminalInventoryFix";
     private static final String SMALL_QUANTUM = "smallQuantumMachine";
 
+    final boolean crusherFixedLooting;
     final boolean crusherEquipmentVoid;
     final boolean cropBreeder;
     final boolean steamGreenhouse;
@@ -38,9 +40,10 @@ final class FeatureSwitches {
     final boolean terminalInventoryFix;
     final boolean smallQuantumMachine;
 
-    private FeatureSwitches(boolean crusherEquipmentVoid, boolean cropBreeder, boolean steamGreenhouse,
+    private FeatureSwitches(boolean crusherFixedLooting, boolean crusherEquipmentVoid, boolean cropBreeder, boolean steamGreenhouse,
         boolean carpenterRecipes, boolean quickTerminal, boolean gtsrDiagnostics, boolean gtsrRecipeSpeedCompatibility,
         boolean patternDeduplication, boolean terminalInventoryFix, boolean smallQuantumMachine) {
+        this.crusherFixedLooting = crusherFixedLooting;
         this.crusherEquipmentVoid = crusherEquipmentVoid;
         this.cropBreeder = cropBreeder;
         this.steamGreenhouse = steamGreenhouse;
@@ -55,6 +58,7 @@ final class FeatureSwitches {
 
     static FeatureSwitches load(Path file) {
         Properties defaults = new Properties();
+        defaults.setProperty(CRUSHER_FIXED_LOOTING, "true");
         defaults.setProperty(CRUSHER_EQUIPMENT_VOID, "true");
         defaults.setProperty(CROP, "true");
         defaults.setProperty(GREENHOUSE, "true");
@@ -81,6 +85,7 @@ final class FeatureSwitches {
                 values.load(input);
             }
             FeatureSwitches result = new FeatureSwitches(
+                read(values, CRUSHER_FIXED_LOOTING),
                 read(values, CRUSHER_EQUIPMENT_VOID),
                 read(values, CROP),
                 read(values, GREENHOUSE),
@@ -92,7 +97,9 @@ final class FeatureSwitches {
                 read(values, TERMINAL_INVENTORY_FIX),
                 read(values, SMALL_QUANTUM));
             LOG.info(
-                "Feature switches: crusherEquipmentVoid=" + result.crusherEquipmentVoid
+                "Feature switches: crusherFixedLooting=" + result.crusherFixedLooting
+                    + ", crusherEquipmentVoid="
+                    + result.crusherEquipmentVoid
                     + ", cropBreeder="
                     + result.cropBreeder
                     + ", steamGreenhouse="
@@ -114,7 +121,7 @@ final class FeatureSwitches {
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
-            return new FeatureSwitches(false, false, false, false, false, false, false, false, false, false);
+            return new FeatureSwitches(false, false, false, false, false, false, false, false, false, false, false);
         }
     }
 
@@ -129,6 +136,8 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (crusherFixedLooting && loadedMods.contains("kubatech") && loadedMods.contains("mobsinfo"))
+            mixins.add("fix.IndustrialCrusherLootingMixin");
         if (crusherEquipmentVoid && loadedMods.contains("kubatech") && loadedMods.contains("mobsinfo"))
             mixins.add("fix.IndustrialCrusherEquipmentMixin");
         if (cropBreeder && loadedMods.contains("gtneverreset")) {
