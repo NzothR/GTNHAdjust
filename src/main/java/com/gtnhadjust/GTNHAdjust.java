@@ -11,6 +11,7 @@ import com.gtnhadjust.machine.collector.TierDimensionItem;
 import com.gtnhadjust.machine.quantum.SmallQuantumRecipes;
 import com.gtnhadjust.machine.quantum.SmallQuantumRegistration;
 import com.gtnhadjust.recipe.CarpenterRecipes;
+import com.gtnhadjust.soul.SoulVialMultipartHandler;
 import com.gtnhadjust.terminal.TerminalNotifications;
 
 import cpw.mods.fml.common.Loader;
@@ -48,6 +49,8 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
+        if (FeatureConfig.get().soulVialExpandedCapture && Loader.isModLoaded("EnderIO"))
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new SoulVialMultipartHandler());
         patternDeduplication = FeatureConfig.get().patternDeduplication;
         if (FeatureConfig.get().quickTerminal || patternDeduplication) TerminalNotifications.init();
         Configuration config = new Configuration(event.getSuggestedConfigurationFile());

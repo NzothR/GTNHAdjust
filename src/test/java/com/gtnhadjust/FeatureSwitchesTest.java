@@ -24,6 +24,33 @@ public class FeatureSwitchesTest {
         Arrays.asList("gtneverreset", "sciencenotleisure", "cropsnh"));
 
     @Test
+    public void soulVialExpansionRequiresEnderIoAndCanBeDisabledOnBothSides() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("EnderIO"));
+        String mixin = "fix.SoulVialCaptureMixin";
+        FeatureSwitches enabled = FeatureSwitches.load(file);
+        assertTrue(
+            enabled.selectMixins(mods, true)
+                .contains(mixin));
+        assertTrue(
+            enabled.selectMixins(mods, false)
+                .contains(mixin));
+        assertFalse(
+            enabled.selectMixins(new HashSet<>(), false)
+                .contains(mixin));
+        Files.write(file, Arrays.asList("soulVialExpandedCapture=false"), StandardCharsets.ISO_8859_1);
+        FeatureSwitches disabled = FeatureSwitches.load(file);
+        assertFalse(disabled.soulVialExpandedCapture);
+        assertFalse(
+            disabled.selectMixins(mods, true)
+                .contains(mixin));
+        assertFalse(
+            disabled.selectMixins(mods, false)
+                .contains(mixin));
+    }
+
+    @Test
     public void defaultsCreateFileAndSelectAll() throws Exception {
         Path file = folder.getRoot()
             .toPath()

@@ -94,7 +94,10 @@ neoEcoCraftingRefreshFix=false
 craftingDiagnostics=false
 matrixPatternDiagnostics=false
 matrixPatternLoadFix=true
+soulVialExpandedCapture=true
 ```
+
+`soulVialExpandedCapture` 扩展 GTNH 2.9.0 的 Ender IO 2.10.51 灵魂瓶：允许捕获原本因 Boss 判定或 Ender IO 灵魂瓶黑名单而被拒绝的生物，并支持右键末影龙等龙型多部位实体的部位。沿用灵魂瓶原有的 NBT 保存和释放方式；玩家、死亡实体以及缺少可还原注册名的实体不支持，其他模组仍可能阻止交互或移除。默认开启；设为 `false` 后不加载对应 Mixin，也不转发多部位交互。客户端和服务端应安装同版本并保持开关一致，修改后重启；开启 `general.debug` 可记录多部位捕获。收容或释放 Boss 可能影响其维度、战斗和世界事件，建议先在测试存档验证。
 
 `craftingDiagnostics` 默认关闭，设为 `true` 并重启后记录工厂输入与匹配、总成更新、AE 合成缓存事件、存储通知及客户端数据包；日志可能很多，排查完成后应关闭并重启。
 
