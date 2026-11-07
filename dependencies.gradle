@@ -35,7 +35,7 @@
  */
 def elytraModpackVersion = project.extensions.getByName("elytraModpackVersion")
 dependencies {
-    compileOnly(files("ref/libs/gtneverreset-0.1.29.jar"))
+    compileOnly(files("ref/libs/gtneverreset-0.1.32.jar"))
     compileOnly(files("ref/libs/gtnl-instance.jar"))
     compileOnly(files("ref/libs/modularui2-instance.jar"))
     compileOnly(files("ref/libs/nei-instance.jar"))
@@ -47,6 +47,6 @@ dependencies {
     compileOnly(elytraModpackVersion.gtnhdev("GT5-Unofficial") as String) { transitive = false }
     compileOnly(elytraModpackVersion.gtnhdev("StructureLib") as String) { transitive = false }
     compileOnly(elytraModpackVersion.gtnhdev("ModularUI") as String) { transitive = false }
-    testImplementation(rfg.deobf(project.files("ref/libs/gtneverreset-0.1.29.jar")))
+    testImplementation(rfg.deobf(project.files("ref/libs/gtneverreset-0.1.32.jar")))
     testImplementation("junit:junit:4.13.2")
 }

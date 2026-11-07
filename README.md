@@ -2,7 +2,7 @@
 
 面向 GT New Horizons 2.9.0 的个人调整模组。
 
-当前适配 GT-Never-Reset 0.1.31：大型作物杂交机的五级电压调整为 ULV 至 EV，杂交基础耗电为 8 EU/t；新入档及新产出的种子属性为 31/31/31。已有档案不主动修改，洗种功耗保持 512 EU/t。其他版本的目标字节码可能不同，升级后需要重新核对注入点。
+当前适配 GT-Never-Reset 0.1.32：大型作物杂交机的五级电压调整为 ULV 至 EV，杂交基础耗电为 8 EU/t；新入档及新产出的种子属性为 31/31/31。已有档案不主动修改，洗种功耗保持 512 EU/t。其他版本的目标字节码可能不同，升级后需要重新核对注入点。
 
 针对 GTNL `dev-290` 的蒸汽温室，种子总容量默认为 64，最多仍为 4 个品种；机器按有效种子数计算产出，底土规则沿用 GTNL 原逻辑。升级 GTNL 后应重新核对注入点。
 
@@ -52,7 +52,7 @@ $env:TMP = $env:TEMP
 
 构建产物位于 `build/libs/`。开发约定和本机环境见 [AGENTS.md](AGENTS.md)；参考仓库位于不提交的 `ref/`。
 
-Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅助任务使用相应的旧版 Java 工具链，并可将其下载到上述项目内的 Gradle 缓存。当前模组使用示例的 Jabel 模式生成 Java 8 字节码。CropsNH 和 GregTech 依赖通过 GTNH 2.9.0 清单解析。构建还需要将 GT-Never-Reset 0.1.31 正式包保存为不提交的 `ref/libs/gtneverreset-0.1.31.jar`；已验证文件的 SHA-256 为 `2ee8f6c65135eab884c78ab403dfbda0f093f4c99d35adfd740964833864ca63`。
+Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅助任务使用相应的旧版 Java 工具链，并可将其下载到上述项目内的 Gradle 缓存。当前模组使用示例的 Jabel 模式生成 Java 8 字节码。CropsNH 和 GregTech 依赖通过 GTNH 2.9.0 清单解析。构建还需要将 GT-Never-Reset 0.1.32 正式包保存为不提交的 `ref/libs/gtneverreset-0.1.32.jar`；已验证文件的 SHA-256 为 `c6e296b460223f955bda2e2852021986e17cfafd46c2e53163053eb9f483e38c`。
 
 同样将实例中的 `sciencenotleisure-dev-290-fde37b9871fd-f93edbe8c425.jar` 复制为 `ref/libs/gtnl-instance.jar`；已验证文件的 SHA-256 为 `977335c74149afdbf280f15506fb59bd1b97e126acb3807be770d0e0b3374840`。
 
@@ -79,13 +79,12 @@ patternRecipeMapPreservation=true
 terminalNeiAlwaysShowPresence=true
 terminalSmartIngredients=true
 neoEcoCraftingRefreshFix=false
-factoryRecipeMapFix=true
 craftingDiagnostics=false
 ```
 
-`factoryRecipeMapFix` 将通用联合工厂收到的 NEI 展示用切割机配方池映射为实际切割机配方池；基于 GT-Never-Reset 0.1.31，修改后重启，客户端和服务端保持一致。`craftingDiagnostics` 默认关闭，设为 `true` 并重启后记录工厂输入与匹配、总成更新、AE 合成缓存事件、存储通知及客户端数据包；日志可能很多，排查完成后应关闭并重启。
+`craftingDiagnostics` 默认关闭，设为 `true` 并重启后记录工厂输入与匹配、总成更新、AE 合成缓存事件、存储通知及客户端数据包；日志可能很多，排查完成后应关闭并重启。
 
-`terminalCraftingRefreshFix` 尝试修复 GT-Never-Reset 0.1.31 二合一终端操作样板后合成状态延迟更新：样板实际变化后，在后续容器更新时再次通知目标接口的合成网络并同步相关产物。该开关独立于 `quickTerminal`，客户端和服务端保持一致，修改后重启；关闭后不会加载对应 Mixin。详细诊断可使用 `quickTerminal.debug`。
+`terminalCraftingRefreshFix` 尝试修复 GT-Never-Reset 0.1.32 二合一终端操作样板后合成状态延迟更新：样板实际变化后，在后续容器更新时再次通知目标接口的合成网络并同步相关产物。该开关独立于 `quickTerminal`，客户端和服务端保持一致，修改后重启；关闭后不会加载对应 Mixin。详细诊断可使用 `quickTerminal.debug`。
 
 `neoEcoCraftingRefreshFix` 针对 NeoECOAE 7.3.7 的 AE 存储列表增量更新：合成状态变化的数量为零时回退到 AE 的完整缓存刷新，避免可合成标志滞后。默认关闭；需要使用时设为 `true`，客户端和服务端使用一致配置，修改后重启。关闭时不加载该 Mixin。
 
@@ -97,15 +96,17 @@ craftingDiagnostics=false
 
 `patternDeduplication` 单独控制 GT-Never-Reset 二合一无线终端的接口去重：手动放入或自动上传时，如果目标接口已有产物种类集合相同的样板，则拒绝写入。产物的物品或流体类型及 NBT 参与比较；数量、顺序和输入材料不参与。已有样板不会被删除，其他终端和总成本身的插入规则不变。自动上传的成功或阻断原因会写入 INFO 日志和玩家聊天栏，并在二合一终端或其 NEI 界面的下方前景提示 5 秒；成功提示显示接口列表中的本地化名称及样板槽；成功的“样板终端”前缀为绿色，失败或阻断为红色，正文为白色，不依赖调试日志开关。服务端与客户端需要安装同版本并保持终端与去重开关一致。
 
-终端调整以 GT-Never-Reset 0.1.31、NEI 2.8.171、AE2 rv3-beta-1095 为基准。客户端与服务端必须安装相同版本的本模组，并将 `quickTerminal` 设置为相同值：该功能扩展了终端配方转移的数据包。旧配置文件没有该项时默认为 `true`；要关闭时手动添加 `quickTerminal=false` 并重启两端。普通 `+` 传入配方，Shift/Alt + `+` 进一步自动编码；匹配到完整收藏配方时优先使用收藏的材料和产物；其他多候选输入按下述 `terminalSmartIngredients` 规则选择，关闭该功能时保留既有选择行为。编码后只有一个产出槽位的样板才会尝试自动上传；失败或多产出时保留在终端编码槽。自动上传使用已同步的接口名称来确定候选，由服务端验证接口和空位并写入；如果客户端尚未收到接口列表，可能找不到本地化名称的目标。接口搜索仍遵循 GT-Never-Reset 的 `fillSearchFromNeiRecipes` 设置。终端的详细调试日志可在 `config/gtnhadjust.cfg` 中的 `quickTerminal.debug` 开启，默认关闭。
+GT-Never-Reset 0.1.32 已在 NEI 导入时将切割机展示配方池映射到真实配方池，本模组不再注入旧的 `factoryRecipeMapFix`。此前已编码且记录了展示配方池的旧样板不会自动迁移，遇到通用联合工厂无法匹配时需重新从 NEI 导入并编码；其他配方池不受该撤除影响。
+
+终端调整以 GT-Never-Reset 0.1.32、NEI 2.8.171、AE2 rv3-beta-1095 为基准。客户端与服务端必须安装相同版本的本模组，并将 `quickTerminal` 设置为相同值：该功能扩展了终端配方转移的数据包。旧配置文件没有该项时默认为 `true`；要关闭时手动添加 `quickTerminal=false` 并重启两端。普通 `+` 传入配方，Shift/Alt + `+` 进一步自动编码；匹配到完整收藏配方时优先使用收藏的材料和产物；其他多候选输入按下述 `terminalSmartIngredients` 规则选择，关闭该功能时保留既有选择行为。编码后只有一个产出槽位的样板才会尝试自动上传；失败或多产出时保留在终端编码槽。自动上传使用已同步的接口名称来确定候选，由服务端验证接口和空位并写入；如果客户端尚未收到接口列表，可能找不到本地化名称的目标。接口搜索仍遵循 GT-Never-Reset 的 `fillSearchFromNeiRecipes` 设置。终端的详细调试日志可在 `config/gtnhadjust.cfg` 中的 `quickTerminal.debug` 开启，默认关闭。
 
 `terminalInventoryFix` 独立控制二合一终端的客户端库存同步及 NEI 状态修复，基于 AE2 rv3-beta-1095、NEI 2.8.171 和 NotEnoughEnergistics 1.7.50。旧配置缺省启用，添加 `terminalInventoryFix=false` 并重启客户端可彻底停用相关 Mixin；服务端无需此修复。库存状态指示复用 NotEnoughEnergistics，未安装该模组时只启用库存数据包转发。
 
-GTNR 快速编码终端配方池保留修复：修改并重新编码已有加工样板时，在原样板与终端记录的来源一致时保留配方池；NEI 导入仍以新配方为准。`config/gtnhadjust-features.properties` 中 `patternRecipeMapPreservation` 默认开启，关闭后不加载此 Mixin；修改须重启并保持客户端与服务端一致。适配 GTNH 2.9.0 与 GT-Never-Reset 0.1.31；`general.debug` 开启时记录保留操作。
+GTNR 快速编码终端配方池保留修复：修改并重新编码已有加工样板时，在原样板与终端记录的来源一致时保留配方池；NEI 导入仍以新配方为准。`config/gtnhadjust-features.properties` 中 `patternRecipeMapPreservation` 默认开启，关闭后不加载此 Mixin；修改须重启并保持客户端与服务端一致。适配 GTNH 2.9.0 与 GT-Never-Reset 0.1.32；`general.debug` 开启时记录保留操作。
 
-二合一无线终端打开的 NEI 配方界面常显材料的网络状态图标，并在可合成的输入左上角显示 AE2 样板标记。`config/gtnhadjust-features.properties` 中 `terminalNeiAlwaysShowPresence` 默认开启，关闭后不加载对应 Mixin；依赖 `terminalInventoryFix`、NEI 2.8.171、NotEnoughEnergistics 和 GT-Never-Reset 0.1.31，仅客户端显示，配置变更后重启。
+二合一无线终端打开的 NEI 配方界面常显材料的网络状态图标，并在可合成的输入左上角显示 AE2 样板标记。`config/gtnhadjust-features.properties` 中 `terminalNeiAlwaysShowPresence` 默认开启，关闭后不加载对应 Mixin；依赖 `terminalInventoryFix`、NEI 2.8.171、NotEnoughEnergistics 和 GT-Never-Reset 0.1.32，仅客户端显示，配置变更后重启。
 
-二合一终端从 NEI 导入时，优先使用匹配的完整收藏配方；否则对可选输入依次优先选择收藏的普通物品或收藏配方产物、对应等级的任意电路板、网络可合成项、网络已有项，同优先级从候选末尾向前选；无匹配时保留 NEI 当前项。分组配方会选择完整成员以保留对应的流体用量。`terminalSmartIngredients` 默认开启，依赖 `quickTerminal`，关闭后不加载对应 Mixin，重启生效；适配 GTNH 2.9.0、GTNR 0.1.31 和 NEI 2.8.171。
+二合一终端从 NEI 导入时，优先使用匹配的完整收藏配方；否则对可选输入依次优先选择收藏的普通物品或收藏配方产物、对应等级的任意电路板、网络可合成项、网络已有项，同优先级从候选末尾向前选；无匹配时保留 NEI 当前项。分组配方会选择完整成员以保留对应的流体用量。`terminalSmartIngredients` 默认开启，依赖 `quickTerminal`，关闭后不加载对应 Mixin，重启生效；适配 GTNH 2.9.0、GTNR 0.1.32 和 NEI 2.8.171。
 
 
 `smallQuantumMachine` 控制小依的小型量子操纵者及其配方，客户端和服务端需一致，修改后重启。该机器按 GT5 5.09.54.265 原版 15×21×15 结构建造，使用坚固钢制机械方块、格栅机械方块、洁净不锈钢机械方块、等级线圈和等级玻璃；顶部或底部可放舱室。必须安装维护仓、能源仓、消声仓和输出总线，流体输出与输入舱室按配方需要选装；可使用多个普通或异能能源仓。原始污染 102400/秒，由消声仓减排。
