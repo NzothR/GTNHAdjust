@@ -14,7 +14,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 /** Stable metadata 0–9 identifies the corresponding dimension tier. */
 public final class TierDimensionItem extends Item {
 
-    private static final String[] REPRESENTATIVES = { "Ow", "Mo", "De", "As", "Io", "En", "Pr", "Ha", "BC", "An" };
+    static final String[] REPRESENTATIVES = { "Ow", "Mo", "De", "As", "Io", "En", "Pr", "Ha", "BC", "An" };
     @SideOnly(Side.CLIENT)
     private IIcon[] icons;
 
@@ -28,6 +28,11 @@ public final class TierDimensionItem extends Item {
     @Override
     public String getUnlocalizedName(ItemStack stack) {
         return "item.gtnhadjust.tier_dimension." + stack.getItemDamage();
+    }
+
+    @SideOnly(Side.CLIENT)
+    public void registerRenderer() {
+        net.minecraftforge.client.MinecraftForgeClient.registerItemRenderer(this, new TierDimensionRenderer());
     }
 
     @Override

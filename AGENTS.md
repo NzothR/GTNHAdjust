@@ -5,7 +5,7 @@
 - 本机游戏实例为 `D:\Game\PrismLauncher-Windows-MinGW-w64-Portable-11.1.1\instances\GT_New_Horizons_2.9.0_Java_17-26\.minecraft`。未经用户事先同意，不修改项目目录以外的文件或文件夹；申请时说明范围和作用。
 - 本机服务端实例为 `D:\Game\MinecraftServer\GT_New_Horizons_2.9.0_Server_Java_17-26`；只读检查日志及配置可以直接进行，修改仍须事先说明并获用户同意。
 - 参考源码放在 `ref/`，不提交到 Git。Git 提交遵循 Conventional Commits。
-- 每次交付小更新时递增模组补丁版本号，便于通过文件名区分构建。
+- 仅在新增功能、新 Mixin、修改 Mixin 或新增内容时递增模组补丁版本号；普通调整及纯文档更新不递增。
 - 新增机器及其专属结构和配方放在 `com.gtnhadjust.machine` 下按机器分类；Mixin 放在 `com.gtnhadjust.mixins` 下，独立配方调整放在 `com.gtnhadjust.recipe`。保持单模组、现有机器注册名和 ID、配方池名称及资源路径的存档兼容性。
 - 可启动开发相关进程并关闭自己启动的进程，不得随意关闭已有进程。
 - 每个 Mixin 功能必须有启动时生效的配置开关；关闭时不得把对应 Mixin 加入加载列表。跨客户端和服务端的功能按一个开关整体启停，并记录兼容版本与重启要求。非 Mixin 的独立功能也应有对应开关。

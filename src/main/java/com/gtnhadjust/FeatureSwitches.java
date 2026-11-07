@@ -27,6 +27,14 @@ final class FeatureSwitches {
     private static final String PATTERN_DEDUP = "patternDeduplication";
     private static final String TERMINAL_INVENTORY_FIX = "terminalInventoryFix";
     private static final String SMALL_QUANTUM = "smallQuantumMachine";
+    private static final String TERMINAL_CRAFTING_REFRESH = "terminalCraftingRefreshFix";
+    private static final String CRAFTING_DIAGNOSTICS = "craftingDiagnostics";
+    private static final String MATRIX_PATTERN_LOAD_FIX = "matrixPatternLoadFix";
+    private static final String MATRIX_PATTERN_DIAGNOSTICS = "matrixPatternDiagnostics";
+    private static final String SMART_INGREDIENTS = "terminalSmartIngredients";
+    private static final String NEI_ALWAYS_SHOW_PRESENCE = "terminalNeiAlwaysShowPresence";
+    private static final String PATTERN_MAP_PRESERVATION = "patternRecipeMapPreservation";
+    private static final String NEO_ECO_CRAFTING_FIX = "neoEcoCraftingRefreshFix";
 
     final boolean crusherFixedLooting;
     final boolean crusherEquipmentVoid;
@@ -39,10 +47,21 @@ final class FeatureSwitches {
     final boolean patternDeduplication;
     final boolean terminalInventoryFix;
     final boolean smallQuantumMachine;
+    final boolean terminalCraftingRefreshFix;
+    final boolean craftingDiagnostics;
+    final boolean neoEcoCraftingRefreshFix;
+    final boolean patternRecipeMapPreservation;
+    final boolean terminalNeiAlwaysShowPresence;
+    final boolean terminalSmartIngredients;
+    final boolean matrixPatternDiagnostics;
+    final boolean matrixPatternLoadFix;
 
-    private FeatureSwitches(boolean crusherFixedLooting, boolean crusherEquipmentVoid, boolean cropBreeder, boolean steamGreenhouse,
-        boolean carpenterRecipes, boolean quickTerminal, boolean gtsrDiagnostics, boolean gtsrRecipeSpeedCompatibility,
-        boolean patternDeduplication, boolean terminalInventoryFix, boolean smallQuantumMachine) {
+    private FeatureSwitches(boolean crusherFixedLooting, boolean crusherEquipmentVoid, boolean cropBreeder,
+        boolean steamGreenhouse, boolean carpenterRecipes, boolean quickTerminal, boolean gtsrDiagnostics,
+        boolean gtsrRecipeSpeedCompatibility, boolean patternDeduplication, boolean terminalInventoryFix,
+        boolean smallQuantumMachine, boolean terminalCraftingRefreshFix, boolean craftingDiagnostics,
+        boolean neoEcoCraftingRefreshFix, boolean patternRecipeMapPreservation, boolean terminalNeiAlwaysShowPresence,
+        boolean terminalSmartIngredients, boolean matrixPatternDiagnostics, boolean matrixPatternLoadFix) {
         this.crusherFixedLooting = crusherFixedLooting;
         this.crusherEquipmentVoid = crusherEquipmentVoid;
         this.cropBreeder = cropBreeder;
@@ -54,6 +73,14 @@ final class FeatureSwitches {
         this.patternDeduplication = patternDeduplication;
         this.terminalInventoryFix = terminalInventoryFix;
         this.smallQuantumMachine = smallQuantumMachine;
+        this.terminalCraftingRefreshFix = terminalCraftingRefreshFix;
+        this.craftingDiagnostics = craftingDiagnostics;
+        this.neoEcoCraftingRefreshFix = neoEcoCraftingRefreshFix;
+        this.patternRecipeMapPreservation = patternRecipeMapPreservation;
+        this.terminalNeiAlwaysShowPresence = terminalNeiAlwaysShowPresence;
+        this.terminalSmartIngredients = terminalSmartIngredients;
+        this.matrixPatternDiagnostics = matrixPatternDiagnostics;
+        this.matrixPatternLoadFix = matrixPatternLoadFix;
     }
 
     static FeatureSwitches load(Path file) {
@@ -69,6 +96,14 @@ final class FeatureSwitches {
         defaults.setProperty(PATTERN_DEDUP, "true");
         defaults.setProperty(TERMINAL_INVENTORY_FIX, "true");
         defaults.setProperty(SMALL_QUANTUM, "true");
+        defaults.setProperty(TERMINAL_CRAFTING_REFRESH, "true");
+        defaults.setProperty(CRAFTING_DIAGNOSTICS, "false");
+        defaults.setProperty(NEO_ECO_CRAFTING_FIX, "false");
+        defaults.setProperty(PATTERN_MAP_PRESERVATION, "true");
+        defaults.setProperty(NEI_ALWAYS_SHOW_PRESENCE, "true");
+        defaults.setProperty(SMART_INGREDIENTS, "true");
+        defaults.setProperty(MATRIX_PATTERN_DIAGNOSTICS, "false");
+        defaults.setProperty(MATRIX_PATTERN_LOAD_FIX, "true");
         try {
             Files.createDirectories(file.getParent());
             if (!Files.exists(file)) {
@@ -95,7 +130,15 @@ final class FeatureSwitches {
                 read(values, GTSR_RECIPE_SPEED),
                 read(values, PATTERN_DEDUP),
                 read(values, TERMINAL_INVENTORY_FIX),
-                read(values, SMALL_QUANTUM));
+                read(values, SMALL_QUANTUM),
+                read(values, TERMINAL_CRAFTING_REFRESH),
+                read(values, CRAFTING_DIAGNOSTICS, false),
+                read(values, NEO_ECO_CRAFTING_FIX, false),
+                read(values, PATTERN_MAP_PRESERVATION),
+                read(values, NEI_ALWAYS_SHOW_PRESENCE),
+                read(values, SMART_INGREDIENTS),
+                read(values, MATRIX_PATTERN_DIAGNOSTICS, false),
+                read(values, MATRIX_PATTERN_LOAD_FIX));
             LOG.info(
                 "Feature switches: crusherFixedLooting=" + result.crusherFixedLooting
                     + ", crusherEquipmentVoid="
@@ -117,16 +160,55 @@ final class FeatureSwitches {
                     + ", terminalInventoryFix="
                     + result.terminalInventoryFix
                     + ", smallQuantumMachine="
-                    + result.smallQuantumMachine);
+                    + result.smallQuantumMachine
+                    + ", terminalCraftingRefreshFix="
+                    + result.terminalCraftingRefreshFix
+                    + ", craftingDiagnostics="
+                    + result.craftingDiagnostics
+                    + ", neoEcoCraftingRefreshFix="
+                    + result.neoEcoCraftingRefreshFix
+                    + ", patternRecipeMapPreservation="
+                    + result.patternRecipeMapPreservation
+                    + ", terminalNeiAlwaysShowPresence="
+                    + result.terminalNeiAlwaysShowPresence
+                    + ", terminalSmartIngredients="
+                    + result.terminalSmartIngredients
+                    + ", matrixPatternDiagnostics="
+                    + result.matrixPatternDiagnostics
+                    + ", matrixPatternLoadFix="
+                    + result.matrixPatternLoadFix);
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
-            return new FeatureSwitches(false, false, false, false, false, false, false, false, false, false, false);
+            return new FeatureSwitches(
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false);
         }
     }
 
     private static boolean read(Properties values, String key) {
-        String value = values.getProperty(key, "true")
+        return read(values, key, true);
+    }
+
+    private static boolean read(Properties values, String key, boolean defaultValue) {
+        String value = values.getProperty(key, Boolean.toString(defaultValue))
             .trim();
         if ("true".equalsIgnoreCase(value)) return true;
         if ("false".equalsIgnoreCase(value)) return false;
@@ -153,6 +235,8 @@ final class FeatureSwitches {
                 mixins.add("terminal.TerminalIngredientsMixin");
             }
         }
+        if (client && quickTerminal && terminalSmartIngredients && loadedMods.contains("gtneverreset"))
+            mixins.add("terminal.SmartIngredientTransferMixin");
         if (steamGreenhouse && loadedMods.contains("sciencenotleisure") && loadedMods.contains("cropsnh")) {
             mixins.add("gtnl.SteamGreenhouseParallelMixin");
             if (client) mixins.add("gtnl.SteamGreenhouseGuiMixin");
@@ -164,6 +248,38 @@ final class FeatureSwitches {
         }
         if (patternDeduplication && loadedMods.contains("gtneverreset"))
             mixins.add("terminal.TerminalPatternDedupMixin");
+        if (terminalCraftingRefreshFix && loadedMods.contains("gtneverreset"))
+            mixins.add("fix.QuickTerminalCraftingRefreshMixin");
+        if (patternRecipeMapPreservation && loadedMods.contains("gtneverreset"))
+            mixins.add("fix.PatternRecipeMapPreservationMixin");
+        if (neoEcoCraftingRefreshFix && loadedMods.contains("neoecoae") && loadedMods.contains("appliedenergistics2"))
+            mixins.add("fix.NeoEcoCraftingRefreshMixin");
+        if (matrixPatternLoadFix && loadedMods.contains("gtneverreset")) {
+            mixins.add("fix.MatrixPatternDecodeMixin");
+            mixins.add("fix.MatrixPatternRetryMixin");
+        }
+        if (matrixPatternDiagnostics && loadedMods.contains("gtneverreset")) {
+            mixins.add("diagnostic.MatrixInventoryAuditMixin");
+            mixins.add("diagnostic.MatrixPatternAuditMixin");
+            mixins.add("diagnostic.MatrixTickAuditMixin");
+        }
+        if (craftingDiagnostics && loadedMods.contains("gtneverreset")) {
+            mixins.add("diagnostic.FactoryProcessingAuditMixin");
+            mixins.add("diagnostic.TerminalCraftingAuditMixin");
+            mixins.add("diagnostic.CraftingGridAuditMixin");
+            mixins.add("diagnostic.NetworkMonitorAuditMixin");
+            mixins.add("diagnostic.PatternBufferAuditMixin");
+            mixins.add("diagnostic.CircuitBufferAuditMixin");
+            mixins.add("diagnostic.MonitorContainerAuditMixin");
+            if (client) mixins.add("diagnostic.InventoryPacketAuditMixin");
+        }
+        if (client && terminalNeiAlwaysShowPresence
+            && terminalInventoryFix
+            && loadedMods.contains("gtneverreset")
+            && loadedMods.contains("neenergistics")) {
+            mixins.add("terminal.NeiOverlayButtonAccessor");
+            mixins.add("terminal.NeiAlwaysShowPresenceMixin");
+        }
         if (client && terminalInventoryFix && loadedMods.contains("gtneverreset")) {
             mixins.add("fix.QuickTerminalInventoryPacketMixin");
             mixins.add("fix.QuickTerminalRecipeScreenMixin");

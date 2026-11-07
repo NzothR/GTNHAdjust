@@ -24,6 +24,8 @@ GTNH 2.9.0（GregTech/KubaTech 5.09.54.265、MobsInfo 0.6.2）的工业屠宰场
 
 每个等级另有一个金色 T0–T9 维度标记，由该等级的全部维度方块在组装机合成（无序输入，128 tick，512 EU/t）。对应采集配方按资源类型合并该等级的单维度产物，先去除同等级重复，再排除所有低等级已出现的同类型产物；物品按注册名和 meta、流体按注册名去重，不累加产量。没有新产物的类型不注册配方。若缺少维度标记，对应等级的合成配方不会注册；缺失的维度及产物不会参与整合和跨等级排重，详见启动日志。该功能随 `collector.singularityResourceRecipes` 一同启停，重启生效，客户端与服务端配置须一致。
 
+采集器识别本模组的等级维度标记；标记使用对应维度的外观渲染。该行为适配 GTNH 2.9.0，随上述配方功能使用，更新模组后需重启客户端和服务端。
+
 ### 采集器结构
 
 采集器使用交错星门结构，尺寸为 28×28×25（宽×深×高）。控制器嵌入正面控制台；洁净不锈钢机械方块位置可替换为输入总线、输出总线、输出仓、能源仓或维护仓。等级玻璃必须同等级，中心 5×5×5 保持空气。成型后客户端显示 GT 黑洞动画，不替换或删除世界方块。`collector.blackHoleRendering` 默认开启，由服务端控制，重启生效；开启 `general.debug` 可记录动画显示切换。旧的三种结构测试控制器已移除。
@@ -88,9 +90,15 @@ terminalNeiAlwaysShowPresence=true
 terminalSmartIngredients=true
 neoEcoCraftingRefreshFix=false
 craftingDiagnostics=false
+matrixPatternDiagnostics=false
+matrixPatternLoadFix=true
 ```
 
 `craftingDiagnostics` 默认关闭，设为 `true` 并重启后记录工厂输入与匹配、总成更新、AE 合成缓存事件、存储通知及客户端数据包；日志可能很多，排查完成后应关闭并重启。
+
+`matrixPatternLoadFix` 适配 GT-Never-Reset 0.1.32 装配矩阵：解析 AE2 编码样板时使用副本，避免读档初期暂时无法匹配合成配方时将原样板永久标记为无效，并在机器运行第 20 tick 重建样板缓存。第 20 tick 时也会在副本上重新验证已失效的普通 AE2 合成样板：仅当配方恢复且实际产物与样板保存的物品、NBT 和数量完全一致时，才移除原样板的无效标记；其余样板保持不变。默认开启；修改后重启客户端和服务端并保持配置一致，关闭时不加载该功能的 Mixin。
+
+`matrixPatternDiagnostics` 默认关闭，仅用于排查 GT-Never-Reset 0.1.32 装配矩阵在读档后出现失效合成样板的问题；开启后在服务端日志输出 `[matrix-audit]`，记录读档阶段无效标记变化和第 20 tick 时的样板副本重试结果。诊断不清除原样板标记、不修复存档；修改开关后重启，客户端与服务端保持一致。问题复现并收集日志后请关闭此开关。
 
 `terminalCraftingRefreshFix` 尝试修复 GT-Never-Reset 0.1.32 二合一终端操作样板后合成状态延迟更新：样板实际变化后，在后续容器更新时再次通知目标接口的合成网络并同步相关产物。该开关独立于 `quickTerminal`，客户端和服务端保持一致，修改后重启；关闭后不会加载对应 Mixin。详细诊断可使用 `quickTerminal.debug`。
 

@@ -140,6 +140,8 @@ public class GTNHAdjust {
         if (config.hasChanged()) config.save();
         tierDimension = new TierDimensionItem();
         GameRegistry.registerItem(tierDimension, "tier_dimension");
+        if (event.getSide()
+            .isClient()) tierDimension.registerRenderer();
     }
 
     @Mod.EventHandler

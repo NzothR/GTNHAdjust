@@ -230,8 +230,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             for (ItemStack item : getStoredInputs()) {
                 if (item == null || item.stackSize <= 0 || item == controllerSlot) continue;
                 GameRegistry.UniqueIdentifier id = GameRegistry.findUniqueIdentifierFor(item.getItem());
-                if (id != null && "gtneioreplugin".equals(id.modId) && id.name.startsWith("blockDimensionDisplay_"))
-                    markers.add(item);
+                if (id != null && CollectorMarkerPolicy.isMarker(id.modId, id.name)) markers.add(item);
                 else if (GTUtility.isAnyIntegratedCircuit(item)) circuits.add(item);
             }
             List<PendingRecipe> pending = new ArrayList<>();

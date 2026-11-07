@@ -37,7 +37,7 @@ public final class BookmarkIngredients {
         try {
             RecipeId id = RecipeId.of(handler, index, original);
             List<BookmarkItem> choices = bookmarks(id, BookmarkItemType.INGREDIENT);
-            if (choices == null) return original;
+            if (choices == null || choices.isEmpty()) return SmartIngredients.select(original);
             List<PositionedStack> result = new ArrayList<>(original.size());
             boolean[] used = new boolean[choices.size()];
             int selected = 0;

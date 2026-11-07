@@ -33,11 +33,11 @@ public class FeatureSwitchesTest {
         assertTrue(switches.carpenterRecipes);
         assertTrue(switches.smallQuantumMachine);
         assertEquals(
-            12,
+            17,
             switches.selectMixins(MODS, true)
                 .size());
         assertEquals(
-            6,
+            10,
             switches.selectMixins(MODS, false)
                 .size());
     }
@@ -49,10 +49,14 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
+                "matrixPatternLoadFix=false",
+                "patternRecipeMapPreservation=false",
+                "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "steamGreenhouse=false",
                 "carpenterRecipes=false",
                 "quickTerminal=false",
+                "terminalCraftingRefreshFix=false",
                 "patternDeduplication=false",
                 "terminalInventoryFix=false"),
             StandardCharsets.ISO_8859_1);
@@ -73,10 +77,14 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
+                "matrixPatternLoadFix=false",
+                "patternRecipeMapPreservation=false",
+                "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "steamGreenhouse=unexpected",
                 "carpenterRecipes=true",
                 "quickTerminal=false",
+                "terminalCraftingRefreshFix=false",
                 "patternDeduplication=false",
                 "terminalInventoryFix=false"),
             StandardCharsets.ISO_8859_1);
@@ -88,9 +96,12 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
+                "matrixPatternLoadFix=false",
+                "patternRecipeMapPreservation=false",
                 "cropBreeder=true",
                 "steamGreenhouse=false",
                 "quickTerminal=false",
+                "terminalCraftingRefreshFix=false",
                 "patternDeduplication=false",
                 "terminalInventoryFix=false"),
             StandardCharsets.ISO_8859_1);
@@ -117,15 +128,19 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
+                "matrixPatternLoadFix=false",
+                "patternRecipeMapPreservation=false",
+                "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "steamGreenhouse=false",
                 "quickTerminal=true",
+                "terminalCraftingRefreshFix=false",
                 "patternDeduplication=false",
                 "terminalInventoryFix=false"),
             StandardCharsets.ISO_8859_1);
         FeatureSwitches enabled = FeatureSwitches.load(file);
         assertEquals(
-            5,
+            6,
             enabled.selectMixins(MODS, true)
                 .size());
         assertEquals(
@@ -138,9 +153,13 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
+                "matrixPatternLoadFix=false",
+                "patternRecipeMapPreservation=false",
+                "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "steamGreenhouse=false",
                 "quickTerminal=false",
+                "terminalCraftingRefreshFix=false",
                 "patternDeduplication=false",
                 "terminalInventoryFix=false"),
             StandardCharsets.ISO_8859_1);
@@ -162,7 +181,10 @@ public class FeatureSwitchesTest {
             Arrays.asList("diagnostic.GtsrRecipeAuditMixin"),
             FeatureSwitches.load(file)
                 .selectMixins(mods, false));
-        Files.write(file, Arrays.asList("gtsrDiagnostics=false"), StandardCharsets.ISO_8859_1);
+        Files.write(
+            file,
+            Arrays.asList("terminalCraftingRefreshFix=false", "gtsrDiagnostics=false"),
+            StandardCharsets.ISO_8859_1);
         assertTrue(
             FeatureSwitches.load(file)
                 .selectMixins(mods, false)
@@ -176,9 +198,13 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
+                "matrixPatternLoadFix=false",
+                "patternRecipeMapPreservation=false",
+                "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "quickTerminal=false",
                 "gtsrDiagnostics=false",
+                "terminalCraftingRefreshFix=false",
                 "patternDeduplication=false"),
             StandardCharsets.ISO_8859_1);
         Set<String> mods = new HashSet<>(Arrays.asList("gtsr", "gtneverreset"));
@@ -195,10 +221,14 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
+                "matrixPatternLoadFix=false",
+                "patternRecipeMapPreservation=false",
+                "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "quickTerminal=false",
                 "gtsrDiagnostics=false",
                 "gtsrRecipeSpeedCompatibility=false",
+                "terminalCraftingRefreshFix=false",
                 "patternDeduplication=false"),
             StandardCharsets.ISO_8859_1);
         assertTrue(
@@ -213,7 +243,14 @@ public class FeatureSwitchesTest {
             .toPath();
         Files.write(
             file,
-            Arrays.asList("cropBreeder=false", "quickTerminal=false", "patternDeduplication=true"),
+            Arrays.asList(
+                "matrixPatternLoadFix=false",
+                "patternRecipeMapPreservation=false",
+                "matrixPatternLoadFix=false",
+                "cropBreeder=false",
+                "quickTerminal=false",
+                "terminalCraftingRefreshFix=false",
+                "patternDeduplication=true"),
             StandardCharsets.ISO_8859_1);
         Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset"));
         assertEquals(
@@ -222,7 +259,14 @@ public class FeatureSwitchesTest {
                 .selectMixins(mods, false));
         Files.write(
             file,
-            Arrays.asList("cropBreeder=false", "quickTerminal=false", "patternDeduplication=false"),
+            Arrays.asList(
+                "matrixPatternLoadFix=false",
+                "patternRecipeMapPreservation=false",
+                "matrixPatternLoadFix=false",
+                "cropBreeder=false",
+                "quickTerminal=false",
+                "terminalCraftingRefreshFix=false",
+                "patternDeduplication=false"),
             StandardCharsets.ISO_8859_1);
         assertTrue(
             FeatureSwitches.load(file)
@@ -236,12 +280,21 @@ public class FeatureSwitchesTest {
             .toPath();
         Files.write(
             file,
-            Arrays.asList("cropBreeder=false", "quickTerminal=false", "patternDeduplication=false"),
+            Arrays.asList(
+                "matrixPatternLoadFix=false",
+                "patternRecipeMapPreservation=false",
+                "matrixPatternLoadFix=false",
+                "cropBreeder=false",
+                "quickTerminal=false",
+                "terminalCraftingRefreshFix=false",
+                "patternDeduplication=false"),
             StandardCharsets.ISO_8859_1);
         Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset", "neenergistics"));
         FeatureSwitches enabled = FeatureSwitches.load(file);
         assertEquals(
             Arrays.asList(
+                "terminal.NeiOverlayButtonAccessor",
+                "terminal.NeiAlwaysShowPresenceMixin",
                 "fix.QuickTerminalInventoryPacketMixin",
                 "fix.QuickTerminalRecipeScreenMixin",
                 "fix.QuickTerminalPresenceMixin"),
@@ -256,8 +309,12 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
+                "matrixPatternLoadFix=false",
+                "patternRecipeMapPreservation=false",
+                "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "quickTerminal=false",
+                "terminalCraftingRefreshFix=false",
                 "patternDeduplication=false",
                 "terminalInventoryFix=false"),
             StandardCharsets.ISO_8859_1);
@@ -276,6 +333,223 @@ public class FeatureSwitchesTest {
         assertFalse(switches.smallQuantumMachine);
         assertTrue(switches.quickTerminal);
     }
+
+    @Test
+    public void terminalCraftingRefreshHasIndependentSwitch() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Files.write(
+            file,
+            Arrays.asList(
+                "matrixPatternLoadFix=false",
+                "patternRecipeMapPreservation=false",
+                "matrixPatternLoadFix=false",
+                "cropBreeder=false",
+                "quickTerminal=false",
+                "patternDeduplication=false"),
+            StandardCharsets.ISO_8859_1);
+        Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset"));
+        assertEquals(
+            Arrays.asList("fix.QuickTerminalCraftingRefreshMixin"),
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false));
+        Files.write(
+            file,
+            Arrays.asList(
+                "matrixPatternLoadFix=false",
+                "patternRecipeMapPreservation=false",
+                "matrixPatternLoadFix=false",
+                "cropBreeder=false",
+                "quickTerminal=false",
+                "patternDeduplication=false",
+                "terminalCraftingRefreshFix=false"),
+            StandardCharsets.ISO_8859_1);
+        assertTrue(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .isEmpty());
+    }
+
+    @Test
+    public void neoEcoCraftingFixRequiresBothModsAndCanBeDisabled() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("neoecoae", "appliedenergistics2"));
+        FeatureSwitches defaults = FeatureSwitches.load(file);
+        assertFalse(
+            defaults.selectMixins(mods, false)
+                .contains("fix.NeoEcoCraftingRefreshMixin"));
+        Files.write(file, Arrays.asList("neoEcoCraftingRefreshFix=true"), StandardCharsets.ISO_8859_1);
+        defaults = FeatureSwitches.load(file);
+        assertTrue(
+            defaults.selectMixins(mods, false)
+                .contains("fix.NeoEcoCraftingRefreshMixin"));
+        assertTrue(
+            defaults.selectMixins(mods, true)
+                .contains("fix.NeoEcoCraftingRefreshMixin"));
+        assertFalse(
+            defaults.selectMixins(new HashSet<>(Arrays.asList("neoecoae")), false)
+                .contains("fix.NeoEcoCraftingRefreshMixin"));
+        Files.write(file, Arrays.asList("neoEcoCraftingRefreshFix=false"), StandardCharsets.ISO_8859_1);
+        assertFalse(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .contains("fix.NeoEcoCraftingRefreshMixin"));
+    }
+
+    @Test
+    public void craftingDiagnosticsHasIndependentSwitch() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Files.write(
+            file,
+            Arrays.asList(
+                "patternRecipeMapPreservation=false",
+                "matrixPatternLoadFix=false",
+                "cropBreeder=false",
+                "quickTerminal=false",
+                "patternDeduplication=false",
+                "terminalCraftingRefreshFix=false",
+                "terminalInventoryFix=false"),
+            StandardCharsets.ISO_8859_1);
+        Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset"));
+        FeatureSwitches defaults = FeatureSwitches.load(file);
+        assertFalse(defaults.craftingDiagnostics);
+        assertTrue(
+            defaults.selectMixins(mods, false)
+                .isEmpty());
+        Files.write(
+            file,
+            Arrays.asList(
+                "patternRecipeMapPreservation=false",
+                "matrixPatternLoadFix=false",
+                "cropBreeder=false",
+                "quickTerminal=false",
+                "patternDeduplication=false",
+                "terminalCraftingRefreshFix=false",
+                "terminalInventoryFix=false",
+                "matrixPatternLoadFix=false",
+                "craftingDiagnostics=true"),
+            StandardCharsets.ISO_8859_1);
+        List<String> mixins = FeatureSwitches.load(file)
+            .selectMixins(mods, false);
+        assertTrue(mixins.contains("diagnostic.CraftingGridAuditMixin"));
+        assertTrue(mixins.contains("diagnostic.FactoryProcessingAuditMixin"));
+    }
+
+    @Test
+    public void patternMapPreservationIsIndependentlyControlledOnBothSides() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset"));
+        FeatureSwitches enabled = FeatureSwitches.load(file);
+        assertTrue(
+            enabled.selectMixins(mods, true)
+                .contains("fix.PatternRecipeMapPreservationMixin"));
+        assertTrue(
+            enabled.selectMixins(mods, false)
+                .contains("fix.PatternRecipeMapPreservationMixin"));
+        Files.write(file, Arrays.asList("patternRecipeMapPreservation=false"), StandardCharsets.ISO_8859_1);
+        FeatureSwitches disabled = FeatureSwitches.load(file);
+        assertFalse(
+            disabled.selectMixins(mods, true)
+                .contains("fix.PatternRecipeMapPreservationMixin"));
+        assertFalse(
+            disabled.selectMixins(mods, false)
+                .contains("fix.PatternRecipeMapPreservationMixin"));
+    }
+
+    @Test
+    public void terminalNeiPresenceCanBeDisabledAndIsClientOnly() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset", "neenergistics"));
+        assertTrue(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, true)
+                .contains("terminal.NeiAlwaysShowPresenceMixin"));
+        assertFalse(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .contains("terminal.NeiAlwaysShowPresenceMixin"));
+        Files.write(file, Arrays.asList("terminalNeiAlwaysShowPresence=false"), StandardCharsets.ISO_8859_1);
+        assertFalse(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, true)
+                .contains("terminal.NeiAlwaysShowPresenceMixin"));
+    }
+
+    @Test
+    public void smartIngredientMixinRequiresSwitchAndClientSide() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset"));
+        assertTrue(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, true)
+                .contains("terminal.SmartIngredientTransferMixin"));
+        assertFalse(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .contains("terminal.SmartIngredientTransferMixin"));
+        Files.write(file, Arrays.asList("terminalSmartIngredients=false"), StandardCharsets.ISO_8859_1);
+        assertFalse(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, true)
+                .contains("terminal.SmartIngredientTransferMixin"));
+    }
+
+    @Test
+    public void matrixPatternDiagnosticsDefaultOffAndSelectableOnBothSides() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset"));
+        assertFalse(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .contains("diagnostic.MatrixPatternAuditMixin"));
+        Files.write(file, Arrays.asList("matrixPatternDiagnostics=true"), StandardCharsets.ISO_8859_1);
+        FeatureSwitches enabled = FeatureSwitches.load(file);
+        for (String mixin : Arrays.asList(
+            "diagnostic.MatrixInventoryAuditMixin",
+            "diagnostic.MatrixPatternAuditMixin",
+            "diagnostic.MatrixTickAuditMixin")) {
+            assertTrue(
+                enabled.selectMixins(mods, false)
+                    .contains(mixin));
+            assertTrue(
+                enabled.selectMixins(mods, true)
+                    .contains(mixin));
+            assertFalse(
+                enabled.selectMixins(new HashSet<>(), false)
+                    .contains(mixin));
+        }
+    }
+
+    @Test
+    public void matrixLoadFixCanBeDisabledOnBothSides() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset"));
+        FeatureSwitches enabled = FeatureSwitches.load(file);
+        for (String name : Arrays.asList("fix.MatrixPatternDecodeMixin", "fix.MatrixPatternRetryMixin")) {
+            assertTrue(
+                enabled.selectMixins(mods, true)
+                    .contains(name));
+            assertTrue(
+                enabled.selectMixins(mods, false)
+                    .contains(name));
+        }
+        Files.write(file, Arrays.asList("matrixPatternLoadFix=false"), StandardCharsets.ISO_8859_1);
+        FeatureSwitches disabled = FeatureSwitches.load(file);
+        assertFalse(
+            disabled.selectMixins(mods, true)
+                .contains("fix.MatrixPatternDecodeMixin"));
+        assertFalse(
+            disabled.selectMixins(mods, false)
+                .contains("fix.MatrixPatternRetryMixin"));
+    }
+
     @Test
     public void crusherEquipmentFilterCanBeDisabledOnBothSides() throws Exception {
         Path file = folder.newFile()
@@ -301,6 +575,7 @@ public class FeatureSwitchesTest {
             disabled.selectMixins(mods, false)
                 .contains(mixin));
     }
+
     @Test
     public void crusherFixedLootingIsIndependent() throws Exception {
         Path file = folder.newFile()
