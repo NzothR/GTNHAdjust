@@ -133,10 +133,15 @@ public abstract class QuickTerminalContainerMixin {
                         rejected++;
                         continue;
                     }
+                    Object rawName = Reflection.field(tracker, "name");
                     placeEncodedPattern(new InterfacePatternTarget(id, slot));
                     if (!encodedPatternSlot.getHasStack()) {
                         interfaceDelegate.scheduleUpdate();
-                        gtnhadjust$report("自动上传成功：接口 " + id + "，样板槽 " + (slot + 1) + "。");
+                        TerminalNotifications.reportUpload(
+                            ((ContainerQuickEncodingTerminal) (Object) this).getPlayerInv().player,
+                            id,
+                            rawName instanceof String ? (String) rawName : "",
+                            slot + 1);
                         return;
                     }
                 }

@@ -46,6 +46,24 @@ public final class ClientTargets {
         }
     }
 
+    /** Uses the same localized name displayed in AE's interface list. */
+    public static String displayName(Object terminal, long id) {
+        if (terminal == null) return null;
+        try {
+            Object interfaceTerminal = Reflection.field(terminal, "interfaceTerminal");
+            Object master = Reflection.field(interfaceTerminal, "masterList");
+            Map<?, ?> entries = (Map<?, ?>) Reflection.field(master, "list");
+            Object entry = entries.get(id);
+            if (entry == null) return null;
+            Object value = Reflection.field(entry, "dispName");
+            return value instanceof String && !((String) value).trim()
+                .isEmpty() ? (String) value : null;
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            if (GTNHAdjust.terminalDebug) GTNHAdjust.LOG.info("Quick terminal: cannot resolve interface name", failure);
+            return null;
+        }
+    }
+
     private static final class Target {
 
         final long id;

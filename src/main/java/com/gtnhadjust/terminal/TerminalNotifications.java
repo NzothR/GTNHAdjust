@@ -37,6 +37,18 @@ public final class TerminalNotifications {
         CHANNEL.sendTo(new Message(message), recipient);
     }
 
+    /** The client resolves the synchronized interface display name in its own language. */
+    public static void reportUpload(EntityPlayer player, long id, String rawName, int slot) {
+        String fallback = rawName == null || rawName.trim()
+            .isEmpty() ? "接口 " + id : rawName;
+        String message = "自动上传成功：" + fallback + "，样板槽 " + slot + "。";
+        GTNHAdjust.LOG.info("Quick terminal: {} (interface id {})", message, id);
+        if (!(player instanceof EntityPlayerMP)) return;
+        EntityPlayerMP recipient = (EntityPlayerMP) player;
+        recipient.addChatMessage(new ChatComponentText(format(message)));
+        CHANNEL.sendTo(new Message("\u0001" + id + "\u0002" + fallback + "\u0003" + slot), recipient);
+    }
+
     public static String format(String message) {
         return (message.startsWith("自动上传成功：") ? "§a" : "§c") + "[样板终端] §f" + message;
     }

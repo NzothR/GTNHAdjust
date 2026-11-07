@@ -5,6 +5,7 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -33,11 +34,33 @@ public final class ClientNotice {
     public static void show(String message) {
         Minecraft minecraft = Minecraft.getMinecraft();
         minecraft.func_152344_a(() -> {
-            text = TerminalNotifications.format(message);
+            text = TerminalNotifications.format(resolveMessage(minecraft.currentScreen, message));
             expiresAt = System.currentTimeMillis() + DISPLAY_MILLIS;
             if (!isTerminalScreen(minecraft.currentScreen) && minecraft.ingameGUI != null)
                 minecraft.ingameGUI.func_110326_a(text, false);
         });
+    }
+
+    private static String resolveMessage(GuiScreen screen, String message) {
+        if (message == null || !message.startsWith("\u0001")) return message;
+        int nameStart = message.indexOf('\u0002');
+        int slotStart = message.indexOf('\u0003', nameStart + 1);
+        if (nameStart < 0 || slotStart < 0) return message;
+        try {
+            long id = Long.parseLong(message.substring(1, nameStart));
+            String fallback = message.substring(nameStart + 1, slotStart);
+            GuiScreen source = screen instanceof GuiRecipe<?> ? ((GuiRecipe<?>) screen).firstGui : screen;
+            String name = source instanceof GuiQuickEncodingTerminal ? ClientTargets.displayName(source, id) : null;
+            if (name == null) {
+                name = StatCollector.canTranslate(fallback) ? StatCollector.translateToLocal(fallback)
+                    : StatCollector.canTranslate(fallback + ".name")
+                        ? StatCollector.translateToLocal(fallback + ".name")
+                        : fallback;
+            }
+            return "自动上传成功：" + name + "，样板槽 " + message.substring(slotStart + 1) + "。";
+        } catch (NumberFormatException ignored) {
+            return "自动上传成功。";
+        }
     }
 
     private static boolean isTerminalScreen(GuiScreen screen) {
