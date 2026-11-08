@@ -2,6 +2,7 @@
   "required": true,
   "minVersion": "0.8.5",
   "package": "com.gtnhadjust.mixins.early",
+  "plugin": "com.gtnhadjust.EarlyMixinPlugin",
   "refmap": "mixins.gtnhadjust.refmap.json",
   "compatibilityLevel": "JAVA_8",
   "mixins": [],

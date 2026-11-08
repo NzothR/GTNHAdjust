@@ -1,4 +1,4 @@
-package com.gtnhadjust.mixins.proxy;
+package com.gtnhadjust.mixins.early.proxy;
 
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.entity.RenderItem;
@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.gtnhadjust.machine.proxy.ProxyFactoryRegistration;
+import com.gtnhadjust.machine.proxy.ProxyFactoryOverlayIdentity;
 
 @Mixin(RenderItem.class)
 public abstract class ProxyFactoryItemOverlayMixin {
@@ -21,7 +21,7 @@ public abstract class ProxyFactoryItemOverlayMixin {
         at = @At("RETURN"))
     private void gtnhadjust$drawMark(FontRenderer font, TextureManager textures, ItemStack stack, int x, int y,
         String text, CallbackInfo ci) {
-        if (!ProxyFactoryRegistration.isController(stack)) return;
+        if (!ProxyFactoryOverlayIdentity.isController(stack)) return;
         GL11.glPushMatrix();
         try {
             GL11.glTranslatef(x, y, 300.0F);

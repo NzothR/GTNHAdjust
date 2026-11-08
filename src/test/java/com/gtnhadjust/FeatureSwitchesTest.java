@@ -32,16 +32,19 @@ public class FeatureSwitchesTest {
         FeatureSwitches enabled = FeatureSwitches.load(file);
         assertTrue(enabled.proxyFactory);
         assertTrue(
-            enabled.selectMixins(mods, true)
+            enabled.selectEarlyMixins(true)
                 .contains(mixin));
         assertFalse(
-            enabled.selectMixins(mods, false)
+            enabled.selectEarlyMixins(false)
+                .contains(mixin));
+        assertFalse(
+            enabled.selectMixins(mods, true)
                 .contains(mixin));
         Files.write(file, Arrays.asList("proxyFactory=false"), StandardCharsets.ISO_8859_1);
         FeatureSwitches disabled = FeatureSwitches.load(file);
         assertFalse(disabled.proxyFactory);
         assertFalse(
-            disabled.selectMixins(mods, true)
+            disabled.selectEarlyMixins(true)
                 .contains(mixin));
     }
 

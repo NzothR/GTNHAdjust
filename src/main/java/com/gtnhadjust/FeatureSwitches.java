@@ -216,10 +216,14 @@ final class FeatureSwitches {
         return false;
     }
 
+    List<String> selectEarlyMixins(boolean client) {
+        List<String> mixins = new ArrayList<>();
+        if (client && proxyFactory) mixins.add("proxy.ProxyFactoryItemOverlayMixin");
+        return mixins;
+    }
+
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
-        if (client && proxyFactory && loadedMods.contains("gtneverreset") && loadedMods.contains("gregtech"))
-            mixins.add("proxy.ProxyFactoryItemOverlayMixin");
         if (soulVialExpandedCapture && loadedMods.contains("EnderIO")) mixins.add("fix.SoulVialCaptureMixin");
         if (cropBreeder && loadedMods.contains("gtneverreset")) {
             mixins.add("CropBreedingRulesMixin");

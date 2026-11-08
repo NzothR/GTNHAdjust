@@ -12,7 +12,7 @@
 
 白名单以配方池注册名筛选，包含原有 24 个池和扩展候选，详见 [配方池范围](docs/proxy-factory-recipe-scope.md)。控制器只是解锁凭据，实际仍由代理联合工厂运行，不复现原机器的结构等级、温度、特殊世界环境或专属加工逻辑；动态后端、特殊物品和实际运行结果需要游戏内验证。GT 自身配方匹配、特殊槽、禁用或展示配方过滤及 GTNR 的样板产物与配方锁校验仍生效。
 
-`config/gtnhadjust-features.properties` 的 `proxyFactory` 默认开启，关闭时不注册机器、合成配方和客户端图标 Mixin；`config/gtnhadjust.cfg` 的 `proxyFactory.mteId` 默认 31993。适配 GTNH 2.9.0 和 GTNR 0.1.34，开关或 ID 修改后须重启，客户端与服务端须安装相同版本并保持配置一致。
+`config/gtnhadjust-features.properties` 的 `proxyFactory` 默认开启，关闭时不注册机器、合成配方和客户端图标 Mixin；图标 Mixin 在客户端启动早期加载，以避免目标渲染类提前加载导致崩溃。`config/gtnhadjust.cfg` 的 `proxyFactory.mteId` 默认 31993。适配 GTNH 2.9.0 和 GTNR 0.1.34，开关或 ID 修改后须重启，客户端与服务端须安装相同版本并保持配置一致。
 
 以下作物调整最初基于 GT-Never-Reset 0.1.32，当前编译参考为 0.1.34，游戏内兼容性仍需验证：大型作物杂交机的五级电压调整为 ULV 至 EV，杂交基础耗电为 8 EU/t；新入档及新产出的种子属性为 31/31/31。已有档案不主动修改，洗种功耗保持 512 EU/t。其他版本的目标字节码可能不同，升级后需要重新核对注入点。
 
