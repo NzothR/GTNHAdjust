@@ -2,7 +2,13 @@
 
 面向 GT New Horizons 2.9.0 的个人调整模组。
 
-当前适配 GT-Never-Reset 0.1.32：大型作物杂交机的五级电压调整为 ULV 至 EV，杂交基础耗电为 8 EU/t；新入档及新产出的种子属性为 31/31/31。已有档案不主动修改，洗种功耗保持 512 EU/t。其他版本的目标字节码可能不同，升级后需要重新核对注入点。
+## 代理联合工厂（基础版）
+
+代理联合工厂可由一个 GTNR 通用联合工厂控制器在工作台无序合成。结构、仓室要求、参数模块、线程、供电、超频以及样板配方池和产物匹配沿用 GT-Never-Reset 0.1.34；当前仍只支持原工厂的 24 个配方池，尚未加入额外配方或特殊机器代理。物品图标右下角显示“依”。
+
+`config/gtnhadjust-features.properties` 的 `proxyFactory` 默认开启，关闭时不注册机器、合成配方和客户端图标 Mixin；`config/gtnhadjust.cfg` 的 `proxyFactory.mteId` 默认 31993。适配 GTNH 2.9.0 和 GTNR 0.1.34，开关或 ID 修改后须重启，客户端与服务端须安装相同版本并保持配置一致。
+
+以下作物调整最初基于 GT-Never-Reset 0.1.32，当前编译参考为 0.1.34，游戏内兼容性仍需验证：大型作物杂交机的五级电压调整为 ULV 至 EV，杂交基础耗电为 8 EU/t；新入档及新产出的种子属性为 31/31/31。已有档案不主动修改，洗种功耗保持 512 EU/t。其他版本的目标字节码可能不同，升级后需要重新核对注入点。
 
 针对 GTNL `dev-290` 的蒸汽温室，种子总容量默认为 64，最多仍为 4 个品种；机器按有效种子数计算产出，底土规则沿用 GTNL 原逻辑。升级 GTNL 后应重新核对注入点。
 
@@ -64,7 +70,7 @@ $env:TMP = $env:TEMP
 
 构建产物位于 `build/libs/`。开发约定和本机环境见 [AGENTS.md](AGENTS.md)；参考仓库位于不提交的 `ref/`。
 
-Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅助任务使用相应的旧版 Java 工具链，并可将其下载到上述项目内的 Gradle 缓存。当前模组使用示例的 Jabel 模式生成 Java 8 字节码。CropsNH 和 GregTech 依赖通过 GTNH 2.9.0 清单解析。构建还需要将 GT-Never-Reset 0.1.32 正式包保存为不提交的 `ref/libs/gtneverreset-0.1.32.jar`；已验证文件的 SHA-256 为 `c6e296b460223f955bda2e2852021986e17cfafd46c2e53163053eb9f483e38c`。
+Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅助任务使用相应的旧版 Java 工具链，并可将其下载到上述项目内的 Gradle 缓存。当前模组使用示例的 Jabel 模式生成 Java 8 字节码。CropsNH 和 GregTech 依赖通过 GTNH 2.9.0 清单解析。构建还需要将 服务端使用的 GT-Never-Reset 0.1.34 包保存为不提交的 `ref/libs/gtneverreset-0.1.34.jar`；该文件的 SHA-256 为 `56b44a22b7acb767f74a04a5441aa6ac3a50afd57547688adb365526805e8d75`。
 
 同样将实例中的 `sciencenotleisure-dev-290-fde37b9871fd-f93edbe8c425.jar` 复制为 `ref/libs/gtnl-instance.jar`；已验证文件的 SHA-256 为 `977335c74149afdbf280f15506fb59bd1b97e126acb3807be770d0e0b3374840`。
 
@@ -77,8 +83,7 @@ Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅�
 首次启动时会生成 `config/gtnhadjust-features.properties`。修改后重启游戏或服务端；客户端和服务端应保持一致：
 
 ```properties
-crusherEquipmentVoid=true
-crusherFixedLooting=true
+proxyFactory=true
 cropBreeder=true
 steamGreenhouse=true
 carpenterRecipes=true

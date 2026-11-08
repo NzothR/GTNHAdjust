@@ -9,6 +9,7 @@ import com.gtnhadjust.machine.collector.SuperFragmentRecipes;
 import com.gtnhadjust.machine.collector.SuperFragmentRegistration;
 import com.gtnhadjust.machine.collector.TierDimensionItem;
 import com.gtnhadjust.machine.loot.LootSimulatorRegistration;
+import com.gtnhadjust.machine.proxy.ProxyFactoryRegistration;
 import com.gtnhadjust.recipe.CarpenterRecipes;
 import com.gtnhadjust.soul.SoulVialMultipartHandler;
 import com.gtnhadjust.terminal.TerminalNotifications;
@@ -44,6 +45,7 @@ public class GTNHAdjust {
     public static int steamGreenhouseMaxSeeds = 64;
     private int superFragmentMteId = 31990;
     private int lootSimulatorMteId = 31992;
+    private int proxyFactoryMteId = 31993;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -125,6 +127,13 @@ public class GTNHAdjust {
             2048,
             32766,
             "Stable loot simulator controller ID. Do not change after obtaining or placing it; clients and servers must match.");
+        proxyFactoryMteId = config.getInt(
+            "mteId",
+            "proxyFactory",
+            31993,
+            2048,
+            32766,
+            "Proxy joint factory controller ID. Restart required; clients and servers must match.");
         if (config.hasChanged()) config.save();
         tierDimension = new TierDimensionItem();
         GameRegistry.registerItem(tierDimension, "tier_dimension");
@@ -134,6 +143,8 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
+        if (FeatureConfig.get().proxyFactory && Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech"))
+            ProxyFactoryRegistration.registerMachine(proxyFactoryMteId);
         if (FeatureConfig.get().lootSimulator && Loader.isModLoaded("gregtech")
             && Loader.isModLoaded("kubatech")
             && Loader.isModLoaded("mobsinfo")
@@ -147,6 +158,8 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void loadComplete(FMLLoadCompleteEvent event) {
+        if (FeatureConfig.get().proxyFactory && Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech"))
+            ProxyFactoryRegistration.registerCrafting();
         if (FeatureConfig.get().lootSimulator && Loader.isModLoaded("gregtech")
             && Loader.isModLoaded("kubatech")
             && Loader.isModLoaded("mobsinfo")

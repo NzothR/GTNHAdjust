@@ -17,6 +17,7 @@ final class FeatureSwitches {
 
     private static final Logger LOG = Logger.getLogger("GTNHAdjust");
     private static final String LOOT_SIMULATOR = "lootSimulator";
+    private static final String PROXY_FACTORY = "proxyFactory";
     private static final String CROP = "cropBreeder";
     private static final String GREENHOUSE = "steamGreenhouse";
     private static final String CARPENTER = "carpenterRecipes";
@@ -36,6 +37,7 @@ final class FeatureSwitches {
     private static final String SOUL_VIAL = "soulVialExpandedCapture";
 
     final boolean lootSimulator;
+    final boolean proxyFactory;
     final boolean cropBreeder;
     final boolean steamGreenhouse;
     final boolean carpenterRecipes;
@@ -54,13 +56,14 @@ final class FeatureSwitches {
     final boolean matrixPatternLoadFix;
     final boolean soulVialExpandedCapture;
 
-    private FeatureSwitches(boolean lootSimulator, boolean cropBreeder, boolean steamGreenhouse,
+    private FeatureSwitches(boolean lootSimulator, boolean proxyFactory, boolean cropBreeder, boolean steamGreenhouse,
         boolean carpenterRecipes, boolean quickTerminal, boolean gtsrDiagnostics, boolean gtsrRecipeSpeedCompatibility,
         boolean patternDeduplication, boolean terminalInventoryFix, boolean terminalCraftingRefreshFix,
         boolean craftingDiagnostics, boolean neoEcoCraftingRefreshFix, boolean patternRecipeMapPreservation,
         boolean terminalNeiAlwaysShowPresence, boolean terminalSmartIngredients, boolean matrixPatternDiagnostics,
         boolean matrixPatternLoadFix, boolean soulVialExpandedCapture) {
         this.lootSimulator = lootSimulator;
+        this.proxyFactory = proxyFactory;
         this.cropBreeder = cropBreeder;
         this.steamGreenhouse = steamGreenhouse;
         this.carpenterRecipes = carpenterRecipes;
@@ -83,6 +86,7 @@ final class FeatureSwitches {
     static FeatureSwitches load(Path file) {
         Properties defaults = new Properties();
         defaults.setProperty(LOOT_SIMULATOR, "true");
+        defaults.setProperty(PROXY_FACTORY, "true");
         defaults.setProperty(CROP, "true");
         defaults.setProperty(GREENHOUSE, "true");
         defaults.setProperty(CARPENTER, "true");
@@ -117,6 +121,7 @@ final class FeatureSwitches {
             }
             FeatureSwitches result = new FeatureSwitches(
                 read(values, LOOT_SIMULATOR),
+                read(values, PROXY_FACTORY),
                 read(values, CROP),
                 read(values, GREENHOUSE),
                 read(values, CARPENTER),
@@ -136,6 +141,8 @@ final class FeatureSwitches {
                 read(values, SOUL_VIAL));
             LOG.info(
                 "Feature switches: lootSimulator=" + result.lootSimulator
+                    + ", proxyFactory="
+                    + result.proxyFactory
                     + ", cropBreeder="
                     + result.cropBreeder
                     + ", steamGreenhouse="
@@ -191,6 +198,7 @@ final class FeatureSwitches {
                 false,
                 false,
                 false,
+                false,
                 false);
         }
     }
@@ -210,6 +218,8 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (client && proxyFactory && loadedMods.contains("gtneverreset") && loadedMods.contains("gregtech"))
+            mixins.add("proxy.ProxyFactoryItemOverlayMixin");
         if (soulVialExpandedCapture && loadedMods.contains("EnderIO")) mixins.add("fix.SoulVialCaptureMixin");
         if (cropBreeder && loadedMods.contains("gtneverreset")) {
             mixins.add("CropBreedingRulesMixin");

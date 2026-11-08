@@ -1,6 +1,7 @@
 gt.blockmachines.gtnhadjust.super_fragment_collector.name=超级碎片世界采集器
 gtnhadjust.recipe.super_fragment_collection=超级碎片世界采集
 gt.blockmachines.gtnhadjust.loot_simulator.name=战利品模拟室
+gt.blockmachines.gtnhadjust.proxy_factory.name=代理联合工厂
 
 gtnhadjust.recipe.super_fragment_ore=维度资源：矿石
 gtnhadjust.recipe.super_fragment_gem=维度资源：宝石
