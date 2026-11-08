@@ -121,7 +121,7 @@ public class FeatureSwitchesTest {
         assertTrue(Files.isRegularFile(file));
         assertTrue(switches.carpenterRecipes);
         assertEquals(
-            17,
+            19,
             switches.selectMixins(MODS, true)
                 .size());
         assertEquals(
@@ -228,7 +228,7 @@ public class FeatureSwitchesTest {
             StandardCharsets.ISO_8859_1);
         FeatureSwitches enabled = FeatureSwitches.load(file);
         assertEquals(
-            6,
+            8,
             enabled.selectMixins(MODS, true)
                 .size());
         assertEquals(

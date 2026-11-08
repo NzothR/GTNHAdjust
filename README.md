@@ -149,6 +149,8 @@ GT-Never-Reset 0.1.32 已在 NEI 导入时将切割机展示配方池映射到�
 
 `terminalInventoryFix` 独立控制二合一终端的客户端库存同步及 NEI 状态修复，基于 AE2 rv3-beta-1095、NEI 2.8.171 和 NotEnoughEnergistics 1.7.50。旧配置缺省启用，添加 `terminalInventoryFix=false` 并重启客户端可彻底停用相关 Mixin；服务端无需此修复。库存状态指示复用 NotEnoughEnergistics，未安装该模组时只启用库存数据包转发。
 
+二合一终端的接口面板会在客户端 `config/gtnhadjust-terminal-interface.properties` 保存隐藏已满接口、仅分子装配室、仅失效样板、仅替代样板、显示隐藏接口、分组排序、终端样式和保留搜索设置；按钮变更后保存，重新打开界面或重启游戏后恢复，各存档和服务器共用该客户端偏好。首次使用沿用现有默认值；这些设置中的部分也会影响 AE 的普通终端。此功能随 `quickTerminal` 开关启停，关闭时不加载相关 Mixin；修改开关后重启客户端。适配 GTNH 2.9.0、GTNR 0.1.34 和 AE2 rv3-beta-1095。
+
 GTNR 快速编码终端配方池保留修复：修改并重新编码已有加工样板时，在原样板与终端记录的来源一致时保留配方池；NEI 导入仍以新配方为准。`config/gtnhadjust-features.properties` 中 `patternRecipeMapPreservation` 默认开启，关闭后不加载此 Mixin；修改须重启并保持客户端与服务端一致。适配 GTNH 2.9.0 与 GT-Never-Reset 0.1.32；`general.debug` 开启时记录保留操作。
 
 二合一无线终端打开的 NEI 配方界面常显材料的网络状态图标，并在可合成的输入左上角显示 AE2 样板标记。`config/gtnhadjust-features.properties` 中 `terminalNeiAlwaysShowPresence` 默认开启，关闭后不加载对应 Mixin；依赖 `terminalInventoryFix`、NEI 2.8.171、NotEnoughEnergistics 和 GT-Never-Reset 0.1.32，仅客户端显示，配置变更后重启。
