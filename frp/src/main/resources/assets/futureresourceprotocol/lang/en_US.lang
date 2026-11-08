@@ -1,6 +1,5 @@
 item.frp.portable_terminal.name=Portable Advance Terminal
 frp.tooltip.global_debt=§7World debt: %s
-item.frp.advance_cell.name=ME Advance Cell
 item.frp.hull_lock_uhv.name=UHV Settlement Required
 item.frp.hull_lock_umv.name=UMV Settlement Required
 item.frp.hull_lock_final.name=Final Settlement Required
@@ -22,7 +21,6 @@ frp.chat.command_status=[FRP] UHV debt: %s, UMV debt: %s, UHV milestone: %s, ter
 frp.chat.command_held=[FRP] %s — UHV debt: %s, UMV debt: %s, cached class: %s
 frp.chat.command_player=[FRP] This command requires a player holding an item.
 frp.chat.command_hold=[FRP] Hold an item first.
-frp.chat.command_settled=[FRP] Settled %s of %s.
 frp.chat.command_confirm=[FRP] This permanently ends normal advances. Use /frp milestone umv confirm.
 frp.chat.command_hull=[FRP] Hold the matching machine hull.
 frp.chat.command_milestone_done=[FRP] Milestone completed.

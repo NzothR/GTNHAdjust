@@ -1,6 +1,5 @@
 item.frp.portable_terminal.name=便携预支终端
 frp.tooltip.global_debt=§7世界未偿债务：%s
-item.frp.advance_cell.name=ME 预支元件
 item.frp.hull_lock_uhv.name=需要清算 UHV 债务
 item.frp.hull_lock_umv.name=需要清算 UMV 债务
 item.frp.hull_lock_final.name=需要完成最终清算
@@ -22,7 +21,6 @@ frp.chat.command_status=[FRP] UHV 债务：%s，UMV 债务：%s，UHV 里程碑�
 frp.chat.command_held=[FRP] %s — UHV 债务：%s，UMV 债务：%s，缓存类别：%s
 frp.chat.command_player=[FRP] 此命令需要由手持物品的玩家执行。
 frp.chat.command_hold=[FRP] 请先手持物品。
-frp.chat.command_settled=[FRP] 已结算 %s 个 %s。
 frp.chat.command_confirm=[FRP] 此操作将永久结束正常预支。请使用 /frp milestone umv confirm 确认。
 frp.chat.command_hull=[FRP] 请手持对应等级的机器外壳。
 frp.chat.command_milestone_done=[FRP] 已完成里程碑。

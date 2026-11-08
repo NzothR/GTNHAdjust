@@ -20,7 +20,7 @@ public final class ProtocolCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/frp status|held|settle|milestone uhv|milestone umv confirm";
+        return "/frp status|held|milestone uhv|milestone umv confirm";
     }
 
     @Override
@@ -71,14 +71,6 @@ public final class ProtocolCommand extends CommandBase {
                 world.debt(key, false),
                 world.debt(key, true),
                 new ChatComponentTranslation(classKey));
-        } else if (args.length == 1 && args[0].equals("settle")) {
-            long used = world.settle(key, held.stackSize);
-            held.stackSize -= (int) used;
-            if (held.stackSize <= 0) player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
-            player.inventory.markDirty();
-            say(sender, "frp.chat.command_settled", used, key);
-            FutureResourceProtocol.LOG
-                .info("FRP operator {} settled {} of {}", sender.getCommandSenderName(), used, key);
         } else if ((args.length == 2 || args.length == 3) && args[0].equals("milestone")) {
             boolean uhv = args[1].equals("uhv"), umv = args[1].equals("umv");
             if (umv && (args.length != 3 || !args[2].equals("confirm"))) {
