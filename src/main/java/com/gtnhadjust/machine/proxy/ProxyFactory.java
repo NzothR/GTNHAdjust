@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -411,9 +410,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
         super.saveNBTData(tag);
         AENetworkProxy proxy = getProxy();
         if (proxy != null) proxy.writeToNBT(tag);
-        NBTTagList saved = new NBTTagList();
-        for (ItemStack controller : controllers) saved.appendTag(controller.writeToNBT(new NBTTagCompound()));
-        tag.setTag("gtnhadjustProxyControllers", saved);
+        writeControllers(tag);
         tag.setInteger("gtnhadjustProxyOperation", operationMode);
         RecipeMap<?> selected = getRecipeMap();
         if (selected != null) tag.setString("gtnhadjustProxySelectedMap", selected.unlocalizedName);
@@ -436,23 +433,19 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
         clientRecipeNames = null;
     }
 
+    private void writeControllers(NBTTagCompound tag) {
+        NBTTagList saved = new NBTTagList();
+        for (ItemStack controller : controllers) saved.appendTag(controller.writeToNBT(new NBTTagCompound()));
+        tag.setTag("gtnhadjustProxyControllers", saved);
+    }
+
     @Override
-    public void onBlockDestroyed() {
-        IGregTechTileEntity tile = getBaseMetaTileEntity();
-        if (tile != null && tile.isServerSide() && tile.getWorld() != null) {
-            for (ItemStack controller : controllers) {
-                tile.getWorld()
-                    .spawnEntityInWorld(
-                        new EntityItem(
-                            tile.getWorld(),
-                            tile.getXCoord() + 0.5,
-                            tile.getYCoord() + 0.5,
-                            tile.getZCoord() + 0.5,
-                            controller.copy()));
-            }
-            controllers.clear();
-        }
-        super.onBlockDestroyed();
+    public void setItemNBT(NBTTagCompound tag) {
+        super.setItemNBT(tag);
+        if (controllers.isEmpty()) return;
+        writeControllers(tag);
+        RecipeMap<?> selected = getRecipeMap();
+        if (selected != null) tag.setString("gtnhadjustProxySelectedMap", selected.unlocalizedName);
     }
 
     @Override
