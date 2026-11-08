@@ -30,11 +30,45 @@ import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemSorter;
 import codechicken.nei.PanelWidget;
 import codechicken.nei.api.INEIGuiHandler;
+import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.guihook.IContainerObjectHandler;
+import codechicken.nei.guihook.IContainerTooltipHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
+public final class TerminalGui extends GuiContainer implements INEIGuiHandler, IContainerTooltipHandler {
+
+    static {
+        GuiContainerManager.addObjectHandler(new IContainerObjectHandler() {
+
+            @Override
+            public void guiTick(GuiContainer gui) {}
+
+            @Override
+            public void refresh(GuiContainer gui) {}
+
+            @Override
+            public void load(GuiContainer gui) {}
+
+            @Override
+            public ItemStack getStackUnderMouse(GuiContainer gui, int mouseX, int mouseY) {
+                if (!(gui instanceof TerminalGui)) return null;
+                ItemStack stack = ((TerminalGui) gui).at(mouseX, mouseY);
+                return stack == null ? null : stack.copy();
+            }
+
+            @Override
+            public boolean objectUnderMouse(GuiContainer gui, int mouseX, int mouseY) {
+                return false;
+            }
+
+            @Override
+            public boolean shouldShowTooltip(GuiContainer gui) {
+                return true;
+            }
+        });
+    }
 
     private static final ResourceLocation AE_TEXTURE = new ResourceLocation(
         "appliedenergistics2",
@@ -285,19 +319,14 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
     }
 
     @Override
-    public void drawScreen(int mouseX, int mouseY, float partial) {
-        super.drawScreen(mouseX, mouseY, partial);
-        ItemStack item = at(mouseX, mouseY);
-        if (item != null) {
-            if (container.marking) renderToolTip(item, mouseX, mouseY);
-            else {
-                List<String> lines = item.getTooltip(mc.thePlayer, mc.gameSettings.advancedItemTooltips);
-                BigInteger amount = debt(item);
-                String exact = amount == null ? "--" : amount.signum() == 0 ? "0" : "-" + amount;
-                lines.add(I18n.format("frp.tooltip.global_debt", exact));
-                drawHoveringText(lines, mouseX, mouseY, fontRendererObj);
-            }
+    public List<String> handleItemTooltip(GuiContainer gui, ItemStack item, int mouseX, int mouseY,
+        List<String> tooltip) {
+        if (gui == this && !container.marking && item != null && at(mouseX, mouseY) != null) {
+            BigInteger amount = debt(item);
+            String exact = amount == null ? "--" : amount.signum() == 0 ? "0" : "-" + amount;
+            tooltip.add(I18n.format("frp.tooltip.global_debt", exact));
         }
+        return tooltip;
     }
 
     @Override
