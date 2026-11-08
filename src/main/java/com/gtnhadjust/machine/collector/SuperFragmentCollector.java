@@ -56,6 +56,7 @@ import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.GTRecipe;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.api.util.OverclockCalculator;
 import gregtech.api.util.shutdown.ShutDownReason;
 import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.common.render.IMTERenderer;
@@ -67,7 +68,6 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     private static final String PIECE = "main";
     private static final short[] GOLD = { 255, 205, 75, 255 };
     private static final String THREADS_NBT = "gtnhadjustCollectorThreads";
-    private static final int STARTS_PER_TICK = 8;
     private final CollectorThreadLedger threads = new CollectorThreadLedger();
     private IStructureDefinition<SuperFragmentCollector> structure;
     private int glass = -1;
@@ -137,9 +137,23 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
 
     @Override
     protected ProcessingLogic createProcessingLogic() {
-        return new ProcessingLogic().enablePerfectOverclock()
+        return new CollectorProcessingLogic().enablePerfectOverclock()
             .setAmperageOC(false)
             .noRecipeCaching();
+    }
+
+    private static final class CollectorProcessingLogic extends ProcessingLogic {
+
+        private int maxOverclocks = Integer.MAX_VALUE;
+
+        void setMaxOverclocks(int maxOverclocks) {
+            this.maxOverclocks = Math.max(0, maxOverclocks);
+        }
+
+        @Override
+        protected OverclockCalculator createOverclockCalculator(GTRecipe recipe) {
+            return super.createOverclockCalculator(recipe).setMaxOverclocks(maxOverclocks);
+        }
     }
 
     @Override
@@ -221,7 +235,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     }
 
     private void startEligibleThreads() {
-        if (threads.size() >= maxThreads()) return;
+        if (!threads.isEmpty()) return;
         startRecipeProcessing();
         try {
             List<ItemStack> markers = new ArrayList<>();
@@ -243,18 +257,31 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
                     .notUnificated(true)
                     .find();
                 if (recipe == null || recipe.mFluidInputs.length != 0 || recipe.mEUt <= 0) continue;
+                if (recipe.mEUt > OverclockCalculator.getMaxAllowedRecipeEUt(getMaxInputVoltage(), 1)) continue;
                 boolean consumes = false;
                 for (ItemStack input : recipe.mInputs) if (input != null && input.stackSize != 0) consumes = true;
                 if (!consumes) pending.add(new PendingRecipe(marker, circuit, key, recipe));
             }
-            long[] minimums = new long[pending.size()];
-            for (int i = 0; i < pending.size(); i++) minimums[i] = CollectorThreadPolicy
-                .minimumEnergy(pending.get(i).recipe.mEUt, CollectorThreadPolicy.glassEnergyPercent(glass));
+            int percent = CollectorThreadPolicy.glassEnergyPercent(glass);
+            long[] recipeEUts = new long[pending.size()];
+            int[] durations = new int[pending.size()];
+            for (int i = 0; i < pending.size(); i++) {
+                GTRecipe recipe = pending.get(i).recipe;
+                recipeEUts[i] = recipe.mEUt;
+                durations[i] = recipe.mDuration;
+            }
             long available = CollectorThreadPolicy.remainingPower(getMaxInputEu(), runningPower());
-            long[] budgets = CollectorThreadPolicy.allocatePower(available, minimums, maxThreads() - threads.size());
-            int starts = 0;
-            for (int i = 0; i < pending.size() && starts < STARTS_PER_TICK; i++) {
-                if (budgets[i] > 0 && startThread(pending.get(i), budgets[i])) starts++;
+            CollectorThreadPolicy.BalancedAllocation allocation = CollectorThreadPolicy.allocateBalanced(
+                available,
+                getMaxInputVoltage(),
+                recipeEUts,
+                durations,
+                maxThreads() - threads.size(),
+                maxParallel(),
+                percent);
+            for (int i = 0; i < pending.size(); i++) {
+                if (allocation.budgets[i] > 0)
+                    startThread(pending.get(i), allocation.budgets[i], allocation.parallel, allocation.overclocks);
             }
         } finally {
             endRecipeProcessing();
@@ -276,28 +303,28 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         }
     }
 
-    private boolean startThread(PendingRecipe pending, long budget) {
+    private boolean startThread(PendingRecipe pending, long budget, int selectedParallel, int selectedOverclocks) {
         long remaining = Math.min(budget, CollectorThreadPolicy.remainingPower(getMaxInputEu(), runningPower()));
         if (remaining == 0) return false;
         GTRecipe candidate = pending.recipe;
         ItemStack marker = pending.marker;
         ItemStack circuit = pending.circuit;
         String key = pending.key;
-        ProcessingLogic logic = processingLogic;
-        if (logic == null) return false;
+        if (!(processingLogic instanceof CollectorProcessingLogic)) return false;
+        CollectorProcessingLogic logic = (CollectorProcessingLogic) processingLogic;
         setupProcessingLogic(logic);
-        long voltage = Math.min(getMaxInputVoltage(), remaining);
+        long voltage = getMaxInputVoltage();
         if (voltage <= 0) return false;
-        int selectedParallel = maxParallel();
         logic.setEuModifier(CollectorThreadPolicy.glassEnergyPercent(glass) / 100.0)
             .setSpeedBonus(CollectorThreadPolicy.glassEnergyPercent(glass) / 100.0)
             .setRecipeLocking(this, false)
             .setAvailableVoltage(voltage)
-            .setAvailableAmperage(Math.max(1, remaining / voltage))
+            .setAvailableAmperage(Math.max(1, selectedParallel))
             .setAmperageOC(false)
             .setMaxParallel(selectedParallel)
             .setInputItems(marker.copy(), circuit.copy())
             .setInputFluids();
+        logic.setMaxOverclocks(selectedOverclocks);
         CheckRecipeResult result = logic.process();
         if (!result.wasSuccessful()) {
             if (GTNHAdjust.debug && mTotalRunTime % 200 < 5) GTNHAdjust.LOG.info(
@@ -324,12 +351,13 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         if (!threads.add(key, task, maxThreads())) return false;
         mEfficiency = Math.max(1000, 10000 - (getIdealStatus() - getRepairStatus()) * 1000);
         if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
-            "Collector started thread {}: {} parallels, {} ticks, {} EU/t; max parallel {}, power budget {} EU/t, voltage {}, batch {}",
+            "Collector started thread {}: {} parallels, {} ticks, {} EU/t; shared parallel {}, shared overclocks {}, power budget {} EU/t, voltage {}, batch {}",
             key,
             task.getParallels(),
             task.getDuration(),
             eut,
             selectedParallel,
+            selectedOverclocks,
             remaining,
             voltage,
             isBatchModeEnabled());

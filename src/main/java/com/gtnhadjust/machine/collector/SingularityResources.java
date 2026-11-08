@@ -294,7 +294,7 @@ final class SingularityResources {
         for (int i = 0; i < displayFluids.size(); i++) {
             FluidStack output = displayFluids.get(i)
                 .copy();
-            output.amount = 1000;
+            output.amount = 144;
             displayFluids.set(i, output);
         }
         GTRecipeBuilder actual = GTRecipeBuilder.builder()

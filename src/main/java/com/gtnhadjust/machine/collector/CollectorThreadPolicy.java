@@ -1,5 +1,11 @@
 package com.gtnhadjust.machine.collector;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import gregtech.api.util.OverclockCalculator;
+
 /** Pure limits for the collector's independently scheduled recipes. */
 final class CollectorThreadPolicy {
 
@@ -28,6 +34,93 @@ final class CollectorThreadPolicy {
 
     static long minimumEnergy(long recipeEUt, int percent) {
         return (recipeEUt * percent + 99) / 100;
+    }
+
+    static long requiredEnergy(long recipeEUt, int parallel, int percent, int overclocks) {
+        double energy = recipeEUt * (double) parallel * (percent / 100.0);
+        for (int i = 0; i < overclocks && energy < Long.MAX_VALUE; i++) energy *= 4.0;
+        if (energy >= Long.MAX_VALUE) return Long.MAX_VALUE;
+        return Math.max(1, (long) Math.ceil(energy));
+    }
+
+    static int maximumOverclocks(long voltage, long recipeEUt, int percent, int duration, int parallel) {
+        if (voltage <= 0 || recipeEUt <= 0) return 0;
+        return new OverclockCalculator().setRecipeEUt(recipeEUt)
+            .setEUt(voltage)
+            .setAmperage(parallel)
+            .setParallel(parallel)
+            .setCurrentParallel(parallel)
+            .setMaxTierSkips(1)
+            .setDuration(duration)
+            .setDurationModifier(percent / 100.0)
+            .setEUtDiscount(percent / 100.0)
+            .setAmperageOC(false)
+            .setEUtIncreasePerOC(4.0)
+            .setDurationDecreasePerOC(4.0)
+            .calculate()
+            .getPerformedOverclocks();
+    }
+
+    static BalancedAllocation allocateBalanced(long capacity, long voltage, long[] recipeEUts, int[] durations,
+        int slots, int maxParallel, int percent) {
+        long[] budgets = new long[recipeEUts.length];
+        if (capacity <= 0 || slots <= 0 || maxParallel <= 0) return new BalancedAllocation(budgets, 0, 0);
+
+        List<Integer> candidates = new ArrayList<>();
+        for (int i = 0; i < recipeEUts.length; i++) if (recipeEUts[i] > 0) candidates.add(i);
+        candidates.sort(Comparator.comparingLong(i -> requiredEnergy(recipeEUts[i], 1, percent, 0)));
+
+        List<Integer> admitted = new ArrayList<>();
+        long reserved = 0;
+        for (int index : candidates) {
+            long minimum = requiredEnergy(recipeEUts[index], 1, percent, 0);
+            if (admitted.size() >= slots || minimum > capacity - reserved) break;
+            admitted.add(index);
+            reserved = addPower(reserved, minimum);
+        }
+        if (admitted.isEmpty()) return new BalancedAllocation(budgets, 0, 0);
+
+        int low = 1;
+        int high = maxParallel;
+        while (low < high) {
+            int candidate = low + (int) (((long) high - low + 1) / 2);
+            if (requiredPower(admitted, recipeEUts, candidate, 0, percent) <= capacity) low = candidate;
+            else high = candidate - 1;
+        }
+        int parallel = low;
+
+        int commonOverclocks = Integer.MAX_VALUE;
+        for (int index : admitted) commonOverclocks = Math
+            .min(commonOverclocks, maximumOverclocks(voltage, recipeEUts[index], percent, durations[index], parallel));
+        int overclocks = 0;
+        for (int candidate = 1; candidate <= commonOverclocks; candidate++) {
+            if (requiredPower(admitted, recipeEUts, parallel, candidate, percent) > capacity) break;
+            overclocks = candidate;
+        }
+
+        for (int index : admitted) budgets[index] = requiredEnergy(recipeEUts[index], parallel, percent, overclocks);
+        return new BalancedAllocation(budgets, parallel, overclocks);
+    }
+
+    private static long requiredPower(List<Integer> indexes, long[] recipeEUts, int parallel, int overclocks,
+        int percent) {
+        long total = 0;
+        for (int index : indexes)
+            total = addPower(total, requiredEnergy(recipeEUts[index], parallel, percent, overclocks));
+        return total;
+    }
+
+    static final class BalancedAllocation {
+
+        final long[] budgets;
+        final int parallel;
+        final int overclocks;
+
+        BalancedAllocation(long[] budgets, int parallel, int overclocks) {
+            this.budgets = budgets;
+            this.parallel = parallel;
+            this.overclocks = overclocks;
+        }
     }
 
     static long cappedVoltage(long summedVoltage, long highestHatchVoltage) {
