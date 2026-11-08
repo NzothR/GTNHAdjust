@@ -54,3 +54,6 @@
 
 # Frozen compressed NBT recipe data must not undergo newline conversion.
 src/main/resources/assets/gtnhadjust/recipes/*.dat binary
+
+# Spreadsheet reports are ZIP-based binary files.
+*.[xX][lL][sS][xX] binary
