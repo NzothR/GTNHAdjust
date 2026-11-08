@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 
 import com.futureresourceprotocol.FutureResourceProtocol;
 import com.futureresourceprotocol.protocol.WorldProtocol;
@@ -102,8 +102,10 @@ public final class TerminalMessage implements IMessage {
                 boolean eligible = RecipeIndex.eligible(requested);
                 boolean umv = eligible && RecipeIndex.classify(requested, world);
                 if (!eligible || !world.canAdvance(umv) || index >= 0 || marks.size() >= TerminalData.MAX) {
-                    player.addChatMessage(
-                        new ChatComponentText("[FRP] Cannot mark: unavailable, forbidden, duplicate, or full."));
+                    String reason = index >= 0 ? "frp.chat.mark_duplicate"
+                        : marks.size() >= TerminalData.MAX ? "frp.chat.mark_full"
+                            : !eligible ? "frp.chat.mark_ineligible" : "frp.chat.mark_locked";
+                    player.addChatMessage(new ChatComponentTranslation(reason));
                     FutureResourceProtocol.debug(
                         "mark rejected eligible={} umv={} permission={} duplicate={} size={}",
                         eligible,
@@ -115,7 +117,7 @@ public final class TerminalMessage implements IMessage {
                 }
                 marks.add(requested);
                 if (!TerminalData.fitsNetwork(terminal, marks)) {
-                    player.addChatMessage(new ChatComponentText("[FRP] Mark data is too large to safely synchronize."));
+                    player.addChatMessage(new ChatComponentTranslation("frp.chat.marks_too_large"));
                     FutureResourceProtocol.debug("mark rejected: terminal NBT exceeds safe network size key={}", key);
                     return;
                 }
@@ -132,7 +134,7 @@ public final class TerminalMessage implements IMessage {
                 boolean umv = eligible && RecipeIndex.classify(requested, world);
                 int amount = message.action == 2 ? 1 : requested.getMaxStackSize();
                 if (!eligible || !world.canRecord(key, umv, amount)) {
-                    player.addChatMessage(new ChatComponentText("[FRP] Advance unavailable or protocol locked."));
+                    player.addChatMessage(new ChatComponentTranslation("frp.chat.advance_locked"));
                     FutureResourceProtocol
                         .debug("advance rejected eligible={} umv={} requested={}", eligible, umv, amount);
                     return;
@@ -149,7 +151,7 @@ public final class TerminalMessage implements IMessage {
                     amount,
                     delivered,
                     requested.stackSize);
-                if (delivered == 0) player.addChatMessage(new ChatComponentText("[FRP] Inventory is full."));
+                if (delivered == 0) player.addChatMessage(new ChatComponentTranslation("frp.chat.inventory_full"));
             }
             player.inventory.markDirty();
             player.openContainer.detectAndSendChanges();

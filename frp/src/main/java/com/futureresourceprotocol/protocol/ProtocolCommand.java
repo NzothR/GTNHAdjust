@@ -4,7 +4,7 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 
 import com.futureresourceprotocol.FutureResourceProtocol;
 
@@ -28,8 +28,12 @@ public final class ProtocolCommand extends CommandBase {
         return 2;
     }
 
-    private void say(ICommandSender sender, String text) {
-        sender.addChatMessage(new ChatComponentText("[FRP] " + text));
+    private void say(ICommandSender sender, String key, Object... args) {
+        sender.addChatMessage(new ChatComponentTranslation(key, args));
+    }
+
+    private ChatComponentTranslation yesNo(boolean value) {
+        return new ChatComponentTranslation(value ? "frp.value.yes" : "frp.value.no");
     }
 
     @Override
@@ -38,51 +42,51 @@ public final class ProtocolCommand extends CommandBase {
         if (args.length == 1 && args[0].equals("status")) {
             say(
                 sender,
-                "UHV debt=" + world.stageDebt(false)
-                    + ", UMV debt="
-                    + world.stageDebt(true)
-                    + ", UHV milestone="
-                    + world.isUhvMilestone()
-                    + ", terminated/locked="
-                    + world.isTerminated());
+                "frp.chat.command_status",
+                world.stageDebt(false),
+                world.stageDebt(true),
+                yesNo(world.isUhvMilestone()),
+                yesNo(world.isTerminated()));
             return;
         }
         if (!(sender instanceof EntityPlayerMP)) {
-            say(sender, "A player must hold the item.");
+            say(sender, "frp.chat.command_player");
             return;
         }
         EntityPlayerMP player = (EntityPlayerMP) sender;
         ItemStack held = player.getHeldItem();
         if (held == null) {
-            say(sender, "Hold an item first.");
+            say(sender, "frp.chat.command_hold");
             return;
         }
         String key = WorldProtocol.key(held);
         if (args.length == 1 && args[0].equals("held")) {
+            Boolean classification = world.cachedClass(key);
+            String classKey = classification == null ? "frp.value.unset"
+                : classification ? "frp.value.umv" : "frp.value.uhv";
             say(
                 sender,
-                key + " UHV debt="
-                    + world.debt(key, false)
-                    + ", UMV debt="
-                    + world.debt(key, true)
-                    + ", cached class="
-                    + world.cachedClass(key));
+                "frp.chat.command_held",
+                key,
+                world.debt(key, false),
+                world.debt(key, true),
+                new ChatComponentTranslation(classKey));
         } else if (args.length == 1 && args[0].equals("settle")) {
             long used = world.settle(key, held.stackSize);
             held.stackSize -= (int) used;
             if (held.stackSize <= 0) player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
             player.inventory.markDirty();
-            say(sender, "Settled " + used + " of " + key);
+            say(sender, "frp.chat.command_settled", used, key);
             FutureResourceProtocol.LOG
                 .info("FRP operator {} settled {} of {}", sender.getCommandSenderName(), used, key);
         } else if ((args.length == 2 || args.length == 3) && args[0].equals("milestone")) {
             boolean uhv = args[1].equals("uhv"), umv = args[1].equals("umv");
             if (umv && (args.length != 3 || !args[2].equals("confirm"))) {
-                say(sender, "This permanently ends normal advances. Use /frp milestone umv confirm.");
+                say(sender, "frp.chat.command_confirm");
                 return;
             }
             if (!(uhv || umv) || !(uhv ? ItemList.Hull_MAX : ItemList.Hull_UMV).isStackEqual(held, false, true)) {
-                say(sender, "Hold the matching machine hull.");
+                say(sender, "frp.chat.command_hull");
                 return;
             }
             boolean ok = uhv ? world.completeUhv() : world.completeUmv();
@@ -93,7 +97,7 @@ public final class ProtocolCommand extends CommandBase {
                 FutureResourceProtocol.LOG
                     .info("FRP operator {} submitted {} milestone", sender.getCommandSenderName(), args[1]);
             }
-            say(sender, ok ? "Milestone completed." : "Milestone requirements not met.");
-        } else say(sender, getCommandUsage(sender));
+            say(sender, ok ? "frp.chat.command_milestone_done" : "frp.chat.command_milestone_failed");
+        } else say(sender, "frp.chat.command_usage", getCommandUsage(sender));
     }
 }
