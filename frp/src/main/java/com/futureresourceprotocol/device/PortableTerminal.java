@@ -1,9 +1,12 @@
 package com.futureresourceprotocol.device;
 
+import java.util.UUID;
+
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
 import com.futureresourceprotocol.FutureResourceProtocol;
@@ -25,6 +28,12 @@ public final class PortableTerminal extends Item {
     @Override
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
         if (!world.isRemote) {
+            if (!stack.hasTagCompound()) stack.setTagCompound(new NBTTagCompound());
+            stack.getTagCompound()
+                .setString(
+                    TerminalContainer.SESSION_TAG,
+                    UUID.randomUUID()
+                        .toString());
             int mode = player.isSneaking() ? 1 : 0;
             FutureResourceProtocol.debug(
                 "open terminal player={} mode={} slot={}",
