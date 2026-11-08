@@ -6,7 +6,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import com.futureresourceprotocol.FutureResourceProtocol;
-import com.futureresourceprotocol.device.TerminalData;
 import com.futureresourceprotocol.protocol.WorldProtocol;
 import com.futureresourceprotocol.recipe.RecipeIndex;
 
@@ -59,11 +58,7 @@ public final class AdvanceCellInventory implements IMEInventoryHandler<IAEItemSt
         if (request == null || request.getStackSize() <= 0) return null;
         WorldProtocol world = world();
         ItemStack stack = request.getItemStack();
-        boolean marked = false;
-        for (ItemStack candidate : TerminalData.read(cell)) if (TerminalData.same(candidate, stack)) {
-            marked = true;
-            break;
-        }
+        boolean marked = world != null && world.hasMark(stack);
         if (!marked || !permitted(world, stack)) return null;
         String key = WorldProtocol.key(stack);
         boolean umv = RecipeIndex.classify(stack, world);
@@ -86,7 +81,7 @@ public final class AdvanceCellInventory implements IMEInventoryHandler<IAEItemSt
     public IItemList<IAEItemStack> getAvailableItems(IItemList<IAEItemStack> out, int iteration) {
         WorldProtocol world = world();
         if (world == null) return out;
-        for (ItemStack stack : TerminalData.read(cell)) if (permitted(world, stack)) {
+        for (ItemStack stack : world.markedItems()) if (permitted(world, stack)) {
             IAEItemStack entry = AEApi.instance()
                 .storage()
                 .createItemStack(stack);

@@ -1,4 +1,5 @@
 item.frp.portable_terminal.name=便携预支终端
+frp.tooltip.global_debt=§7世界未偿债务：%s
 item.frp.advance_cell.name=ME 预支元件
 item.frp.hull_lock_uhv.name=需要清算 UHV 债务
 item.frp.hull_lock_umv.name=需要清算 UMV 债务
@@ -8,6 +9,7 @@ frp.gui.advance=FRP 预支
 frp.chat.item_too_large=[FRP] 此物品的 NBT 数据过大，无法安全同步。
 frp.chat.marks_too_large=[FRP] 标记物品的数据过大，无法安全同步。
 frp.chat.mark_duplicate=[FRP] 此物品已经标记。
+frp.chat.mark_has_debt=[FRP] 此物品仍有世界债务，清偿后才能取消标记。
 frp.chat.mark_full=[FRP] 终端的标记数量已达上限。
 frp.chat.mark_ineligible=[FRP] 此物品被禁止预支，或没有可识别的生产配方。
 frp.chat.mark_locked=[FRP] 协议状态或当前阶段不允许标记此物品。

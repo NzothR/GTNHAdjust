@@ -1,4 +1,5 @@
 item.frp.portable_terminal.name=Portable Advance Terminal
+frp.tooltip.global_debt=§7World debt: %s
 item.frp.advance_cell.name=ME Advance Cell
 item.frp.hull_lock_uhv.name=UHV Settlement Required
 item.frp.hull_lock_umv.name=UMV Settlement Required
@@ -8,6 +9,7 @@ frp.gui.advance=FRP - Advance
 frp.chat.item_too_large=[FRP] This item's NBT is too large to synchronize safely.
 frp.chat.marks_too_large=[FRP] The marked items' data is too large to synchronize safely.
 frp.chat.mark_duplicate=[FRP] This item is already marked.
+frp.chat.mark_has_debt=[FRP] This item has outstanding world debt and cannot be unmarked until it is settled.
 frp.chat.mark_full=[FRP] The terminal has reached its mark limit.
 frp.chat.mark_ineligible=[FRP] This item is forbidden or has no recognized production recipe.
 frp.chat.mark_locked=[FRP] The protocol or current stage does not allow marking this item.

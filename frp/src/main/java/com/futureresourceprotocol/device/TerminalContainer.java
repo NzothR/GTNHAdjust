@@ -1,5 +1,8 @@
 package com.futureresourceprotocol.device;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -18,10 +21,18 @@ public final class TerminalContainer extends Container {
     public final boolean marking;
     public final int heldSlot;
     private final String session;
+    private final InventoryPlayer inventory;
+    private WorldProtocol lastWorld;
+    private long lastRevision = -1;
+    private long lastSyncTick = -1;
+    private long lastMarkRevision = -1;
+    private boolean lastValid;
+    private Map<String, long[]> lastDebts;
 
     public TerminalContainer(InventoryPlayer inventory, int slot, boolean marking) {
         this.marking = marking;
         this.heldSlot = slot;
+        this.inventory = inventory;
         ItemStack terminal = slot >= 0 && slot < 9 ? inventory.getStackInSlot(slot) : null;
         this.session = terminal != null && terminal.hasTagCompound() ? terminal.getTagCompound()
             .getString(SESSION_TAG) : "";
@@ -31,11 +42,82 @@ public final class TerminalContainer extends Container {
     }
 
     @Override
+    public void detectAndSendChanges() {
+        super.detectAndSendChanges();
+        if (!(inventory.player instanceof EntityPlayerMP) || inventory.player.worldObj.isRemote) return;
+        EntityPlayerMP player = (EntityPlayerMP) inventory.player;
+        if (!canInteractWith(player)) return;
+        WorldProtocol world = WorldProtocol.get();
+        boolean marksChanged = world != lastWorld || world.markRevision() != lastMarkRevision;
+        if (!marksChanged && (marking || world.debtRevision() == lastRevision)) return;
+        long tick = player.worldObj.getTotalWorldTime();
+        if (lastSyncTick >= 0 && tick >= lastSyncTick && tick - lastSyncTick < 5) return;
+        java.util.List<ItemStack> marks = world.markedItems();
+        if (marksChanged) {
+            int parts = Math.max(1, (marks.size() + MarkSyncMessage.PER_PART - 1) / MarkSyncMessage.PER_PART);
+            for (int part = 0; part < parts; part++) {
+                int start = part * MarkSyncMessage.PER_PART;
+                int end = Math.min(marks.size(), start + MarkSyncMessage.PER_PART);
+                FutureResourceProtocol.NETWORK.sendTo(
+                    new MarkSyncMessage(
+                        windowId,
+                        session,
+                        world.markRevision(),
+                        part,
+                        parts,
+                        Math.min(world.markCount(), TerminalData.MAX),
+                        world.isValid(),
+                        new java.util.ArrayList<>(marks.subList(start, end))),
+                    player);
+            }
+            FutureResourceProtocol.debug(
+                "world marks sync player={} visible={} stored={} revision={} parts={}",
+                player.getCommandSenderName(),
+                marks.size(),
+                world.markCount(),
+                world.markRevision(),
+                parts);
+        }
+        Map<String, long[]> snapshot = new LinkedHashMap<>();
+        if (world.isValid() && !marking) for (ItemStack item : marks) {
+            String key = WorldProtocol.key(item);
+            if (key != null && !snapshot.containsKey(key))
+                snapshot.put(key, new long[] { world.debt(key, false), world.debt(key, true) });
+        }
+        boolean changed = !marking && (lastDebts == null || lastWorld != world
+            || lastValid != world.isValid()
+            || !sameDebts(lastDebts, snapshot)
+            || marksChanged);
+        lastWorld = world;
+        lastRevision = world.debtRevision();
+        lastMarkRevision = world.markRevision();
+        if (marksChanged) lastSyncTick = tick;
+        if (!changed) return;
+        lastValid = world.isValid();
+        lastDebts = snapshot;
+        lastSyncTick = tick;
+        FutureResourceProtocol.NETWORK.sendTo(new DebtSyncMessage(windowId, session, lastValid, snapshot), player);
+        FutureResourceProtocol.debug(
+            "terminal debt sync player={} entries={} revision={} valid={}",
+            player.getCommandSenderName(),
+            snapshot.size(),
+            lastRevision,
+            lastValid);
+    }
+
+    private static boolean sameDebts(Map<String, long[]> first, Map<String, long[]> second) {
+        if (first.size() != second.size()) return false;
+        for (Map.Entry<String, long[]> entry : first.entrySet()) {
+            long[] other = second.get(entry.getKey());
+            if (other == null || entry.getValue()[0] != other[0] || entry.getValue()[1] != other[1]) return false;
+        }
+        return true;
+    }
+
+    @Override
     public boolean canInteractWith(EntityPlayer player) {
         ItemStack current = player.inventory.getStackInSlot(heldSlot);
-        boolean valid = current != null
-            && (current.getItem() == FutureResourceProtocol.terminal
-                || marking && current.getItem() == FutureResourceProtocol.advanceCell)
+        boolean valid = current != null && current.getItem() == FutureResourceProtocol.terminal
             && player.inventory.currentItem == heldSlot
             && current.hasTagCompound()
             && sameSession(

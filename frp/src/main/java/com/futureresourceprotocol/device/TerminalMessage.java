@@ -1,6 +1,5 @@
 package com.futureresourceprotocol.device;
 
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -40,13 +39,18 @@ public final class TerminalMessage implements IMessage {
         action = buf.readUnsignedByte();
         windowId = buf.readInt();
         stack = ByteBufUtils.readItemStack(buf);
+        net.minecraft.nbt.NBTTagCompound fullTag = ByteBufUtils.readTag(buf);
+        if (stack != null) stack.setTagCompound(fullTag);
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
         buf.writeByte(action);
         buf.writeInt(windowId);
-        ByteBufUtils.writeItemStack(buf, stack);
+        ItemStack identity = stack == null ? null : stack.copy();
+        if (identity != null) identity.setTagCompound(null);
+        ByteBufUtils.writeItemStack(buf, identity);
+        ByteBufUtils.writeTag(buf, stack == null ? null : stack.getTagCompound());
     }
 
     public static final class Handler implements IMessageHandler<TerminalMessage, IMessage> {
@@ -80,31 +84,25 @@ public final class TerminalMessage implements IMessage {
                 || message.stack == null
                 || message.action < 0
                 || message.action > AdvanceInteraction.INVENTORY_ONE) return;
-            ItemStack terminal = player.inventory.getStackInSlot(container.heldSlot);
-            List<ItemStack> marks = TerminalData.read(terminal);
             ItemStack requested = message.stack.copy();
             requested.stackSize = 1;
-            int index = -1;
-            for (int i = 0; i < marks.size(); i++) if (TerminalData.same(marks.get(i), requested)) {
-                index = i;
-                break;
-            }
             WorldProtocol world = WorldProtocol.get();
+            boolean marked = world.hasMark(requested);
             String key = WorldProtocol.key(requested);
             FutureResourceProtocol.debug(
-                "request player={} action={} key={} markIndex={} count={} marking={}",
+                "request player={} action={} key={} marked={} count={} marking={}",
                 player.getCommandSenderName(),
                 message.action,
                 key,
-                index,
-                marks.size(),
+                marked,
+                world.markCount(),
                 container.marking);
             if (message.action == 0 && container.marking) {
                 boolean eligible = RecipeIndex.eligible(requested);
                 boolean umv = eligible && RecipeIndex.classify(requested, world);
-                if (!eligible || !world.canAdvance(umv) || index >= 0 || marks.size() >= TerminalData.MAX) {
-                    String reason = index >= 0 ? "frp.chat.mark_duplicate"
-                        : marks.size() >= TerminalData.MAX ? "frp.chat.mark_full"
+                if (!eligible || !world.canAdvance(umv) || marked || world.markCount() >= WorldProtocol.MAX_MARKS) {
+                    String reason = marked ? "frp.chat.mark_duplicate"
+                        : world.markCount() >= WorldProtocol.MAX_MARKS ? "frp.chat.mark_full"
                             : !eligible ? "frp.chat.mark_ineligible" : "frp.chat.mark_locked";
                     player.addChatMessage(new ChatComponentTranslation(reason));
                     FutureResourceProtocol.debug(
@@ -112,22 +110,28 @@ public final class TerminalMessage implements IMessage {
                         eligible,
                         umv,
                         world.canAdvance(umv),
-                        index >= 0,
-                        marks.size());
+                        marked,
+                        world.markCount());
                     return;
                 }
-                marks.add(requested);
-                if (!TerminalData.fitsNetwork(terminal, marks)) {
-                    player.addChatMessage(new ChatComponentTranslation("frp.chat.marks_too_large"));
-                    FutureResourceProtocol.debug("mark rejected: terminal NBT exceeds safe network size key={}", key);
+                if (!TerminalData.safeTag(requested)) {
+                    player.addChatMessage(new ChatComponentTranslation("frp.chat.item_too_large"));
+                    FutureResourceProtocol.debug("mark rejected: item NBT exceeds safe network size key={}", key);
                     return;
                 }
-                TerminalData.write(terminal, marks);
-                FutureResourceProtocol.debug("marked {} class={} size={}", key, umv ? "UMV" : "UHV", marks.size());
-            } else if (message.action == 1 && container.marking && index >= 0) {
-                marks.remove(index);
-                TerminalData.write(terminal, marks);
-                FutureResourceProtocol.debug("removed mark {} size={}", key, marks.size());
+                world.addMark(requested);
+                FutureResourceProtocol.debug("marked {} class={} size={}", key, umv ? "UMV" : "UHV", world.markCount());
+            } else if (message.action == 1 && container.marking && marked) {
+                if (!world.removeMark(requested)) {
+                    player.addChatMessage(new ChatComponentTranslation("frp.chat.mark_has_debt"));
+                    FutureResourceProtocol.debug(
+                        "remove mark rejected key={} UHV={} UMV={}",
+                        key,
+                        world.debt(key, false),
+                        world.debt(key, true));
+                    return;
+                }
+                FutureResourceProtocol.debug("removed mark {} size={}", key, world.markCount());
             } else if (message.action == AdvanceInteraction.REPAY_CURSOR && !container.marking
                 && FutureResourceProtocol.portableRepaymentEnabled) {
                     ItemStack cursor = player.inventory.getItemStack();
@@ -144,9 +148,7 @@ public final class TerminalMessage implements IMessage {
                         key,
                         paid,
                         cursor.stackSize);
-                } else if (AdvanceInteraction.isAdvance(message.action) && !container.marking && index >= 0) {
-                    requested = marks.get(index)
-                        .copy();
+                } else if (AdvanceInteraction.isAdvance(message.action) && !container.marking && marked) {
                     boolean eligible = RecipeIndex.eligible(requested);
                     boolean umv = eligible && RecipeIndex.classify(requested, world);
                     int amount = AdvanceInteraction.amount(message.action, requested.getMaxStackSize());

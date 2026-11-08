@@ -1,8 +1,11 @@
 package com.futureresourceprotocol.protocol;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -11,6 +14,7 @@ import net.minecraft.world.WorldSavedData;
 import net.minecraft.world.WorldServer;
 
 import com.futureresourceprotocol.FutureResourceProtocol;
+import com.futureresourceprotocol.device.TerminalData;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 
@@ -23,6 +27,27 @@ public final class WorldProtocol extends WorldSavedData {
     private boolean uhvMilestone;
     private boolean terminated;
     private boolean invalid;
+    private long debtRevision;
+    private long markRevision;
+    private NBTTagList worldMarks = new NBTTagList();
+    public static final int MAX_MARKS = 900;
+
+    /** Runtime-only change counter; the ledger remains the authoritative persisted state. */
+    public long debtRevision() {
+        return debtRevision;
+    }
+
+    public long markRevision() {
+        return markRevision;
+    }
+
+    public int markCount() {
+        return worldMarks.tagCount();
+    }
+
+    public boolean isValid() {
+        return !invalid;
+    }
 
     public WorldProtocol() {
         super(NAME);
@@ -61,6 +86,82 @@ public final class WorldProtocol extends WorldSavedData {
                 ex.toString());
             return null;
         }
+    }
+
+    /** Invalid or missing mod items remain in world NBT and still occupy a mark slot. */
+    public List<ItemStack> markedItems() {
+        List<ItemStack> items = new ArrayList<>();
+        if (invalid) return items;
+        for (int i = 0; i < worldMarks.tagCount(); i++) {
+            NBTTagCompound entry = worldMarks.getCompoundTagAt(i);
+            String id = entry.getString("item");
+            int colon = id.indexOf(':');
+            if (colon <= 0 || colon == id.length() - 1) continue;
+            Item item = GameRegistry.findItem(id.substring(0, colon), id.substring(colon + 1));
+            if (item == null) continue;
+            ItemStack stack = new ItemStack(item, 1, entry.getInteger("meta"));
+            if (entry.hasKey("tag", 10)) stack.setTagCompound(
+                (NBTTagCompound) entry.getCompoundTag("tag")
+                    .copy());
+            items.add(stack);
+        }
+        return items;
+    }
+
+    private NBTTagCompound markEntry(ItemStack stack) {
+        String identity = key(stack);
+        if (identity == null) return null;
+        GameRegistry.UniqueIdentifier id = GameRegistry.findUniqueIdentifierFor(stack.getItem());
+        NBTTagCompound entry = new NBTTagCompound();
+        entry.setString("item", id.toString());
+        entry.setInteger("meta", stack.getItemDamage());
+        if (stack.hasTagCompound()) entry.setTag(
+            "tag",
+            stack.getTagCompound()
+                .copy());
+        return entry;
+    }
+
+    public boolean hasMark(ItemStack stack) {
+        if (invalid || stack == null) return false;
+        NBTTagCompound target = markEntry(stack);
+        if (target == null) return false;
+        for (int i = 0; i < worldMarks.tagCount(); i++) if (target.equals(worldMarks.getCompoundTagAt(i))) return true;
+        return false;
+    }
+
+    public boolean addMark(ItemStack stack) {
+        if (invalid || isTerminated()
+            || worldMarks.tagCount() >= MAX_MARKS
+            || !TerminalData.safeTag(stack)
+            || hasMark(stack)) return false;
+        NBTTagCompound entry = markEntry(stack);
+        if (entry == null) return false;
+        worldMarks.appendTag(entry);
+        markRevision++;
+        markDirty();
+        FutureResourceProtocol
+            .debug("world mark added key={} count={} revision={}", key(stack), markCount(), markRevision);
+        return true;
+    }
+
+    public boolean removeMark(ItemStack stack) {
+        if (invalid || stack == null) return false;
+        String key = key(stack);
+        if (key == null || debt(key, false) != 0 || debt(key, true) != 0) return false;
+        NBTTagCompound target = markEntry(stack);
+        if (target == null) return false;
+        for (int i = 0; i < worldMarks.tagCount(); i++) {
+            if (target.equals(worldMarks.getCompoundTagAt(i))) {
+                worldMarks.removeTag(i);
+                markRevision++;
+                markDirty();
+                FutureResourceProtocol
+                    .debug("world mark removed key={} count={} revision={}", key, markCount(), markRevision);
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean isTerminated() {
@@ -121,6 +222,7 @@ public final class WorldProtocol extends WorldSavedData {
         if (umv) e.umvAdvanced += amount;
         else e.uhvAdvanced += amount;
         e.events++;
+        debtRevision++;
         markDirty();
         FutureResourceProtocol.debug(
             "advance key={} class={} count={} outstanding={}/{} events={}",
@@ -141,7 +243,10 @@ public final class WorldProtocol extends WorldSavedData {
         long second = Math.min(count - first, e.umvAdvanced - e.umvPaid);
         e.uhvPaid += first;
         e.umvPaid += second;
-        if (first + second > 0) markDirty();
+        if (first + second > 0) {
+            debtRevision++;
+            markDirty();
+        }
         FutureResourceProtocol.debug(
             "settle key={} offered={} consumed={} remaining={}/{}",
             key,
@@ -184,6 +289,9 @@ public final class WorldProtocol extends WorldSavedData {
         }
         uhvMilestone = nbt.getBoolean("uhvMilestone");
         terminated = nbt.getBoolean("terminated");
+        worldMarks = (NBTTagList) nbt.getTagList("worldMarks", 10)
+            .copy();
+        if (worldMarks.tagCount() > MAX_MARKS) invalid = true;
         NBTTagList list = nbt.getTagList("entries", 10);
         for (int i = 0; i < list.tagCount(); i++) {
             NBTTagCompound tag = list.getCompoundTagAt(i);
@@ -221,6 +329,7 @@ public final class WorldProtocol extends WorldSavedData {
         nbt.setInteger("version", VERSION);
         nbt.setBoolean("uhvMilestone", uhvMilestone);
         nbt.setBoolean("terminated", terminated);
+        nbt.setTag("worldMarks", worldMarks.copy());
         NBTTagList list = new NBTTagList();
         for (Map.Entry<String, Entry> pair : entries.entrySet()) {
             Entry e = pair.getValue();

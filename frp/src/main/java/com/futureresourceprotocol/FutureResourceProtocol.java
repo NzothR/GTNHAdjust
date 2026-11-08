@@ -5,6 +5,8 @@ import net.minecraftforge.common.config.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.futureresourceprotocol.device.DebtSyncMessage;
+import com.futureresourceprotocol.device.MarkSyncMessage;
 import com.futureresourceprotocol.device.PortableTerminal;
 import com.futureresourceprotocol.device.TerminalGuiHandler;
 import com.futureresourceprotocol.device.TerminalMessage;
@@ -102,6 +104,8 @@ public class FutureResourceProtocol {
         }
         NETWORK = NetworkRegistry.INSTANCE.newSimpleChannel("frp_terminal");
         NETWORK.registerMessage(TerminalMessage.Handler.class, TerminalMessage.class, 0, Side.SERVER);
+        NETWORK.registerMessage(DebtSyncMessage.Handler.class, DebtSyncMessage.class, 1, Side.CLIENT);
+        NETWORK.registerMessage(MarkSyncMessage.Handler.class, MarkSyncMessage.class, 2, Side.CLIENT);
         FMLCommonHandler.instance()
             .bus()
             .register(new TerminalMessage.Handler());

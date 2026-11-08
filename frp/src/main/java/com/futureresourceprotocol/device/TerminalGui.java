@@ -1,5 +1,6 @@
 package com.futureresourceprotocol.device;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -14,7 +15,6 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ResourceLocation;
 
@@ -44,9 +44,20 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
     private int scroll;
     private boolean draggingScrollbar;
     private List<ItemStack> neiOrder;
-    private NBTTagCompound cachedMarks;
     private List<ItemStack> sortedMarks;
+    private List<ItemStack> worldMarks = new ArrayList<>();
+    private List<ItemStack> receivingMarks;
+    private String marksSession;
+    private String receivingSession;
+    private long receivingRevision;
+    private int receivingNextPart;
+    private int receivingParts;
+    private int worldMarkCount;
+    private boolean marksValid;
     private final Map<Item, Map<Integer, Integer>> neiRanks = new IdentityHashMap<>();
+    private String debtSession;
+    private boolean debtsValid;
+    private Map<String, long[]> debts;
 
     public TerminalGui(TerminalContainer container, InventoryPlayer inventory) {
         super(container);
@@ -85,7 +96,12 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
 
     private List<ItemStack> sortedMarks() {
         ItemStack terminal = inventory.getStackInSlot(container.heldSlot);
-        NBTTagCompound tag = terminal == null ? null : terminal.getTagCompound();
+        if (terminal == null || !terminal.hasTagCompound()
+            || !TerminalContainer.sameSession(
+                marksSession,
+                terminal.getTagCompound()
+                    .getString(TerminalContainer.SESSION_TAG)))
+            return java.util.Collections.emptyList();
         List<ItemStack> currentOrder = ItemList.items;
         if (currentOrder != neiOrder) {
             neiOrder = currentOrder;
@@ -98,15 +114,38 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
             }
             sortedMarks = null;
         }
-        if (sortedMarks == null || (tag == null ? cachedMarks != null : !tag.equals(cachedMarks))) {
-            sortedMarks = TerminalData.read(terminal);
-            cachedMarks = tag == null ? null : (NBTTagCompound) tag.copy();
+        if (sortedMarks == null) {
+            sortedMarks = new ArrayList<>(worldMarks);
             sortedMarks.sort((a, b) -> {
                 int byRank = Integer.compare(rank(a), rank(b));
                 return byRank != 0 ? byRank : ItemSorter.instance.compare(a, b);
             });
         }
         return sortedMarks;
+    }
+
+    void receiveMarks(MarkSyncMessage message) {
+        if (message.part == 0) {
+            receivingMarks = new ArrayList<>();
+            receivingSession = message.session;
+            receivingRevision = message.revision;
+            receivingParts = message.parts;
+            receivingNextPart = 0;
+        }
+        if (receivingMarks == null || !message.session.equals(receivingSession)
+            || message.revision != receivingRevision
+            || message.parts != receivingParts
+            || message.part != receivingNextPart) return;
+        receivingMarks.addAll(message.items);
+        receivingNextPart++;
+        if (receivingNextPart == receivingParts) {
+            worldMarks = receivingMarks;
+            receivingMarks = null;
+            marksSession = message.session;
+            marksValid = message.valid;
+            worldMarkCount = message.total;
+            sortedMarks = null;
+        }
     }
 
     private int rank(ItemStack item) {
@@ -124,6 +163,27 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
         List<ItemStack> list = visible();
         int index = scroll * 9 + cell;
         return cell < 0 || index >= list.size() ? null : list.get(index);
+    }
+
+    void receiveDebts(DebtSyncMessage message) {
+        if (container.marking) return;
+        debtSession = message.session;
+        debtsValid = message.valid;
+        debts = message.debts;
+    }
+
+    private BigInteger debt(ItemStack item) {
+        ItemStack terminal = inventory.getStackInSlot(container.heldSlot);
+        if (!debtsValid || debts == null
+            || terminal == null
+            || !terminal.hasTagCompound()
+            || !TerminalContainer.sameSession(
+                debtSession,
+                terminal.getTagCompound()
+                    .getString(TerminalContainer.SESSION_TAG)))
+            return null;
+        long[] values = debts.get(WorldProtocol.key(item));
+        return values == null ? null : DebtDisplay.total(values[0], values[1]);
     }
 
     private void send(int action, ItemStack item) {
@@ -173,29 +233,49 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
             for (int cell = 0; cell < 54 && scroll * 9 + cell < list.size(); cell++) {
                 int x = 9 + cell % 9 * 18;
                 int y = 18 + cell / 9 * 18;
-                String count = "2.1G";
+                BigInteger debt = debt(list.get(scroll * 9 + cell));
+                String count = debt == null ? "--" : DebtDisplay.format(debt);
+                float scale = Math.min(0.65F, 16F / Math.max(1, fontRendererObj.getStringWidth(count)));
                 GL11.glPushMatrix();
                 GL11.glTranslatef(0F, 0F, 300F);
-                GL11.glScalef(0.65F, 0.65F, 1F);
+                GL11.glScalef(scale, scale, 1F);
                 fontRendererObj.drawStringWithShadow(
                     count,
-                    (int) ((x + 17 - fontRendererObj.getStringWidth(count) * 0.65F) / 0.65F),
-                    (int) ((y + 11) / 0.65F),
+                    (int) ((x + 17 - fontRendererObj.getStringWidth(count) * scale) / scale),
+                    (int) ((y + 16 - 7 * scale) / scale),
                     0xffffff);
                 GL11.glPopMatrix();
             }
             GL11.glPopAttrib();
         }
-        int total = TerminalData.read(inventory.getStackInSlot(container.heldSlot))
-            .size();
-        fontRendererObj.drawString(total + "/" + TerminalData.MAX, 8, 128, 0x404040);
+        ItemStack terminal = inventory.getStackInSlot(container.heldSlot);
+        boolean synchronizedMarks = marksValid && terminal != null
+            && terminal.hasTagCompound()
+            && TerminalContainer.sameSession(
+                marksSession,
+                terminal.getTagCompound()
+                    .getString(TerminalContainer.SESSION_TAG));
+        fontRendererObj.drawString(
+            (synchronizedMarks ? Integer.toString(worldMarkCount) : "--") + "/" + TerminalData.MAX,
+            8,
+            128,
+            0x404040);
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partial) {
         super.drawScreen(mouseX, mouseY, partial);
         ItemStack item = at(mouseX, mouseY);
-        if (item != null) renderToolTip(item, mouseX, mouseY);
+        if (item != null) {
+            if (container.marking) renderToolTip(item, mouseX, mouseY);
+            else {
+                List<String> lines = item.getTooltip(mc.thePlayer, mc.gameSettings.advancedItemTooltips);
+                BigInteger amount = debt(item);
+                String exact = amount == null ? "--" : amount.signum() == 0 ? "0" : "-" + amount;
+                lines.add(I18n.format("frp.tooltip.global_debt", exact));
+                drawHoveringText(lines, mouseX, mouseY, fontRendererObj);
+            }
+        }
     }
 
     @Override

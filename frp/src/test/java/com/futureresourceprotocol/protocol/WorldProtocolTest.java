@@ -3,6 +3,7 @@ package com.futureresourceprotocol.protocol;
 import static org.junit.Assert.*;
 
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 
 import org.junit.Test;
 
@@ -80,5 +81,45 @@ public class WorldProtocolTest {
         assertTrue(ledger.permitsHull(12));
         assertTrue(ledger.completeUmv());
         assertTrue(ledger.permitsHull(13));
+    }
+
+    @Test
+    public void worldMarkLimitAndPersistence() {
+        NBTTagCompound tag = new NBTTagCompound();
+        tag.setInteger("version", 1);
+        NBTTagList marks = new NBTTagList();
+        for (int i = 0; i < WorldProtocol.MAX_MARKS; i++) {
+            NBTTagCompound mark = new NBTTagCompound();
+            mark.setString("item", "missing:item");
+            mark.setInteger("meta", i);
+            marks.appendTag(mark);
+        }
+        tag.setTag("worldMarks", marks);
+        WorldProtocol loaded = new WorldProtocol();
+        loaded.readFromNBT(tag);
+        assertTrue(loaded.isValid());
+        assertEquals(900, loaded.markCount());
+        NBTTagCompound saved = new NBTTagCompound();
+        loaded.writeToNBT(saved);
+        assertEquals(
+            900,
+            saved.getTagList("worldMarks", 10)
+                .tagCount());
+        marks.appendTag(new NBTTagCompound());
+        WorldProtocol overflow = new WorldProtocol();
+        overflow.readFromNBT(tag);
+        assertFalse(overflow.isValid());
+    }
+
+    @Test
+    public void debtRevisionTracksActualChanges() {
+        WorldProtocol ledger = new WorldProtocol();
+        long initial = ledger.debtRevision();
+        ledger.advance("example:item@0", false, 64);
+        assertEquals(initial + 1, ledger.debtRevision());
+        assertEquals(0, ledger.settle("example:other@0", 1));
+        assertEquals(initial + 1, ledger.debtRevision());
+        assertEquals(2, ledger.settle("example:item@0", 2));
+        assertEquals(initial + 2, ledger.debtRevision());
     }
 }

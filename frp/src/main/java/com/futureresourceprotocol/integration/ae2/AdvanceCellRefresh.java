@@ -28,6 +28,7 @@ public final class AdvanceCellRefresh {
     private WorldServer previousWorld;
     private boolean previousUhv;
     private boolean previousTerminated;
+    private long previousMarkRevision = -1;
 
     static void track(Object host) {
         if (host instanceof TileEntity && host instanceof IActionHost) {
@@ -59,10 +60,13 @@ public final class AdvanceCellRefresh {
         WorldProtocol protocol = WorldProtocol.get();
         boolean uhv = protocol.isUhvMilestone();
         boolean terminated = protocol.isTerminated();
-        if (world == previousWorld && uhv == previousUhv && terminated == previousTerminated) return;
+        if (world == previousWorld && uhv == previousUhv
+            && terminated == previousTerminated
+            && previousMarkRevision == protocol.markRevision()) return;
         previousWorld = world;
         previousUhv = uhv;
         previousTerminated = terminated;
+        previousMarkRevision = protocol.markRevision();
         Set<IGrid> grids = Collections.newSetFromMap(new IdentityHashMap<>());
         TileEntity[] hosts;
         synchronized (HOSTS) {
@@ -74,6 +78,11 @@ public final class AdvanceCellRefresh {
             if (node != null && node.getGrid() != null) grids.add(node.getGrid());
         }
         for (IGrid grid : grids) grid.postEvent(new MENetworkCellArrayUpdate());
-        FutureResourceProtocol.debug("AE cell refresh grids={} UHV={} terminated={}", grids.size(), uhv, terminated);
+        FutureResourceProtocol.debug(
+            "AE cell refresh grids={} UHV={} terminated={} markRevision={}",
+            grids.size(),
+            uhv,
+            terminated,
+            previousMarkRevision);
     }
 }
