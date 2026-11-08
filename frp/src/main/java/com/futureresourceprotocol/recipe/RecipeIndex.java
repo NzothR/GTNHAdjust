@@ -53,33 +53,60 @@ public final class RecipeIndex {
     public static void rebuild() {
         QUALIFIED.clear();
         OVERRIDES.clear();
-        for (Object value : CraftingManager.getInstance()
-            .getRecipeList()) {
-            if (value instanceof IRecipe) {
-                try {
-                    add(((IRecipe) value).getRecipeOutput(), null);
-                } catch (RuntimeException ex) {
-                    FutureResourceProtocol.debug("crafting recipe output unavailable: {}", ex.toString());
+        FutureResourceProtocol.debug("building recipe index: start crafting recipes");
+        try {
+            for (Object value : CraftingManager.getInstance()
+                .getRecipeList()) {
+                if (value instanceof IRecipe) {
+                    try {
+                        add(((IRecipe) value).getRecipeOutput(), null);
+                    } catch (RuntimeException | LinkageError ex) {
+                        FutureResourceProtocol.debug(
+                            "crafting recipe output unavailable, recipe={} error={}",
+                            value.getClass()
+                                .getName(),
+                            ex.toString());
+                    }
                 }
             }
+        } catch (RuntimeException | LinkageError ex) {
+            FutureResourceProtocol.LOG.error("FRP crafting recipe scan failed: {}", ex.toString());
         }
-        for (Object value : FurnaceRecipes.smelting()
-            .getSmeltingList()
-            .values()) if (value instanceof ItemStack) add((ItemStack) value, null);
-        List<String> maps = new ArrayList<>(RecipeMap.ALL_RECIPE_MAPS.keySet());
-        Collections.sort(maps);
-        int recipes = 0;
-        for (String name : maps) {
-            List<GTRecipe> sorted = new ArrayList<>(
-                RecipeMap.ALL_RECIPE_MAPS.get(name)
-                    .getAllRecipes());
-            sorted.sort((a, b) -> fingerprint(a).compareTo(fingerprint(b)));
-            for (GTRecipe recipe : sorted) {
-                if (!recipe.mEnabled || recipe.mFakeRecipe || recipe.mOutputs == null) continue;
-                recipes++;
-                Boolean stage = recipe.mEUt > 0 ? recipe.mEUt >= GTValues.V[9] : null;
-                for (ItemStack out : recipe.mOutputs) add(out, stage);
+        FutureResourceProtocol.debug("building recipe index: crafting outputs={}, start furnace", QUALIFIED.size());
+        try {
+            for (Object value : FurnaceRecipes.smelting()
+                .getSmeltingList()
+                .values()) {
+                if (value instanceof ItemStack) add((ItemStack) value, null);
             }
+        } catch (RuntimeException | LinkageError ex) {
+            FutureResourceProtocol.LOG.error("FRP furnace recipe scan failed: {}", ex.toString());
+        }
+        FutureResourceProtocol.debug("building recipe index: furnace outputs={}, start GT", QUALIFIED.size());
+        int mapCount = 0;
+        int recipes = 0;
+        try {
+            List<String> maps = new ArrayList<>(RecipeMap.ALL_RECIPE_MAPS.keySet());
+            Collections.sort(maps);
+            mapCount = maps.size();
+            for (String name : maps) {
+                try {
+                    List<GTRecipe> sorted = new ArrayList<>(
+                        RecipeMap.ALL_RECIPE_MAPS.get(name)
+                            .getAllRecipes());
+                    sorted.sort((a, b) -> fingerprint(a).compareTo(fingerprint(b)));
+                    for (GTRecipe recipe : sorted) {
+                        if (!recipe.mEnabled || recipe.mFakeRecipe || recipe.mOutputs == null) continue;
+                        recipes++;
+                        Boolean stage = recipe.mEUt > 0 ? Boolean.valueOf(recipe.mEUt >= GTValues.V[9]) : null;
+                        for (ItemStack out : recipe.mOutputs) add(out, stage);
+                    }
+                } catch (RuntimeException | LinkageError ex) {
+                    FutureResourceProtocol.LOG.warn("FRP skipped GT recipe map {}: {}", name, ex.toString());
+                }
+            }
+        } catch (RuntimeException | LinkageError ex) {
+            FutureResourceProtocol.LOG.error("FRP GT recipe scan failed: {}", ex.toString());
         }
         for (String key : allowed) if (!key.trim()
             .isEmpty() && !QUALIFIED.containsKey(key.trim())) QUALIFIED.put(key.trim(), null);
@@ -103,7 +130,7 @@ public final class RecipeIndex {
         FutureResourceProtocol.LOG.info(
             "FRP recipe index: {} outputs, {} GT maps, {} GT recipes, {} overrides",
             QUALIFIED.size(),
-            maps.size(),
+            mapCount,
             recipes,
             OVERRIDES.size());
     }
