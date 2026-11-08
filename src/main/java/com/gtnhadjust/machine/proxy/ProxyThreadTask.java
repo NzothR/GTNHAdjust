@@ -52,7 +52,11 @@ public final class ProxyThreadTask {
     }
 
     public void advance() {
-        if (!isFinished()) progress++;
+        advance(1);
+    }
+
+    public void advance(int ticks) {
+        progress = ProxyThreadProgress.advance(progress, duration, ticks);
     }
 
     public NBTTagCompound save() {

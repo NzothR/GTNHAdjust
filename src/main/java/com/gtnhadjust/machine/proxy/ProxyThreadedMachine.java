@@ -33,6 +33,7 @@ import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThr
 import com.xyp.gtneverreset.common.machine.tooltip.AutoMultiblockTooltipBuilder;
 import com.xyp.gtneverreset.common.machine.tooltip.StructureTooltipHooks;
 import com.xyp.gtneverreset.common.me.PatternInputScheduler;
+import com.xyp.gtneverreset.compat.gregtech.WandResearchAcceleration;
 import com.xyp.gtneverreset.mixins.late.gregtech.OverclockCalculatorAccessorMixin;
 import com.xyp.gtneverreset.utils.enums.MachineModuleType;
 
@@ -61,7 +62,7 @@ import gregtech.api.util.shutdown.ShutDownReason;
 import gregtech.api.util.tooltip.TooltipHelper;
 
 public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> extends MTEExtendedPowerMultiBlockBase<T>
-    implements MultiblockTooltipSource {
+    implements MultiblockTooltipSource, WandResearchAcceleration {
 
     private static final int RECIPE_CHECK_INTERVAL = 5;
     private static final int MAX_STARTS_PER_TICK = 8;
@@ -90,6 +91,24 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
     private boolean paused = true;
     private ProxyThreadTask pendingTask;
     private TooltipProbeState tooltipProbeState;
+
+    @Override
+    public final void gtneverreset$accelerateResearch(int extra) {
+        IGregTechTileEntity tile = getBaseMetaTileEntity();
+        if (extra <= 0 || paused || tile == null || !tile.isServerSide() || !tile.isAllowedToWork()) return;
+        int total = getTotalRecipeThreads();
+        boolean advanced = false;
+        for (ProxyThreadTask task : threadTasks.values()) {
+            if (task.getThread() < total && !task.isFinished()) {
+                task.advance(extra);
+                advanced = true;
+            }
+        }
+        if (advanced) {
+            updateThreadDisplay();
+            markDirty();
+        }
+    }
 
     protected ProxyThreadedMachine(int id, String name, String regionalName) {
         super(id, name, regionalName);
