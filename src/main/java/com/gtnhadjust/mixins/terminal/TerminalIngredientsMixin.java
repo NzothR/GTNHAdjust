@@ -1,6 +1,7 @@
 package com.gtnhadjust.mixins.terminal;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -8,10 +9,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import com.gtnhadjust.GTNHAdjust;
+import com.gtnhadjust.machine.proxy.ProxyFactoryEssentia;
 import com.gtnhadjust.terminal.BookmarkIngredients;
 
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.IRecipeHandler;
+import gregtech.nei.GTNEIDefaultHandler;
 
 @Mixin(targets = "com.xyp.gtneverreset.compat.nei.TerminalRecipeIngredients", remap = false)
 public abstract class TerminalIngredientsMixin {
@@ -29,6 +33,12 @@ public abstract class TerminalIngredientsMixin {
             target = "Lcodechicken/nei/recipe/IRecipeHandler;getIngredientStacks(I)Ljava/util/List;"),
         remap = false)
     private static List<PositionedStack> gtnhadjust$ingredients(IRecipeHandler recipe, int index) {
-        return BookmarkIngredients.get(recipe, index);
+        List<PositionedStack> stacks = BookmarkIngredients.get(recipe, index);
+        if (!GTNHAdjust.proxyFactoryEnabled || !(recipe instanceof GTNEIDefaultHandler gt)
+            || !ProxyFactoryEssentia.requiresEssentiaCell(gt.getRecipeMap())
+            || stacks == null) return stacks;
+        return stacks.stream()
+            .filter(stack -> stack == null || !ProxyFactoryEssentia.isAspectDisplay(stack.item))
+            .collect(Collectors.toList());
     }
 }

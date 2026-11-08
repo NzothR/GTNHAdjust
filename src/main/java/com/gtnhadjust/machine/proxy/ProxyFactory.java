@@ -56,6 +56,7 @@ import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.structure.error.StructureError;
+import gregtech.api.util.GTModHandler;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.ItemEjectionHelper;
 import gregtech.common.tileentities.machines.IDualInputHatch;
@@ -301,6 +302,17 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> impleme
 
     void setClientRecipeNames(List<String> names) {
         clientRecipeNames = new ArrayList<>(names);
+    }
+
+    boolean hasCreativeEssentiaCell() {
+        ItemStack slot = getControllerSlot();
+        ItemStack cell = GTModHandler.getModItem("thaumicenergistics", "storage.essentia", 1, 4);
+        return slot != null && cell != null && slot.stackSize > 0 && slot.isItemEqual(cell);
+    }
+
+    @Override
+    protected boolean canUseControllerSlotForRecipe() {
+        return !hasCreativeEssentiaCell() && super.canUseControllerSlotForRecipe();
     }
 
     boolean isRecipeMapUnlocked(RecipeMap<?> map) {

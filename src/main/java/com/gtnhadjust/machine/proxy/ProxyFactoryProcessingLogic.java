@@ -1,5 +1,6 @@
 package com.gtnhadjust.machine.proxy;
 
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
@@ -68,9 +69,16 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     @Nonnull
     protected Stream<GTRecipe> findRecipeMatches(@Nullable RecipeMap<?> selected) {
         RecipeMap<?> target = patternRecipeMap == null ? selected : patternRecipeMap;
+        if (ProxyFactoryEssentia.requiresEssentiaCell(target) && !controller.hasCreativeEssentiaCell())
+            return Stream.empty();
+        ItemStack[] lookupItems = ProxyFactoryEssentia.requiresEssentiaCell(target) && inputItems != null
+            ? Arrays.stream(inputItems)
+                .filter(stack -> !ProxyFactoryEssentia.isAspectDisplay(stack))
+                .toArray(ItemStack[]::new)
+            : inputItems;
         return (target == null ? Stream.<RecipeMap<?>>empty() : Stream.of(target)).flatMap(
             map -> map.findRecipeQuery()
-                .items(inputItems)
+                .items(lookupItems)
                 .fluids(inputFluids)
                 .specialSlot(specialSlotItem)
                 .findAll()
@@ -92,6 +100,9 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
                 recipeLockableMachine.getSingleRecipeCheck()
                     .getRecipeMap());
         }
+        RecipeMap<?> current = patternRecipeMap == null ? controller.getRecipeMap() : patternRecipeMap;
+        if (ProxyFactoryEssentia.requiresEssentiaCell(current) && !controller.hasCreativeEssentiaCell())
+            return CheckRecipeResultRegistry.NO_RECIPE;
         return matchesPatternOutputs(recipe) ? super.validateRecipe(recipe) : CheckRecipeResultRegistry.NO_RECIPE;
     }
 

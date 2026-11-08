@@ -27,6 +27,7 @@ public class ProxyFactoryRecipeWhitelistTest {
         Set<String> names = new HashSet<>(ProxyFactoryRecipeWhitelist.ORIGINAL);
         names.addAll(ProxyFactoryRecipeWhitelist.ADDITIONAL);
         for (String included : Arrays.asList(
+            "tst.common.recipe.VisualExtremeCraftRecipeMap.name", // 梦魇转换配方池
             "gt.recipe.multicentrifuge", // 原厂离心，优先于排除大型蒸汽离心机。
             "gg.recipe.componentassemblyline", // 用户明确要求全局保留。
             "gg.recipe.precise_assembler",

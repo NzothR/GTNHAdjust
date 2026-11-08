@@ -154,6 +154,7 @@ public final class ProxyFactoryRecipeWhitelist {
             "tst.common.recipe.RapidHeatExchangeRecipeMap.name", // 快速热交换
             "tst.common.recipe.RuneEngraverRecipeMap.name", // 符文雕刻
             "tst.common.recipe.SkypiercerTowerRecipeMap.name", // 穿云尖塔
+            "tst.common.recipe.VisualExtremeCraftRecipeMap.name", // 梦魇工作台配方转换
             "tst.common.recipe.StarKernelGeneratorRecipeMap.name", // 星核发生器
             "tst.common.recipe.StellarForgeAlloySmelterRecipeMap.name", // 恒星锻炉: 合金冶炼
             "tst.common.recipe.StellarForgeRecipeMap.name" // 恒星锻炉

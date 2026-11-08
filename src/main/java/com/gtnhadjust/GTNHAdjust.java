@@ -42,6 +42,7 @@ public class GTNHAdjust {
     public static int collectorVoltageThreads = 4;
     public static boolean terminalDebug;
     public static boolean patternDeduplication;
+    public static boolean proxyFactoryEnabled;
     public static int steamGreenhouseMaxSeeds = 64;
     private int superFragmentMteId = 31990;
     private int lootSimulatorMteId = 31992;
@@ -52,6 +53,7 @@ public class GTNHAdjust {
         if (FeatureConfig.get().soulVialExpandedCapture && Loader.isModLoaded("EnderIO"))
             net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new SoulVialMultipartHandler());
         patternDeduplication = FeatureConfig.get().patternDeduplication;
+        proxyFactoryEnabled = FeatureConfig.get().proxyFactory;
         if (FeatureConfig.get().quickTerminal || patternDeduplication) TerminalNotifications.init();
         Configuration config = new Configuration(event.getSuggestedConfigurationFile());
         debug = config.getBoolean(
