@@ -19,6 +19,7 @@ import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.storage.data.IAEStack;
 import gregtech.api.recipe.RecipeMap;
+import gregtech.api.recipe.RecipeMaps;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.util.GTRecipe;
@@ -76,6 +77,18 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
                 .filter(stack -> !ProxyFactoryEssentia.isAspectDisplay(stack))
                 .toArray(ItemStack[]::new)
             : inputItems;
+        if (target == RecipeMaps.furnaceRecipes) {
+            if (lookupItems == null) return Stream.empty();
+            return Arrays.stream(lookupItems)
+                .filter(item -> item != null && item.stackSize > 0)
+                .flatMap(
+                    item -> target.findRecipeQuery()
+                        .items(item)
+                        .fluids(inputFluids)
+                        .findAll())
+                .peek(recipe -> controller.setProcessingRecipeMap(target))
+                .filter(this::matchesPatternOutputs);
+        }
         return (target == null ? Stream.<RecipeMap<?>>empty() : Stream.of(target)).flatMap(
             map -> map.findRecipeQuery()
                 .items(lookupItems)

@@ -17,6 +17,8 @@ public class ProxyFactoryRecipeWhitelistTest {
         Set<String> names = new HashSet<>(ProxyFactoryRecipeWhitelist.ORIGINAL);
         assertEquals(24, names.size());
         assertEquals(ProxyFactoryRecipeWhitelist.ORIGINAL.size(), names.size());
+        assertEquals(Arrays.asList("gt.recipe.furnace"), ProxyFactoryRecipeWhitelist.DEFAULT_EXTRA);
+        assertTrue(names.addAll(ProxyFactoryRecipeWhitelist.DEFAULT_EXTRA));
         int expected = names.size() + ProxyFactoryRecipeWhitelist.ADDITIONAL.size();
         names.addAll(ProxyFactoryRecipeWhitelist.ADDITIONAL);
         assertEquals(expected, names.size());
@@ -25,8 +27,10 @@ public class ProxyFactoryRecipeWhitelistTest {
     @Test
     public void explicitInclusionsAndExclusionsAreRespected() {
         Set<String> names = new HashSet<>(ProxyFactoryRecipeWhitelist.ORIGINAL);
+        names.addAll(ProxyFactoryRecipeWhitelist.DEFAULT_EXTRA);
         names.addAll(ProxyFactoryRecipeWhitelist.ADDITIONAL);
         for (String included : Arrays.asList(
+            "gt.recipe.furnace", // 默认解锁的熔炉
             "tst.common.recipe.VisualExtremeCraftRecipeMap.name", // 梦魇转换配方池
             "gt.recipe.multicentrifuge", // 原厂离心，优先于排除大型蒸汽离心机。
             "gg.recipe.componentassemblyline", // 用户明确要求全局保留。

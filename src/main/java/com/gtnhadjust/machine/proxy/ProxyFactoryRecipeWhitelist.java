@@ -38,6 +38,9 @@ public final class ProxyFactoryRecipeWhitelist {
             "gt.recipe.orewasher" // 洗矿机
         ));
 
+    // 代理联合工厂新增的默认配方池，独立于 GTNR 原有 24 池。
+    public static final List<String> DEFAULT_EXTRA = Collections.singletonList("gt.recipe.furnace"); // 熔炉
+
     // 静态核对出的扩展候选；解锁后使用原工厂通用逻辑，不模拟原机器特殊条件。
     public static final List<String> ADDITIONAL = Collections.unmodifiableList(
         Arrays.asList(

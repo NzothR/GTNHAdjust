@@ -52,6 +52,7 @@ import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.recipe.RecipeMap;
+import gregtech.api.recipe.RecipeMaps;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.render.TextureFactory;
@@ -271,6 +272,7 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> impleme
             ? previous.get(Math.floorMod(machineMode, previous.size())).unlocalizedName
             : savedRecipeName;
         List<RecipeMap<?>> maps = new ArrayList<>(UniversalJointFactory.RECIPE_MAPS);
+        if (!maps.contains(RecipeMaps.furnaceRecipes)) maps.add(RecipeMaps.furnaceRecipes);
         List<String> original = new ArrayList<>();
         for (RecipeMap<?> map : maps) original.add(map.unlocalizedName);
         List<List<String>> supplied = new ArrayList<>();

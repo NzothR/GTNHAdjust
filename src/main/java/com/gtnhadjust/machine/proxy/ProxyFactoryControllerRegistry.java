@@ -22,6 +22,7 @@ final class ProxyFactoryControllerRegistry {
     private static final Set<String> ALLOWED = new HashSet<>();
     static {
         ALLOWED.addAll(ProxyFactoryRecipeWhitelist.ORIGINAL);
+        ALLOWED.addAll(ProxyFactoryRecipeWhitelist.DEFAULT_EXTRA);
         ALLOWED.addAll(ProxyFactoryRecipeWhitelist.ADDITIONAL);
     }
 
