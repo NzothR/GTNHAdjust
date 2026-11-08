@@ -43,6 +43,12 @@ import com.xyp.gtneverreset.common.machine.multiblock.UniversalJointFactory;
 import com.xyp.gtneverreset.common.machine.tooltip.StructureTooltipHooks;
 import com.xyp.gtneverreset.utils.structure.MultiblockStructureLoader;
 
+import appeng.api.networking.GridFlags;
+import appeng.api.networking.IGridNode;
+import appeng.api.util.AECableType;
+import appeng.api.util.DimensionalCoord;
+import appeng.me.helpers.AENetworkProxy;
+import appeng.me.helpers.IGridProxyable;
 import gregtech.api.GregTechAPI;
 import gregtech.api.enums.Textures;
 import gregtech.api.enums.VoltageIndex;
@@ -66,7 +72,8 @@ import gregtech.common.tileentities.machines.MTEHatchCraftingInputME;
 import gregtech.common.tileentities.machines.MTEHatchInputBusME;
 
 @IMetaTileEntity.SkipGenerateDescription
-public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> implements ISurvivalConstructable {
+public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory>
+    implements ISurvivalConstructable, IGridProxyable {
 
     private static final IIconContainer MARK = Textures.BlockIcons.custom(GTNHAdjust.MOD_ID, "proxy/overlay_mark");
     private static final int BASE_PARALLELS = 64;
@@ -92,6 +99,7 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> impleme
     }
 
     private IStructureDefinition<ProxyFactory> definition;
+    private AENetworkProxy gridProxy;
     private RecipeMap<?> processingRecipeMap;
     private final List<ItemStack> controllers = new ArrayList<>();
     private List<RecipeMap<?>> unlockedMaps;
@@ -110,6 +118,47 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> impleme
     @Override
     public IMetaTileEntity newMetaEntity(IGregTechTileEntity tile) {
         return new ProxyFactory(mName);
+    }
+
+    @Override
+    public AENetworkProxy getProxy() {
+        if (gridProxy == null && getBaseMetaTileEntity() instanceof IGridProxyable) {
+            gridProxy = new AENetworkProxy(this, "proxy", getStackForm(1), true);
+            gridProxy.setFlags(GridFlags.REQUIRE_CHANNEL);
+            gridProxy.setIdlePowerUsage(0);
+            IGregTechTileEntity tile = getBaseMetaTileEntity();
+            if (tile.getWorld() != null) gridProxy.setOwner(
+                tile.getWorld()
+                    .getPlayerEntityByName(tile.getOwnerName()));
+        }
+        return gridProxy;
+    }
+
+    @Override
+    public DimensionalCoord getLocation() {
+        IGregTechTileEntity tile = getBaseMetaTileEntity();
+        return new DimensionalCoord(tile.getWorld(), tile.getXCoord(), tile.getYCoord(), tile.getZCoord());
+    }
+
+    @Override
+    public IGridNode getGridNode(ForgeDirection side) {
+        AENetworkProxy proxy = getProxy();
+        return proxy == null ? null : proxy.getNode();
+    }
+
+    @Override
+    public AECableType getCableConnectionType(ForgeDirection side) {
+        return AECableType.SMART;
+    }
+
+    @Override
+    public void securityBreak() {}
+
+    @Override
+    public void onFirstTick(IGregTechTileEntity tile) {
+        super.onFirstTick(tile);
+        AENetworkProxy proxy = getProxy();
+        if (proxy != null) proxy.onReady();
     }
 
     @Override
@@ -324,6 +373,8 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> impleme
     @Override
     public void saveNBTData(NBTTagCompound tag) {
         super.saveNBTData(tag);
+        AENetworkProxy proxy = getProxy();
+        if (proxy != null) proxy.writeToNBT(tag);
         NBTTagList saved = new NBTTagList();
         for (ItemStack controller : controllers) saved.appendTag(controller.writeToNBT(new NBTTagCompound()));
         tag.setTag("gtnhadjustProxyControllers", saved);
@@ -335,6 +386,8 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> impleme
     @Override
     public void loadNBTData(NBTTagCompound tag) {
         super.loadNBTData(tag);
+        AENetworkProxy proxy = getProxy();
+        if (proxy != null) proxy.readFromNBT(tag);
         controllers.clear();
         NBTTagList saved = tag.getTagList("gtnhadjustProxyControllers", 10);
         for (int i = 0; i < saved.tagCount(); i++) {
