@@ -219,9 +219,13 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
             if (container.marking) {
                 if (button == 1 && item != null) send(1, item);
                 else if (button == 0 && inventory.getItemStack() != null) send(0, inventory.getItemStack());
-            } else if (button == 0 && inventory.getItemStack() != null) {
-                if (FutureResourceProtocol.portableRepaymentEnabled) send(4, inventory.getItemStack());
-            } else if (button == 0 && item != null) send(isShiftKeyDown() ? 3 : 2, item);
+            } else if (button == 0 && inventory.getItemStack() != null && !isShiftKeyDown() && !isCtrlKeyDown()) {
+                if (FutureResourceProtocol.portableRepaymentEnabled)
+                    send(AdvanceInteraction.REPAY_CURSOR, inventory.getItemStack());
+            } else if (item != null) {
+                int action = AdvanceInteraction.action(button, isShiftKeyDown(), isCtrlKeyDown());
+                if (action >= 0) send(action, item);
+            }
             return;
         }
         super.mouseClicked(x, y, button);

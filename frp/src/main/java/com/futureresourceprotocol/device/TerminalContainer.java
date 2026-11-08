@@ -1,10 +1,12 @@
 package com.futureresourceprotocol.device;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.ChatComponentTranslation;
 
 import com.futureresourceprotocol.FutureResourceProtocol;
@@ -81,6 +83,8 @@ public final class TerminalContainer extends Container {
             item.stackSize -= (int) paid;
             if (item.stackSize == 0) target.putStack(null);
             else target.onSlotChanged();
+            ((EntityPlayerMP) player).playerNetServerHandler
+                .sendPacket(new S2FPacketSetSlot(windowId, slot, target.getStack()));
             player.addChatMessage(new ChatComponentTranslation("frp.chat.repaid", paid));
             FutureResourceProtocol.debug(
                 "shift repayment player={} key={} paid={} remaining={}",

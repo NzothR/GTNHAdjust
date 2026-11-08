@@ -79,7 +79,7 @@ public final class TerminalMessage implements IMessage {
             if (container.windowId != message.windowId || !container.canInteractWith(player)
                 || message.stack == null
                 || message.action < 0
-                || message.action > 4) return;
+                || message.action > AdvanceInteraction.INVENTORY_ONE) return;
             ItemStack terminal = player.inventory.getStackInSlot(container.heldSlot);
             List<ItemStack> marks = TerminalData.read(terminal);
             ItemStack requested = message.stack.copy();
@@ -128,46 +128,72 @@ public final class TerminalMessage implements IMessage {
                 marks.remove(index);
                 TerminalData.write(terminal, marks);
                 FutureResourceProtocol.debug("removed mark {} size={}", key, marks.size());
-            } else if (message.action == 4 && !container.marking && FutureResourceProtocol.portableRepaymentEnabled) {
-                ItemStack cursor = player.inventory.getItemStack();
-                if (!TerminalData.same(cursor, message.stack)) return;
-                long paid = world.settle(WorldProtocol.key(cursor), cursor.stackSize);
-                cursor.stackSize -= (int) paid;
-                if (cursor.stackSize == 0) player.inventory.setItemStack(null);
-                player.playerNetServerHandler.sendPacket(new S2FPacketSetSlot(-1, -1, player.inventory.getItemStack()));
-                player.addChatMessage(new ChatComponentTranslation("frp.chat.repaid", paid));
-                FutureResourceProtocol.debug(
-                    "cursor repayment player={} key={} paid={} remaining={}",
-                    player.getCommandSenderName(),
-                    key,
-                    paid,
-                    cursor.stackSize);
-            } else if ((message.action == 2 || message.action == 3) && !container.marking && index >= 0) {
-                requested = marks.get(index)
-                    .copy();
-                boolean eligible = RecipeIndex.eligible(requested);
-                boolean umv = eligible && RecipeIndex.classify(requested, world);
-                int amount = message.action == 2 ? 1 : requested.getMaxStackSize();
-                if (!eligible || !world.canRecord(key, umv, amount)) {
-                    player.addChatMessage(new ChatComponentTranslation("frp.chat.advance_locked"));
-                    FutureResourceProtocol
-                        .debug("advance rejected eligible={} umv={} requested={}", eligible, umv, amount);
-                    return;
+            } else if (message.action == AdvanceInteraction.REPAY_CURSOR && !container.marking
+                && FutureResourceProtocol.portableRepaymentEnabled) {
+                    ItemStack cursor = player.inventory.getItemStack();
+                    if (!TerminalData.same(cursor, message.stack)) return;
+                    long paid = world.settle(WorldProtocol.key(cursor), cursor.stackSize);
+                    cursor.stackSize -= (int) paid;
+                    if (cursor.stackSize == 0) player.inventory.setItemStack(null);
+                    player.playerNetServerHandler
+                        .sendPacket(new S2FPacketSetSlot(-1, -1, player.inventory.getItemStack()));
+                    player.addChatMessage(new ChatComponentTranslation("frp.chat.repaid", paid));
+                    FutureResourceProtocol.debug(
+                        "cursor repayment player={} key={} paid={} remaining={}",
+                        player.getCommandSenderName(),
+                        key,
+                        paid,
+                        cursor.stackSize);
+                } else if (AdvanceInteraction.isAdvance(message.action) && !container.marking && index >= 0) {
+                    requested = marks.get(index)
+                        .copy();
+                    boolean eligible = RecipeIndex.eligible(requested);
+                    boolean umv = eligible && RecipeIndex.classify(requested, world);
+                    int amount = AdvanceInteraction.amount(message.action, requested.getMaxStackSize());
+                    ItemStack cursor = player.inventory.getItemStack();
+                    if (AdvanceInteraction.toCursor(message.action) && cursor != null) {
+                        if (!TerminalData.same(cursor, requested)) {
+                            player.addChatMessage(new ChatComponentTranslation("frp.chat.cursor_mismatch"));
+                            return;
+                        }
+                        amount = Math.min(amount, Math.max(0, cursor.getMaxStackSize() - cursor.stackSize));
+                    }
+                    if (amount <= 0) {
+                        player.addChatMessage(new ChatComponentTranslation("frp.chat.cursor_full"));
+                        return;
+                    }
+                    if (!eligible || !world.canRecord(key, umv, amount)) {
+                        player.addChatMessage(new ChatComponentTranslation("frp.chat.advance_locked"));
+                        FutureResourceProtocol
+                            .debug("advance rejected eligible={} umv={} requested={}", eligible, umv, amount);
+                        return;
+                    }
+                    int delivered;
+                    if (AdvanceInteraction.toCursor(message.action)) {
+                        if (cursor == null) {
+                            requested.stackSize = amount;
+                            player.inventory.setItemStack(requested);
+                        } else cursor.stackSize += amount;
+                        delivered = amount;
+                    } else {
+                        long before = inventoryCount(player, requested);
+                        requested.stackSize = amount;
+                        player.inventory.addItemStackToInventory(requested);
+                        delivered = (int) Math.max(0, Math.min(amount, inventoryCount(player, requested) - before));
+                    }
+                    if (delivered > 0) world.advance(key, umv, delivered);
+                    if (AdvanceInteraction.toCursor(message.action)) player.playerNetServerHandler
+                        .sendPacket(new S2FPacketSetSlot(-1, -1, player.inventory.getItemStack()));
+                    FutureResourceProtocol.debug(
+                        "delivery player={} key={} requested={} delivered={} remainder={} destination={}",
+                        player.getCommandSenderName(),
+                        key,
+                        amount,
+                        delivered,
+                        AdvanceInteraction.toCursor(message.action) ? 0 : requested.stackSize,
+                        AdvanceInteraction.toCursor(message.action) ? "cursor" : "inventory");
+                    if (delivered == 0) player.addChatMessage(new ChatComponentTranslation("frp.chat.inventory_full"));
                 }
-                long before = inventoryCount(player, requested);
-                requested.stackSize = amount;
-                player.inventory.addItemStackToInventory(requested);
-                int delivered = (int) Math.max(0, Math.min(amount, inventoryCount(player, requested) - before));
-                if (delivered > 0) world.advance(key, umv, delivered);
-                FutureResourceProtocol.debug(
-                    "delivery player={} key={} requested={} delivered={} remainder={}",
-                    player.getCommandSenderName(),
-                    key,
-                    amount,
-                    delivered,
-                    requested.stackSize);
-                if (delivered == 0) player.addChatMessage(new ChatComponentTranslation("frp.chat.inventory_full"));
-            }
             player.inventory.markDirty();
             player.openContainer.detectAndSendChanges();
         }
