@@ -99,21 +99,18 @@ public final class AeDebtRepayment {
                 }
             }
             boolean complete = world.stageDebt(false) == 0 && world.stageDebt(true) == 0;
-            int removed = complete ? world.removeDebtFreeMarks() : 0;
             player.addChatMessage(
                 new ChatComponentTranslation(
                     "frp.chat.ae_repaid",
                     total,
                     items,
-                    removed,
                     world.stageDebt(false),
                     world.stageDebt(true)));
             FutureResourceProtocol.debug(
-                "AE repayment complete player={} paid={} entries={} removed={} complete={}",
+                "AE repayment complete player={} paid={} entries={} complete={}",
                 player.getCommandSenderName(),
                 total,
                 items,
-                removed,
                 complete);
         } catch (RuntimeException failure) {
             FutureResourceProtocol.LOG.error("FRP AE repayment interrupted after settled=" + total, failure);

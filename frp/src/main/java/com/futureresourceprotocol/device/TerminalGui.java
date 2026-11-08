@@ -19,17 +19,24 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import com.futureresourceprotocol.FutureResourceProtocol;
 import com.futureresourceprotocol.protocol.WorldProtocol;
 
+import codechicken.nei.BookmarkPanel.BookmarkViewMode;
 import codechicken.nei.ItemList;
 import codechicken.nei.ItemPanels;
 import codechicken.nei.ItemSorter;
 import codechicken.nei.PanelWidget;
+import codechicken.nei.SearchField;
 import codechicken.nei.api.INEIGuiHandler;
+import codechicken.nei.api.ItemFilter;
+import codechicken.nei.bookmark.BookmarkGrid;
+import codechicken.nei.bookmark.BookmarkGroup;
+import codechicken.nei.bookmark.BookmarkItem;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerObjectHandler;
 import codechicken.nei.guihook.IContainerTooltipHandler;
@@ -83,6 +90,15 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
     private GuiTextField search;
     private int scroll;
     private boolean draggingScrollbar;
+    private boolean previousRepeatEnabled;
+    private boolean repeatStateCaptured;
+    private long exportRequest;
+    private BookmarkGrid exportGrid;
+    private List<ItemStack> exportMarks;
+    private Map<String, long[]> exportDebts;
+    private int exportNextPart;
+    private int exportParts;
+    private long exportRevision;
     private List<ItemStack> neiOrder;
     private List<ItemStack> sortedMarks;
     private List<ItemStack> worldMarks = new ArrayList<>();
@@ -111,6 +127,11 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
     public void initGui() {
         String currentSearch = search == null ? (rememberSearch ? savedSearch : "") : search.getText();
         super.initGui();
+        if (!repeatStateCaptured) {
+            previousRepeatEnabled = Keyboard.areRepeatEventsEnabled();
+            repeatStateCaptured = true;
+        }
+        Keyboard.enableRepeatEvents(true);
         search = new GuiTextField(fontRendererObj, guiLeft + 81, guiTop + 5, 87, 10);
         search.setMaxStringLength(80);
         search.setEnableBackgroundDrawing(false);
@@ -121,18 +142,26 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
     @Override
     public void onGuiClosed() {
         if (rememberSearch && search != null) savedSearch = search.getText();
+        if (repeatStateCaptured) Keyboard.enableRepeatEvents(previousRepeatEnabled);
+        repeatStateCaptured = false;
         super.onGuiClosed();
+    }
+
+    @Override
+    public void updateScreen() {
+        super.updateScreen();
+        if (search != null) search.updateCursorCounter();
     }
 
     private int sideButton(int x, int y) {
         int rx = x - (guiLeft - 19), ry = y - (guiTop + 3);
-        if (rx < 0 || rx >= 16 || ry < 0 || ry >= 54 || ry % 18 >= 16) return -1;
+        if (rx < 0 || rx >= 16 || ry < 0 || ry >= 90 || ry % 18 >= 16) return -1;
         return ry / 18;
     }
 
     @Override
     public boolean hideItemPanelSlot(GuiContainer gui, int x, int y, int w, int h) {
-        return gui == this && x < guiLeft - 3 && x + w > guiLeft - 19 && y < guiTop + 57 && y + h > guiTop + 3;
+        return gui == this && x < guiLeft - 3 && x + w > guiLeft - 19 && y < guiTop + 93 && y + h > guiTop + 3;
     }
 
     private List<ItemStack> visible() {
@@ -141,13 +170,14 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
             : search.getText()
                 .toLowerCase(Locale.ROOT)
                 .trim();
+        ItemFilter neiFilter = term.isEmpty() ? null : SearchField.getFilter(term);
         for (ItemStack item : sortedMarks()) {
             String key = WorldProtocol.key(item);
             if (term.isEmpty() || itemName(item).toLowerCase(Locale.ROOT)
                 .contains(term)
                 || (key != null && key.toLowerCase(Locale.ROOT)
-                    .contains(term)))
-                filtered.add(item);
+                    .contains(term))
+                || (neiFilter != null && neiFilter.matches(item))) filtered.add(item);
         }
         return filtered;
     }
@@ -226,6 +256,89 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
         }
     }
 
+    private boolean sameOpenSession(String session) {
+        ItemStack terminal = inventory.getStackInSlot(container.heldSlot);
+        return terminal != null && terminal.hasTagCompound()
+            && TerminalContainer.sameSession(
+                session,
+                terminal.getTagCompound()
+                    .getString(TerminalContainer.SESSION_TAG));
+    }
+
+    void receiveMode(TerminalModeMessage message) {
+        if (!sameOpenSession(message.session)) return;
+        container.setMarking(message.marking);
+        scroll = 0;
+    }
+
+    void receiveExport(BookmarkExportMessage message) {
+        MarkSyncMessage part = message.marks;
+        if (message.requestId != exportRequest || exportGrid == null || !sameOpenSession(part.session) || !part.valid)
+            return;
+        if (part.part == 0) {
+            exportMarks = new ArrayList<>();
+            exportDebts = new HashMap<>();
+            exportNextPart = 0;
+            exportParts = part.parts;
+            exportRevision = part.revision;
+        }
+        if (exportMarks == null || part.part != exportNextPart
+            || part.parts != exportParts
+            || part.revision != exportRevision) return;
+        exportMarks.addAll(part.items);
+        exportDebts.putAll(message.debts);
+        if (++exportNextPart != exportParts) return;
+        try {
+            if (ItemPanels.bookmarkPanel.getGrid() != exportGrid) {
+                mc.thePlayer.addChatMessage(new ChatComponentTranslation("frp.chat.bookmark_page_changed"));
+                return;
+            }
+            if (exportMarks.isEmpty()) {
+                mc.thePlayer.addChatMessage(new ChatComponentTranslation("frp.chat.bookmark_empty"));
+                return;
+            }
+            int groupId = exportGrid.getNextGroupId();
+            List<BookmarkItem> result = new ArrayList<>();
+            for (ItemStack item : exportMarks) {
+                long[] amounts = exportDebts.get(WorldProtocol.key(item));
+                if (amounts == null) throw new IllegalArgumentException("Missing debt snapshot");
+                BigInteger amount = DebtDisplay.total(amounts[0], amounts[1]);
+                int fluidAmount = BookmarkItem.builder(groupId, item)
+                    .factor(1)
+                    .multiplier(0)
+                    .build().fluidCellAmount;
+                for (long[] chunk : BookmarkAmounts.split(amount, fluidAmount)) {
+                    if (result.size() >= BookmarkAmounts.MAX_ENTRIES)
+                        throw new IllegalArgumentException("Too many bookmarks");
+                    result.add(
+                        BookmarkItem.builder(groupId, item.copy())
+                            .factor(chunk[0])
+                            .multiplier(chunk[1])
+                            .build());
+                }
+            }
+            int created = exportGrid.addGroup(new BookmarkGroup(BookmarkViewMode.DEFAULT, false));
+            if (created != groupId) throw new IllegalStateException("NEI group changed during export");
+            for (BookmarkItem bookmark : result) exportGrid.addItem(bookmark, true);
+            ItemPanels.bookmarkPanel.save();
+            mc.thePlayer.addChatMessage(
+                new ChatComponentTranslation("frp.chat.bookmark_done", exportMarks.size(), result.size()));
+            FutureResourceProtocol.debug(
+                "NEI bookmarks created marks={} entries={} group={} revision={}",
+                exportMarks.size(),
+                result.size(),
+                groupId,
+                exportRevision);
+        } catch (RuntimeException failure) {
+            FutureResourceProtocol.LOG.error("FRP bookmark export failed", failure);
+            mc.thePlayer.addChatMessage(new ChatComponentTranslation("frp.chat.bookmark_failed"));
+        } finally {
+            exportGrid = null;
+            exportMarks = null;
+            exportDebts = null;
+        }
+    }
+
     private int rank(ItemStack item) {
         Map<Integer, Integer> variants = neiRanks.get(item.getItem());
         return variants == null ? Integer.MAX_VALUE : variants.getOrDefault(item.getItemDamage(), Integer.MAX_VALUE);
@@ -290,7 +403,7 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
         GL11.glColor4f(1F, 1F, 1F, 1F);
         mc.getTextureManager()
             .bindTexture(AE_BUTTONS);
-        int[] icons = { rememberSearch ? 215 : 214, 50, 6 };
+        int[] icons = { rememberSearch ? 215 : 214, 50, 6, 64, 51 };
         for (int i = 0; i < icons.length; i++) {
             int x = guiLeft - 19, y = guiTop + 3 + i * 18;
             drawTexturedModalRect(x, y, 240, 240, 16, 16);
@@ -363,6 +476,9 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
         if (button == 0) tooltip.add(I18n.format(rememberSearch ? "frp.button.search_on" : "frp.button.search_off"));
         else if (button == 1) tooltip.add(I18n.format("frp.button.ae_repay"));
         else if (button == 2) tooltip.add(I18n.format("frp.button.clear_marks"));
+        else if (button == 3) tooltip.add(I18n.format("frp.button.bookmark"));
+        else if (button == 4)
+            tooltip.add(I18n.format(container.marking ? "frp.button.to_advance" : "frp.button.to_mark"));
         return tooltip;
     }
 
@@ -382,13 +498,28 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
         search.mouseClicked(x, y, button);
         if (button == 0 && sideButton(x, y) >= 0) {
             int target = sideButton(x, y);
+            if ((target == 3 || target == 4) && (!marksValid || !sameOpenSession(marksSession))) {
+                mc.thePlayer.addChatMessage(new ChatComponentTranslation("frp.chat.terminal_syncing"));
+                return;
+            }
             if (target == 0) {
                 rememberSearch = !rememberSearch;
                 savedSearch = rememberSearch ? search.getText() : "";
-            } else FutureResourceProtocol.NETWORK.sendToServer(
-                new TerminalControlMessage(
-                    container.windowId,
-                    target == 1 ? TerminalControlMessage.REPAY_AE : TerminalControlMessage.REMOVE_DEBT_FREE));
+            } else if (target == 3) {
+                exportRequest++;
+                exportGrid = ItemPanels.bookmarkPanel.getGrid();
+                exportMarks = null;
+                exportDebts = null;
+                FutureResourceProtocol.NETWORK.sendToServer(
+                    new TerminalControlMessage(
+                        container.windowId,
+                        TerminalControlMessage.EXPORT_BOOKMARKS,
+                        exportRequest));
+            } else {
+                int action = target == 1 ? TerminalControlMessage.REPAY_AE
+                    : target == 2 ? TerminalControlMessage.REMOVE_DEBT_FREE : TerminalControlMessage.SWITCH_MODE;
+                FutureResourceProtocol.NETWORK.sendToServer(new TerminalControlMessage(container.windowId, action));
+            }
             return;
         }
         if (button == 0 && overSearch(x, y) && inventory.getItemStack() != null) {

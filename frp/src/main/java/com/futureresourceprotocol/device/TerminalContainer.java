@@ -18,7 +18,7 @@ import com.futureresourceprotocol.protocol.WorldProtocol;
 public final class TerminalContainer extends Container {
 
     public static final String SESSION_TAG = "frpSession";
-    public final boolean marking;
+    public boolean marking;
     public final int heldSlot;
     private final String session;
     private final InventoryPlayer inventory;
@@ -39,6 +39,15 @@ public final class TerminalContainer extends Container {
         for (int row = 0; row < 3; row++) for (int col = 0; col < 9; col++)
             addSlotToContainer(new Slot(inventory, col + row * 9 + 9, 8 + col * 18, 139 + row * 18));
         for (int col = 0; col < 9; col++) addSlotToContainer(new Slot(inventory, col, 8 + col * 18, 197));
+    }
+
+    public String session() {
+        return session;
+    }
+
+    public void setMarking(boolean marking) {
+        this.marking = marking;
+        lastRevision = -1;
     }
 
     @Override

@@ -8,12 +8,14 @@ import net.minecraftforge.common.config.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.futureresourceprotocol.device.BookmarkExportMessage;
 import com.futureresourceprotocol.device.DebtSyncMessage;
 import com.futureresourceprotocol.device.MarkSyncMessage;
 import com.futureresourceprotocol.device.PortableTerminal;
 import com.futureresourceprotocol.device.TerminalControlMessage;
 import com.futureresourceprotocol.device.TerminalGuiHandler;
 import com.futureresourceprotocol.device.TerminalMessage;
+import com.futureresourceprotocol.device.TerminalModeMessage;
 import com.futureresourceprotocol.protocol.ProtocolCommand;
 import com.futureresourceprotocol.recipe.HullLockToken;
 import com.futureresourceprotocol.recipe.HullRecipeLocks;
@@ -45,6 +47,7 @@ public class FutureResourceProtocol {
     public static boolean enabled;
     public static boolean portableRepaymentEnabled;
     public static boolean aeRepaymentEnabled;
+    public static boolean neiBookmarkExportEnabled;
     public static boolean hullRecipeLocksEnabled;
     public static SimpleNetworkWrapper NETWORK;
     public static PortableTerminal terminal;
@@ -74,6 +77,11 @@ public class FutureResourceProtocol {
             "features",
             true,
             "Allow wireless AE debt repayment from the terminal. Restart required; client and server must match.");
+        neiBookmarkExportEnabled = config.getBoolean(
+            "neiBookmarkExport",
+            "features",
+            true,
+            "Allow exporting world marks to NEI bookmarks. Restart required; client and server must match.");
         hullRecipeLocksEnabled = config.getBoolean(
             "hullRecipeLocks",
             "features",
@@ -96,6 +104,8 @@ public class FutureResourceProtocol {
         NETWORK.registerMessage(DebtSyncMessage.Handler.class, DebtSyncMessage.class, 1, Side.CLIENT);
         NETWORK.registerMessage(MarkSyncMessage.Handler.class, MarkSyncMessage.class, 2, Side.CLIENT);
         NETWORK.registerMessage(TerminalControlMessage.Handler.class, TerminalControlMessage.class, 3, Side.SERVER);
+        NETWORK.registerMessage(BookmarkExportMessage.Handler.class, BookmarkExportMessage.class, 4, Side.CLIENT);
+        NETWORK.registerMessage(TerminalModeMessage.Handler.class, TerminalModeMessage.class, 5, Side.CLIENT);
         FMLCommonHandler.instance()
             .bus()
             .register(new TerminalMessage.Handler());

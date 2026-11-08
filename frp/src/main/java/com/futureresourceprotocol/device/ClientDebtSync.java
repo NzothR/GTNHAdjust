@@ -29,4 +29,24 @@ public final class ClientDebtSync {
             }
         });
     }
+
+    public static void receiveExport(BookmarkExportMessage message) {
+        Minecraft mc = Minecraft.getMinecraft();
+        mc.func_152344_a(() -> {
+            if (mc.currentScreen instanceof TerminalGui) {
+                TerminalGui gui = (TerminalGui) mc.currentScreen;
+                if (gui.inventorySlots.windowId == message.marks.windowId) gui.receiveExport(message);
+            }
+        });
+    }
+
+    public static void receiveMode(TerminalModeMessage message) {
+        Minecraft mc = Minecraft.getMinecraft();
+        mc.func_152344_a(() -> {
+            if (mc.currentScreen instanceof TerminalGui) {
+                TerminalGui gui = (TerminalGui) mc.currentScreen;
+                if (gui.inventorySlots.windowId == message.windowId) gui.receiveMode(message);
+            }
+        });
+    }
 }
