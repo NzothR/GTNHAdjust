@@ -9,8 +9,6 @@ import com.gtnhadjust.machine.collector.SuperFragmentRecipes;
 import com.gtnhadjust.machine.collector.SuperFragmentRegistration;
 import com.gtnhadjust.machine.collector.TierDimensionItem;
 import com.gtnhadjust.machine.loot.LootSimulatorRegistration;
-import com.gtnhadjust.machine.quantum.SmallQuantumRecipes;
-import com.gtnhadjust.machine.quantum.SmallQuantumRegistration;
 import com.gtnhadjust.recipe.CarpenterRecipes;
 import com.gtnhadjust.soul.SoulVialMultipartHandler;
 import com.gtnhadjust.terminal.TerminalNotifications;
@@ -44,9 +42,7 @@ public class GTNHAdjust {
     public static boolean terminalDebug;
     public static boolean patternDeduplication;
     public static int steamGreenhouseMaxSeeds = 64;
-    public static double smallQuantumRecipeTimeMultiplier = 0.1;
     private int superFragmentMteId = 31990;
-    private int smallQuantumMteId = 31991;
     private int lootSimulatorMteId = 31992;
 
     @Mod.EventHandler
@@ -122,13 +118,6 @@ public class GTNHAdjust {
             2048,
             32766,
             "Stable GregTech machine ID for the super fragment collector. Do not change after placing or obtaining it; client and server must match.");
-        smallQuantumMteId = config.getInt(
-            "smallQuantumMteId",
-            "quantum",
-            31991,
-            2048,
-            32766,
-            "Stable machine ID for the small quantum manipulator. Do not change after obtaining or placing it; client and server must match.");
         lootSimulatorMteId = config.getInt(
             "mteId",
             "lootSimulator",
@@ -136,19 +125,6 @@ public class GTNHAdjust {
             2048,
             32766,
             "Stable loot simulator controller ID. Do not change after obtaining or placing it; clients and servers must match.");
-        smallQuantumRecipeTimeMultiplier = config.get(
-            "quantum",
-            "recipeTimeMultiplier",
-            0.1,
-            "Multiplier applied to reduced small quantum recipes before coil bonuses and overclocking; minimum one tick. Restart required; client and server must match.",
-            0.000001,
-            100.0)
-            .getDouble(0.1);
-        if (!Double.isFinite(smallQuantumRecipeTimeMultiplier) || smallQuantumRecipeTimeMultiplier < 0.000001
-            || smallQuantumRecipeTimeMultiplier > 100.0) {
-            LOG.warn("Invalid quantum recipe time multiplier {}; using 0.1", smallQuantumRecipeTimeMultiplier);
-            smallQuantumRecipeTimeMultiplier = 0.1;
-        }
         if (config.hasChanged()) config.save();
         tierDimension = new TierDimensionItem();
         GameRegistry.registerItem(tierDimension, "tier_dimension");
@@ -162,11 +138,6 @@ public class GTNHAdjust {
             && Loader.isModLoaded("kubatech")
             && Loader.isModLoaded("mobsinfo")
             && Loader.isModLoaded("EnderIO")) LootSimulatorRegistration.registerMachine(lootSimulatorMteId);
-        if (FeatureConfig.get().smallQuantumMachine && Loader.isModLoaded("gregtech")
-            && Loader.isModLoaded("Avaritia")) {
-            SmallQuantumRegistration.registerMachine(smallQuantumMteId);
-            SmallQuantumRecipes.initialize();
-        }
         if (Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech")) {
             SuperFragmentRegistration.registerMachine(superFragmentMteId);
             SuperFragmentRecipes.initialize();
@@ -180,11 +151,6 @@ public class GTNHAdjust {
             && Loader.isModLoaded("kubatech")
             && Loader.isModLoaded("mobsinfo")
             && Loader.isModLoaded("EnderIO")) LootSimulatorRegistration.registerCrafting();
-        if (FeatureConfig.get().smallQuantumMachine && Loader.isModLoaded("gregtech")
-            && Loader.isModLoaded("Avaritia")) {
-            SmallQuantumRegistration.registerCrafting();
-            SmallQuantumRecipes.register();
-        }
         if (FeatureConfig.get().carpenterRecipes && Loader.isModLoaded("Forestry") && Loader.isModLoaded("gregtech"))
             CarpenterRecipes.register();
         if (Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech")) {

@@ -25,7 +25,6 @@ final class FeatureSwitches {
     private static final String GTSR_RECIPE_SPEED = "gtsrRecipeSpeedCompatibility";
     private static final String PATTERN_DEDUP = "patternDeduplication";
     private static final String TERMINAL_INVENTORY_FIX = "terminalInventoryFix";
-    private static final String SMALL_QUANTUM = "smallQuantumMachine";
     private static final String TERMINAL_CRAFTING_REFRESH = "terminalCraftingRefreshFix";
     private static final String CRAFTING_DIAGNOSTICS = "craftingDiagnostics";
     private static final String MATRIX_PATTERN_LOAD_FIX = "matrixPatternLoadFix";
@@ -45,7 +44,6 @@ final class FeatureSwitches {
     final boolean gtsrRecipeSpeedCompatibility;
     final boolean patternDeduplication;
     final boolean terminalInventoryFix;
-    final boolean smallQuantumMachine;
     final boolean terminalCraftingRefreshFix;
     final boolean craftingDiagnostics;
     final boolean neoEcoCraftingRefreshFix;
@@ -58,10 +56,10 @@ final class FeatureSwitches {
 
     private FeatureSwitches(boolean lootSimulator, boolean cropBreeder, boolean steamGreenhouse,
         boolean carpenterRecipes, boolean quickTerminal, boolean gtsrDiagnostics, boolean gtsrRecipeSpeedCompatibility,
-        boolean patternDeduplication, boolean terminalInventoryFix, boolean smallQuantumMachine,
-        boolean terminalCraftingRefreshFix, boolean craftingDiagnostics, boolean neoEcoCraftingRefreshFix,
-        boolean patternRecipeMapPreservation, boolean terminalNeiAlwaysShowPresence, boolean terminalSmartIngredients,
-        boolean matrixPatternDiagnostics, boolean matrixPatternLoadFix, boolean soulVialExpandedCapture) {
+        boolean patternDeduplication, boolean terminalInventoryFix, boolean terminalCraftingRefreshFix,
+        boolean craftingDiagnostics, boolean neoEcoCraftingRefreshFix, boolean patternRecipeMapPreservation,
+        boolean terminalNeiAlwaysShowPresence, boolean terminalSmartIngredients, boolean matrixPatternDiagnostics,
+        boolean matrixPatternLoadFix, boolean soulVialExpandedCapture) {
         this.lootSimulator = lootSimulator;
         this.cropBreeder = cropBreeder;
         this.steamGreenhouse = steamGreenhouse;
@@ -71,7 +69,6 @@ final class FeatureSwitches {
         this.gtsrRecipeSpeedCompatibility = gtsrRecipeSpeedCompatibility;
         this.patternDeduplication = patternDeduplication;
         this.terminalInventoryFix = terminalInventoryFix;
-        this.smallQuantumMachine = smallQuantumMachine;
         this.terminalCraftingRefreshFix = terminalCraftingRefreshFix;
         this.craftingDiagnostics = craftingDiagnostics;
         this.neoEcoCraftingRefreshFix = neoEcoCraftingRefreshFix;
@@ -94,7 +91,6 @@ final class FeatureSwitches {
         defaults.setProperty(GTSR_RECIPE_SPEED, "true");
         defaults.setProperty(PATTERN_DEDUP, "true");
         defaults.setProperty(TERMINAL_INVENTORY_FIX, "true");
-        defaults.setProperty(SMALL_QUANTUM, "true");
         defaults.setProperty(TERMINAL_CRAFTING_REFRESH, "true");
         defaults.setProperty(CRAFTING_DIAGNOSTICS, "false");
         defaults.setProperty(NEO_ECO_CRAFTING_FIX, "false");
@@ -129,7 +125,6 @@ final class FeatureSwitches {
                 read(values, GTSR_RECIPE_SPEED),
                 read(values, PATTERN_DEDUP),
                 read(values, TERMINAL_INVENTORY_FIX),
-                read(values, SMALL_QUANTUM),
                 read(values, TERMINAL_CRAFTING_REFRESH),
                 read(values, CRAFTING_DIAGNOSTICS, false),
                 read(values, NEO_ECO_CRAFTING_FIX, false),
@@ -157,8 +152,6 @@ final class FeatureSwitches {
                     + result.patternDeduplication
                     + ", terminalInventoryFix="
                     + result.terminalInventoryFix
-                    + ", smallQuantumMachine="
-                    + result.smallQuantumMachine
                     + ", terminalCraftingRefreshFix="
                     + result.terminalCraftingRefreshFix
                     + ", craftingDiagnostics="
@@ -181,7 +174,6 @@ final class FeatureSwitches {
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
             return new FeatureSwitches(
-                false,
                 false,
                 false,
                 false,

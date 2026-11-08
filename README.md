@@ -41,7 +41,7 @@ Forestry 木工机配方固定注册到 GT 普通组装机配方池。数据由�
 ## 代码分类
 
 - `com.gtnhadjust.mixins`：针对其他模组的 Mixin 注入，按目标功能和修复分类。
-- `com.gtnhadjust.machine`：本模组新增的机器；`collector` 和 `quantum` 分别包含对应机器、结构及配方。
+- `com.gtnhadjust.machine`：本模组新增的机器；`collector` 和 `loot` 分别包含对应机器、结构及配方。
 - `com.gtnhadjust.recipe`：独立于新增机器的配方调整与配方兼容逻辑。
 - `com.gtnhadjust.terminal`：二合一终端 Mixin 使用的辅助逻辑。
 - 根包负责模组入口、配置及 Mixin 加载；`tools` 存放开发用的数据生成和校验脚本。
@@ -84,7 +84,6 @@ steamGreenhouse=true
 carpenterRecipes=true
 quickTerminal=true
 terminalInventoryFix=true
-smallQuantumMachine=true
 gtsrDiagnostics=true
 gtsrRecipeSpeedCompatibility=true
 patternDeduplication=true
@@ -133,13 +132,7 @@ GTNR 快速编码终端配方池保留修复：修改并重新编码已有加工
 二合一终端从 NEI 导入时，优先使用匹配的完整收藏配方；否则对可选输入依次优先选择收藏的普通物品或收藏配方产物、对应等级的任意电路板、网络可合成项、网络已有项，同优先级从候选末尾向前选；无匹配时保留 NEI 当前项。分组配方会选择完整成员以保留对应的流体用量。`terminalSmartIngredients` 默认开启，依赖 `quickTerminal`，关闭后不加载对应 Mixin，重启生效；适配 GTNH 2.9.0、GTNR 0.1.32 和 NEI 2.8.171。
 
 
-`smallQuantumMachine` 控制小依的小型量子操纵者及其配方，客户端和服务端需一致，修改后重启。该机器按 GT5 5.09.54.265 原版 15×21×15 结构建造，使用坚固钢制机械方块、格栅机械方块、洁净不锈钢机械方块、等级线圈和等级玻璃；顶部或底部可放舱室。必须安装维护仓、能源仓、消声仓和输出总线，流体输出与输入舱室按配方需要选装；可使用多个普通或异能能源仓。原始污染 102400/秒，由消声仓减排。
-
-支持批处理和无损超频；硼玻璃基础并行为 32，玻璃每升一级增加 32 基础并行，LV 起每升一级电压并行翻倍。白铜线圈使用 100% 配方耗时，线圈每升一级减少 10 个百分点，最低为 10%。
-
-该机器配方是基于 GT5、Crops NH、GTNL、GTRH、Twist Space Technology 和 123Technology 的固定快照，不在游戏启动时扫描其他配方池；不包含原始输入或产物已有 1 份的配方。27 条快照中，GTRH 的两条水处理配方分别使用不消耗的 1 号和 2 号电路。快照以来源模组的原始配方耗时为起点，每次降压耗时乘以 4；再乘以 `config/gtnhadjust.cfg` 中 `quantum.recipeTimeMultiplier`，默认为 0.1，修改后重启并保持客户端和服务端一致。结果向上取整且至少为 1 tick，之后再计算线圈和超频；GT-Never-Reset 的全局加速不会重复作用。每份物品或流体产物单独按 `10000 / 产物种数` 概率判定，精度为万分之一。控制器的组装机配方指定 1024 秒，不受该倍率影响。
-
-机器使用 `config/gtnhadjust.cfg` 的 `quantum.smallQuantumMteId`，默认 `31991`。客户端和服务端必须一致，取得或放置机器之后不要改动；关闭功能前应先移除现有机器。开启 `general.debug` 可记录配方处理等诊断信息。
+小型量子操纵者及其专属配方已移除。旧的 `smallQuantumMachine` 和 `quantum` 配置不再生效；客户端与服务端需同时更新并重启。
 
 构建还需要将实例的 `NotEnoughItems-2.8.171-GTNH.jar`、`appliedenergistics2-rv3-beta-1095-GTNH.jar` 和 NotEnoughEnergistics 1.7.50 分别复制为 `ref/libs/nei-instance.jar`、`ref/libs/ae2-instance.jar` 和 `ref/libs/nee-instance.jar`。
 

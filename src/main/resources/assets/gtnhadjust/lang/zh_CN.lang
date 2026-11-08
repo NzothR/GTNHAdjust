@@ -1,8 +1,6 @@
 gt.blockmachines.gtnhadjust.super_fragment_collector.name=超级碎片世界采集器
 gtnhadjust.recipe.super_fragment_collection=超级碎片世界采集
-gt.blockmachines.gtnhadjust.small_quantum.name=小依的小型量子操纵者
 gt.blockmachines.gtnhadjust.loot_simulator.name=战利品模拟室
-gtnhadjust.recipe.small_quantum=小型量子操纵
 
 gtnhadjust.recipe.super_fragment_ore=维度资源：矿石
 gtnhadjust.recipe.super_fragment_gem=维度资源：宝石
