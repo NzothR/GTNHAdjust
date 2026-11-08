@@ -33,3 +33,5 @@ item.gtnhadjust.tier_dimension.9.name=T9 Dimension
 gtnhadjust.proxy.recipe_list=Unlocked recipe maps
 gtnhadjust.proxy.previous=Previous
 gtnhadjust.proxy.next=Next
+
+gtnhadjust.proxy.search=Search name or registry ID

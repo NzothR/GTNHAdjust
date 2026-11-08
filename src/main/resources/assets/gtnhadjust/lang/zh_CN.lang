@@ -33,3 +33,5 @@ item.gtnhadjust.tier_dimension.9.name=T9维度
 gtnhadjust.proxy.recipe_list=已解锁配方池
 gtnhadjust.proxy.previous=上一页
 gtnhadjust.proxy.next=下一页
+
+gtnhadjust.proxy.search=搜索配方池名称或注册名

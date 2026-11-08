@@ -1,5 +1,8 @@
 package com.gtnhadjust.machine.proxy;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.util.StatCollector;
 
 import com.cleanroommc.modularui.api.IPanelHandler;
@@ -8,19 +11,23 @@ import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.drawable.DynamicDrawable;
 import com.cleanroommc.modularui.network.NetworkUtils;
 import com.cleanroommc.modularui.screen.ModularPanel;
+import com.cleanroommc.modularui.value.StringValue;
 import com.cleanroommc.modularui.value.sync.GenericListSyncHandler;
 import com.cleanroommc.modularui.value.sync.IntSyncValue;
 import com.cleanroommc.modularui.value.sync.InteractionSyncHandler;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
 import com.cleanroommc.modularui.widgets.layout.Flow;
+import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
 import com.xyp.gtneverreset.common.gui.modularui.multiblock.GTNRMultiBlockBaseGui;
 
 import gregtech.api.modularui2.GTGuiTextures;
 
 final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
 
-    private static final int PAGE_SIZE = 12;
+    private static final int PAGE_SIZE = 10;
+    private final StringValue search = new StringValue("");
+    private String previousSearch = "";
     private int page;
 
     ProxyFactoryGui(ProxyFactory controller) {
@@ -96,6 +103,13 @@ final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
                 .shadow(false)
                 .asWidget()
                 .pos(8, 8));
+        panel.child(
+            new TextFieldWidget().value(search)
+                .setMaxLength(128)
+                .autoUpdateOnChange(true)
+                .hintText(StatCollector.translateToLocal("gtnhadjust.proxy.search"))
+                .pos(8, 22)
+                .size(202, 16));
         for (int row = 0; row < PAGE_SIZE; row++) {
             final int index = row;
             panel.child(
@@ -103,7 +117,7 @@ final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
                     .color(0xff404040)
                     .shadow(false)
                     .asWidget()
-                    .pos(8, 22 + row * 10));
+                    .pos(8, 41 + row * 10));
         }
         panel.child(
             IKey.dynamic(() -> (page + 1) + " / " + pageCount())
@@ -138,17 +152,26 @@ final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
         return panel;
     }
 
+    private List<String> filteredRecipeNames() {
+        String query = search.getStringValue();
+        if (!query.equals(previousSearch)) {
+            previousSearch = query;
+            page = 0;
+        }
+        List<String> result = new ArrayList<>();
+        for (String name : multiblock.getUnlockedRecipeNames()) {
+            if (ProxyRecipeSearch.matches(name, StatCollector.translateToLocal(name), query)) result.add(name);
+        }
+        return result;
+    }
+
     private int pageCount() {
-        return Math.max(
-            1,
-            (multiblock.getUnlockedRecipeNames()
-                .size() + PAGE_SIZE
-                - 1) / PAGE_SIZE);
+        return Math.max(1, (filteredRecipeNames().size() + PAGE_SIZE - 1) / PAGE_SIZE);
     }
 
     private String recipeName(int row) {
-        java.util.List<String> names = multiblock.getUnlockedRecipeNames();
-        page = Math.min(page, pageCount() - 1);
+        List<String> names = filteredRecipeNames();
+        page = Math.min(page, Math.max(0, (names.size() - 1) / PAGE_SIZE));
         int index = page * PAGE_SIZE + row;
         return index < names.size() ? StatCollector.translateToLocal(names.get(index)) : "";
     }
