@@ -237,7 +237,10 @@ final class FeatureSwitches {
         List<String> mixins = new ArrayList<>();
         if (proxyFactory && proxyDispatchDiagnostics
             && loadedMods.contains("gtneverreset")
-            && loadedMods.contains("appliedenergistics2")) mixins.add("diagnostic.ProxyCpuDispatchAuditMixin");
+            && loadedMods.contains("appliedenergistics2")) {
+            mixins.add("diagnostic.ProxyCpuDispatchAuditMixin");
+            mixins.add("diagnostic.ProxyHatchDispatchAuditMixin");
+        }
         if (structureLibAeAutoPlace && loadedMods.contains("structurelib")
             && loadedMods.contains("appliedenergistics2")) mixins.add("structurelib.StructureLibAeAutoPlaceMixin");
         if (soulVialExpandedCapture && loadedMods.contains("EnderIO")) mixins.add("fix.SoulVialCaptureMixin");

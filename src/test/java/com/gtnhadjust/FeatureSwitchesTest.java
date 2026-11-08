@@ -38,6 +38,7 @@ public class FeatureSwitchesTest {
             .toPath();
         Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset", "appliedenergistics2"));
         String mixin = "diagnostic.ProxyCpuDispatchAuditMixin";
+        String hatchMixin = "diagnostic.ProxyHatchDispatchAuditMixin";
         assertFalse(
             FeatureSwitches.load(file)
                 .selectMixins(mods, false)

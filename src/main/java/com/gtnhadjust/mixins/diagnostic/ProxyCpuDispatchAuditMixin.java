@@ -9,9 +9,11 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 import com.gtnhadjust.GTNHAdjust;
+import com.gtnhadjust.machine.proxy.ProxyDispatchTrace;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.xyp.gtneverreset.api.mixinHelper.LargeInventoryCrafting;
+import com.xyp.gtneverreset.common.crafting.quantum.ae2.QuantumCraftingCpuCluster;
 import com.xyp.gtneverreset.common.machine.hatch.SuperMTEHatchCraftingInputME;
 
 import appeng.api.networking.crafting.ICraftingLink;
@@ -48,7 +50,14 @@ public abstract class ProxyCpuDispatchAuditMixin {
                 if (stack != null) materials.add(stack.toString());
             }
         }
-        boolean accepted = original.call(medium, pattern, inventory);
+        CraftingCPUCluster current = (CraftingCPUCluster) (Object) this;
+        CraftingCPUCluster previous = ProxyDispatchTrace.enter(current);
+        boolean accepted;
+        try {
+            accepted = original.call(medium, pattern, inventory);
+        } finally {
+            ProxyDispatchTrace.restore(previous);
+        }
         if (target) {
             CraftingCPUCluster cpu = (CraftingCPUCluster) (Object) this;
             ICraftingLink link = cpu.getLastCraftingLink();
@@ -61,8 +70,9 @@ public abstract class ProxyCpuDispatchAuditMixin {
                     + ","
                     + tile.getZCoord();
             GTNHAdjust.LOG.info(
-                "[proxy-dispatch] cpu={} job={} medium={} location={} observedBatch={} accepted={} inputs={} outputs={}",
+                "[proxy-dispatch] cpu={} quantum={} job={} medium={} location={} outerBatch={} accepted={} inputs={} outputs={}",
                 Integer.toHexString(System.identityHashCode(cpu)),
+                cpu instanceof QuantumCraftingCpuCluster,
                 link == null ? "none" : link.getCraftingID(),
                 medium.getClass()
                     .getName(),
