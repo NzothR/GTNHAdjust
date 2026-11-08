@@ -145,4 +145,29 @@ public class WorldProtocolTest {
         assertEquals(64, loaded.settle(key, 64));
     }
 
+    @Test
+    public void removeDebtFreeMarksRespectsSharedDebtAcrossVariants() {
+        NBTTagCompound tag = new NBTTagCompound();
+        tag.setInteger("version", 1);
+        NBTTagList marks = new NBTTagList();
+        for (int i = 0; i < 3; i++) {
+            NBTTagCompound mark = new NBTTagCompound();
+            mark.setString("item", i == 2 ? "example:free" : "example:owed");
+            mark.setInteger("meta", 0);
+            NBTTagCompound nbt = new NBTTagCompound();
+            nbt.setInteger("variant", i);
+            mark.setTag("tag", nbt);
+            marks.appendTag(mark);
+        }
+        tag.setTag("worldMarks", marks);
+        WorldProtocol ledger = new WorldProtocol();
+        ledger.readFromNBT(tag);
+        ledger.advance("example:owed@0", false, 2);
+        assertEquals(1, ledger.removeDebtFreeMarks());
+        assertEquals(2, ledger.markCount());
+        assertEquals(2, ledger.settle("example:owed@0", 2));
+        assertEquals(2, ledger.removeDebtFreeMarks());
+        assertEquals(0, ledger.markCount());
+    }
+
 }

@@ -166,6 +166,27 @@ public final class WorldProtocol extends WorldSavedData {
         return false;
     }
 
+    /** Remove only entries whose shared registry/meta debt is completely cleared. */
+    public int removeDebtFreeMarks() {
+        if (invalid) return 0;
+        int removed = 0;
+        for (int i = worldMarks.tagCount() - 1; i >= 0; i--) {
+            NBTTagCompound entry = worldMarks.getCompoundTagAt(i);
+            String id = entry.getString("item");
+            if (id.isEmpty()) continue;
+            String key = id + "@" + entry.getInteger("meta");
+            if (debt(key, false) != 0 || debt(key, true) != 0) continue;
+            worldMarks.removeTag(i);
+            removed++;
+        }
+        if (removed > 0) {
+            markRevision++;
+            markDirty();
+        }
+        FutureResourceProtocol.debug("removed debt-free marks count={} remaining={}", removed, markCount());
+        return removed;
+    }
+
     public boolean isTerminated() {
         return terminated || invalid;
     }

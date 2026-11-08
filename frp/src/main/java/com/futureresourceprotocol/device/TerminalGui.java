@@ -70,6 +70,11 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
         });
     }
 
+    private static boolean rememberSearch;
+    private static String savedSearch = "";
+    private static final ResourceLocation AE_BUTTONS = new ResourceLocation(
+        "appliedenergistics2",
+        "textures/guis/states.png");
     private static final ResourceLocation AE_TEXTURE = new ResourceLocation(
         "appliedenergistics2",
         "textures/guis/terminal.png");
@@ -104,11 +109,30 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
 
     @Override
     public void initGui() {
+        String currentSearch = search == null ? (rememberSearch ? savedSearch : "") : search.getText();
         super.initGui();
         search = new GuiTextField(fontRendererObj, guiLeft + 81, guiTop + 5, 87, 10);
         search.setMaxStringLength(80);
         search.setEnableBackgroundDrawing(false);
         search.setTextColor(0x404040);
+        search.setText(currentSearch);
+    }
+
+    @Override
+    public void onGuiClosed() {
+        if (rememberSearch && search != null) savedSearch = search.getText();
+        super.onGuiClosed();
+    }
+
+    private int sideButton(int x, int y) {
+        int rx = x - (guiLeft - 19), ry = y - (guiTop + 3);
+        if (rx < 0 || rx >= 16 || ry < 0 || ry >= 54 || ry % 18 >= 16) return -1;
+        return ry / 18;
+    }
+
+    @Override
+    public boolean hideItemPanelSlot(GuiContainer gui, int x, int y, int w, int h) {
+        return gui == this && x < guiLeft - 3 && x + w > guiLeft - 19 && y < guiTop + 57 && y + h > guiTop + 3;
     }
 
     private List<ItemStack> visible() {
@@ -260,6 +284,19 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
         int thumbY = guiTop + 19 + (maximum == 0 ? 0 : scroll * 91 / maximum);
         drawRect(guiLeft + 176, thumbY, guiLeft + 185, thumbY + 15, 0xffcccccc);
         search.drawTextBox();
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_CURRENT_BIT);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glColor4f(1F, 1F, 1F, 1F);
+        mc.getTextureManager()
+            .bindTexture(AE_BUTTONS);
+        int[] icons = { rememberSearch ? 215 : 214, 50, 6 };
+        for (int i = 0; i < icons.length; i++) {
+            int x = guiLeft - 19, y = guiTop + 3 + i * 18;
+            drawTexturedModalRect(x, y, 240, 240, 16, 16);
+            drawTexturedModalRect(x, y, (icons[i] % 16) * 16, (icons[i] / 16) * 16, 16, 16);
+        }
+        GL11.glPopAttrib();
     }
 
     @Override
@@ -314,8 +351,19 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
             8,
             128,
             0x404040);
-        // NEI renders its panels immediately after this foreground layer.
+        // NEI draws 3-D models immediately afterwards and needs both GUI lights enabled.
+        RenderHelper.enableGUIStandardItemLighting();
         GL11.glColor4f(1F, 1F, 1F, 1F);
+    }
+
+    @Override
+    public List<String> handleTooltip(GuiContainer gui, int mouseX, int mouseY, List<String> tooltip) {
+        if (gui != this) return tooltip;
+        int button = sideButton(mouseX, mouseY);
+        if (button == 0) tooltip.add(I18n.format(rememberSearch ? "frp.button.search_on" : "frp.button.search_off"));
+        else if (button == 1) tooltip.add(I18n.format("frp.button.ae_repay"));
+        else if (button == 2) tooltip.add(I18n.format("frp.button.clear_marks"));
+        return tooltip;
     }
 
     @Override
@@ -332,6 +380,17 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
     @Override
     protected void mouseClicked(int x, int y, int button) {
         search.mouseClicked(x, y, button);
+        if (button == 0 && sideButton(x, y) >= 0) {
+            int target = sideButton(x, y);
+            if (target == 0) {
+                rememberSearch = !rememberSearch;
+                savedSearch = rememberSearch ? search.getText() : "";
+            } else FutureResourceProtocol.NETWORK.sendToServer(
+                new TerminalControlMessage(
+                    container.windowId,
+                    target == 1 ? TerminalControlMessage.REPAY_AE : TerminalControlMessage.REMOVE_DEBT_FREE));
+            return;
+        }
         if (button == 0 && overSearch(x, y) && inventory.getItemStack() != null) {
             searchFor(inventory.getItemStack());
             return;

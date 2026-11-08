@@ -57,6 +57,10 @@ public final class TerminalMessage implements IMessage {
 
         private static final Queue<Runnable> QUEUE = new ConcurrentLinkedQueue<>();
 
+        static void enqueue(Runnable task) {
+            QUEUE.add(task);
+        }
+
         @Override
         public IMessage onMessage(TerminalMessage message, MessageContext ctx) {
             EntityPlayerMP player = ctx.getServerHandler().playerEntity;

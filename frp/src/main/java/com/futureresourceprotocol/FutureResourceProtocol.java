@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import com.futureresourceprotocol.device.DebtSyncMessage;
 import com.futureresourceprotocol.device.MarkSyncMessage;
 import com.futureresourceprotocol.device.PortableTerminal;
+import com.futureresourceprotocol.device.TerminalControlMessage;
 import com.futureresourceprotocol.device.TerminalGuiHandler;
 import com.futureresourceprotocol.device.TerminalMessage;
 import com.futureresourceprotocol.protocol.ProtocolCommand;
@@ -43,6 +44,7 @@ public class FutureResourceProtocol {
     public static boolean debug;
     public static boolean enabled;
     public static boolean portableRepaymentEnabled;
+    public static boolean aeRepaymentEnabled;
     public static boolean hullRecipeLocksEnabled;
     public static SimpleNetworkWrapper NETWORK;
     public static PortableTerminal terminal;
@@ -67,6 +69,11 @@ public class FutureResourceProtocol {
             "features",
             true,
             "Enable repayment in the portable terminal. Restart required; client and server must match.");
+        aeRepaymentEnabled = config.getBoolean(
+            "aeRepayment",
+            "features",
+            true,
+            "Allow wireless AE debt repayment from the terminal. Restart required; client and server must match.");
         hullRecipeLocksEnabled = config.getBoolean(
             "hullRecipeLocks",
             "features",
@@ -88,6 +95,7 @@ public class FutureResourceProtocol {
         NETWORK.registerMessage(TerminalMessage.Handler.class, TerminalMessage.class, 0, Side.SERVER);
         NETWORK.registerMessage(DebtSyncMessage.Handler.class, DebtSyncMessage.class, 1, Side.CLIENT);
         NETWORK.registerMessage(MarkSyncMessage.Handler.class, MarkSyncMessage.class, 2, Side.CLIENT);
+        NETWORK.registerMessage(TerminalControlMessage.Handler.class, TerminalControlMessage.class, 3, Side.SERVER);
         FMLCommonHandler.instance()
             .bus()
             .register(new TerminalMessage.Handler());
