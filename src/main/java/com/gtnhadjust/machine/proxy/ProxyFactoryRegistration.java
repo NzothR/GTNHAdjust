@@ -18,7 +18,6 @@ public final class ProxyFactoryRegistration {
         if (id < 0 || id >= GregTechAPI.METATILEENTITIES.length || GregTechAPI.METATILEENTITIES[id] != null)
             throw new IllegalStateException("Proxy joint factory MTE ID is already in use: " + id);
         controller = new ProxyFactory(id, "gtnhadjust.proxy_factory", "Proxy Joint Factory").getStackForm(1);
-        ProxyFactoryOverlayIdentity.setController(controller);
     }
 
     public static void registerCrafting() {

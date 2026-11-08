@@ -216,12 +216,6 @@ final class FeatureSwitches {
         return false;
     }
 
-    List<String> selectEarlyMixins(boolean client) {
-        List<String> mixins = new ArrayList<>();
-        if (client && proxyFactory) mixins.add("proxy.ProxyFactoryItemOverlayMixin");
-        return mixins;
-    }
-
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
         if (soulVialExpandedCapture && loadedMods.contains("EnderIO")) mixins.add("fix.SoulVialCaptureMixin");

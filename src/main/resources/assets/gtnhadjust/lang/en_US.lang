@@ -29,3 +29,7 @@ item.gtnhadjust.tier_dimension.6.name=T6 Dimension
 item.gtnhadjust.tier_dimension.7.name=T7 Dimension
 item.gtnhadjust.tier_dimension.8.name=T8 Dimension
 item.gtnhadjust.tier_dimension.9.name=T9 Dimension
+
+gtnhadjust.proxy.recipe_list=Unlocked recipe maps
+gtnhadjust.proxy.previous=Previous
+gtnhadjust.proxy.next=Next

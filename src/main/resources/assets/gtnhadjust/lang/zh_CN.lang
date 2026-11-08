@@ -29,3 +29,7 @@ item.gtnhadjust.tier_dimension.6.name=T6维度
 item.gtnhadjust.tier_dimension.7.name=T7维度
 item.gtnhadjust.tier_dimension.8.name=T8维度
 item.gtnhadjust.tier_dimension.9.name=T9维度
+
+gtnhadjust.proxy.recipe_list=已解锁配方池
+gtnhadjust.proxy.previous=上一页
+gtnhadjust.proxy.next=下一页

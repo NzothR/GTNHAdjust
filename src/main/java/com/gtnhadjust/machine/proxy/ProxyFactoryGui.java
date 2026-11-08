@@ -2,6 +2,7 @@ package com.gtnhadjust.machine.proxy;
 
 import net.minecraft.util.StatCollector;
 
+import com.cleanroommc.modularui.api.IPanelHandler;
 import com.cleanroommc.modularui.api.drawable.IKey;
 import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.drawable.DynamicDrawable;
@@ -18,6 +19,9 @@ import com.xyp.gtneverreset.common.gui.modularui.multiblock.GTNRMultiBlockBaseGu
 import gregtech.api.modularui2.GTGuiTextures;
 
 final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
+
+    private static final int PAGE_SIZE = 12;
+    private int page;
 
     ProxyFactoryGui(ProxyFactory controller) {
         super(controller);
@@ -69,6 +73,83 @@ final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
                     IKey.dynamic(
                         () -> StatCollector
                             .translateToLocal("gtnhadjust.proxy.operation." + multiblock.getOperationMode()))));
-        return super.createRightPanelGapRow(parent, syncManager).child(button);
+        IPanelHandler list = syncManager
+            .syncedPanel("proxyRecipeList", true, (manager, handler) -> createRecipeListPanel());
+        ButtonWidget<?> listButton = new ButtonWidget<>().name("proxy_recipe_list")
+            .overlay(GTGuiTextures.OVERLAY_BUTTON_WHITELIST)
+            .tooltipBuilder(t -> t.addLine(IKey.lang("gtnhadjust.proxy.recipe_list")))
+            .onMousePressed(mouse -> {
+                if (mouse != 0) return false;
+                page = 0;
+                list.openPanel();
+                return true;
+            });
+        return super.createRightPanelGapRow(parent, syncManager).child(button)
+            .child(listButton);
+    }
+
+    private ModularPanel createRecipeListPanel() {
+        ModularPanel panel = ModularPanel.defaultPanel("proxy_recipe_list", 220, 170);
+        panel.child(
+            IKey.lang("gtnhadjust.proxy.recipe_list")
+                .color(0xff404040)
+                .shadow(false)
+                .asWidget()
+                .pos(8, 8));
+        for (int row = 0; row < PAGE_SIZE; row++) {
+            final int index = row;
+            panel.child(
+                IKey.dynamic(() -> recipeName(index))
+                    .color(0xff404040)
+                    .shadow(false)
+                    .asWidget()
+                    .pos(8, 22 + row * 10));
+        }
+        panel.child(
+            IKey.dynamic(() -> (page + 1) + " / " + pageCount())
+                .color(0xff404040)
+                .shadow(false)
+                .asWidget()
+                .pos(95, 149));
+        panel.child(
+            new ButtonWidget<>().pos(8, 145)
+                .size(55, 18)
+                .overlay(IKey.lang("gtnhadjust.proxy.previous"))
+                .onMousePressed(mouse -> {
+                    if (mouse == 0) page = Math.max(0, page - 1);
+                    return true;
+                }));
+        panel.child(
+            new ButtonWidget<>().pos(155, 145)
+                .size(55, 18)
+                .overlay(IKey.lang("gtnhadjust.proxy.next"))
+                .onMousePressed(mouse -> {
+                    if (mouse == 0) page = Math.min(pageCount() - 1, page + 1);
+                    return true;
+                }));
+        panel.child(
+            new ButtonWidget<>().pos(195, 5)
+                .size(18, 14)
+                .overlay(IKey.str("X"))
+                .onMousePressed(mouse -> {
+                    if (mouse == 0) panel.closeIfOpen();
+                    return true;
+                }));
+        return panel;
+    }
+
+    private int pageCount() {
+        return Math.max(
+            1,
+            (multiblock.getUnlockedRecipeNames()
+                .size() + PAGE_SIZE
+                - 1) / PAGE_SIZE);
+    }
+
+    private String recipeName(int row) {
+        java.util.List<String> names = multiblock.getUnlockedRecipeNames();
+        page = Math.min(page, pageCount() - 1);
+        int index = page * PAGE_SIZE + row;
+        return index < names.size() ? StatCollector.translateToLocal(names.get(index)) : "";
     }
 }

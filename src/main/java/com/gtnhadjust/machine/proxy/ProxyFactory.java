@@ -46,6 +46,7 @@ import com.xyp.gtneverreset.utils.structure.MultiblockStructureLoader;
 import gregtech.api.GregTechAPI;
 import gregtech.api.enums.Textures;
 import gregtech.api.enums.VoltageIndex;
+import gregtech.api.interfaces.IIconContainer;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -65,6 +66,7 @@ import gregtech.common.tileentities.machines.MTEHatchInputBusME;
 @IMetaTileEntity.SkipGenerateDescription
 public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> implements ISurvivalConstructable {
 
+    private static final IIconContainer MARK = Textures.BlockIcons.custom(GTNHAdjust.MOD_ID, "proxy/overlay_mark");
     private static final int BASE_PARALLELS = 64;
     private static final int BASE_THREADS = 32;
     private static final int THREADS_PER_TIER = 8;
@@ -397,7 +399,11 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> impleme
                 active ? Textures.BlockIcons.OVERLAY_FRONT_ASSEMBLY_LINE_ACTIVE
                     : Textures.BlockIcons.OVERLAY_FRONT_ASSEMBLY_LINE)
             .extFacing()
-            .build() };
+            .build(),
+            TextureFactory.builder()
+                .addIcon(MARK)
+                .extFacing()
+                .build() };
     }
 
     @Override

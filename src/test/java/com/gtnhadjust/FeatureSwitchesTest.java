@@ -24,28 +24,12 @@ public class FeatureSwitchesTest {
         Arrays.asList("gtneverreset", "sciencenotleisure", "cropsnh"));
 
     @Test
-    public void proxyFactorySwitchControlsClientOverlay() throws Exception {
+    public void proxyFactoryHasIndependentSwitch() throws Exception {
         Path file = folder.newFile()
             .toPath();
-        Set<String> mods = new HashSet<>(Arrays.asList("gregtech", "gtneverreset"));
-        String mixin = "proxy.ProxyFactoryItemOverlayMixin";
-        FeatureSwitches enabled = FeatureSwitches.load(file);
-        assertTrue(enabled.proxyFactory);
-        assertTrue(
-            enabled.selectEarlyMixins(true)
-                .contains(mixin));
-        assertFalse(
-            enabled.selectEarlyMixins(false)
-                .contains(mixin));
-        assertFalse(
-            enabled.selectMixins(mods, true)
-                .contains(mixin));
+        assertTrue(FeatureSwitches.load(file).proxyFactory);
         Files.write(file, Arrays.asList("proxyFactory=false"), StandardCharsets.ISO_8859_1);
-        FeatureSwitches disabled = FeatureSwitches.load(file);
-        assertFalse(disabled.proxyFactory);
-        assertFalse(
-            disabled.selectEarlyMixins(true)
-                .contains(mixin));
+        assertFalse(FeatureSwitches.load(file).proxyFactory);
     }
 
     @Test
