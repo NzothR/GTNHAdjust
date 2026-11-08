@@ -48,8 +48,19 @@ public final class WorldProtocol extends WorldSavedData {
 
     public static String key(ItemStack stack) {
         if (stack == null || stack.getItem() == null) return null;
-        GameRegistry.UniqueIdentifier id = GameRegistry.findUniqueIdentifierFor(stack.getItem());
-        return id == null ? null : id.toString() + "@" + stack.getItemDamage();
+        try {
+            GameRegistry.UniqueIdentifier id = GameRegistry.findUniqueIdentifierFor(stack.getItem());
+            return id == null ? null : id.toString() + "@" + stack.getItemDamage();
+        } catch (RuntimeException ex) {
+            FutureResourceProtocol.debug(
+                "cannot identify unregistered item class={} meta={} error={}",
+                stack.getItem()
+                    .getClass()
+                    .getName(),
+                stack.getItemDamage(),
+                ex.toString());
+            return null;
+        }
     }
 
     public boolean isTerminated() {
