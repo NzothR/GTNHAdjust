@@ -8,14 +8,21 @@ import org.apache.logging.log4j.Logger;
 import com.futureresourceprotocol.device.PortableTerminal;
 import com.futureresourceprotocol.device.TerminalGuiHandler;
 import com.futureresourceprotocol.device.TerminalMessage;
+import com.futureresourceprotocol.integration.ae2.AdvanceCell;
+import com.futureresourceprotocol.integration.ae2.AdvanceCellHandler;
+import com.futureresourceprotocol.integration.ae2.AdvanceCellRefresh;
 import com.futureresourceprotocol.protocol.ProtocolCommand;
+import com.futureresourceprotocol.recipe.HullLockToken;
+import com.futureresourceprotocol.recipe.HullRecipeLocks;
 import com.futureresourceprotocol.recipe.RecipeIndex;
 
+import appeng.api.AEApi;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -33,8 +40,13 @@ public class FutureResourceProtocol {
     public static final Logger LOG = LogManager.getLogger(MOD_ID);
     public static boolean debug;
     public static boolean enabled;
+    public static boolean aeCellEnabled;
+    public static boolean portableRepaymentEnabled;
+    public static boolean hullRecipeLocksEnabled;
     public static SimpleNetworkWrapper NETWORK;
     public static PortableTerminal terminal;
+    public static AdvanceCell advanceCell;
+    public static HullLockToken hullLockToken;
 
     @Mod.Instance(MOD_ID)
     public static FutureResourceProtocol instance;
@@ -50,6 +62,21 @@ public class FutureResourceProtocol {
             .getBoolean("enabled", "general", true, "Enable FRP. Restart required; client and server must match.");
         debug = config
             .getBoolean("debug", "general", true, "Detailed development diagnostics. May produce large logs.");
+        aeCellEnabled = config.getBoolean(
+            "aeAdvanceCell",
+            "features",
+            true,
+            "Enable the AE2 advance cell. Restart required; client and server must match.");
+        portableRepaymentEnabled = config.getBoolean(
+            "portableRepayment",
+            "features",
+            true,
+            "Enable repayment in the portable terminal. Restart required; client and server must match.");
+        hullRecipeLocksEnabled = config.getBoolean(
+            "hullRecipeLocks",
+            "features",
+            true,
+            "Apply hull recipe restrictions from the world state when the server starts. Restart required.");
         RecipeIndex.configure(config);
         if (config.hasChanged()) config.save();
         if (!enabled) {
@@ -58,6 +85,21 @@ public class FutureResourceProtocol {
         }
         terminal = new PortableTerminal();
         GameRegistry.registerItem(terminal, "portable_terminal");
+        if (hullRecipeLocksEnabled) {
+            hullLockToken = new HullLockToken();
+            GameRegistry.registerItem(hullLockToken, "hull_lock_token");
+        }
+        if (aeCellEnabled) {
+            advanceCell = new AdvanceCell();
+            GameRegistry.registerItem(advanceCell, "advance_cell");
+            AEApi.instance()
+                .registries()
+                .cell()
+                .addCellHandler(new AdvanceCellHandler());
+            FMLCommonHandler.instance()
+                .bus()
+                .register(new AdvanceCellRefresh());
+        }
         NETWORK = NetworkRegistry.INSTANCE.newSimpleChannel("frp_terminal");
         NETWORK.registerMessage(TerminalMessage.Handler.class, TerminalMessage.class, 0, Side.SERVER);
         FMLCommonHandler.instance()
@@ -70,7 +112,16 @@ public class FutureResourceProtocol {
     @Mod.EventHandler
     public void serverStarted(FMLServerStartedEvent event) {
         // Other mods can register GT recipes during their own LoadComplete and ServerStarting events.
+        if (enabled && aeCellEnabled) AdvanceCellRefresh.startServer();
         if (enabled) RecipeIndex.rebuild();
+        if (enabled && hullRecipeLocksEnabled)
+            HullRecipeLocks.apply(com.futureresourceprotocol.protocol.WorldProtocol.get());
+    }
+
+    @Mod.EventHandler
+    public void serverStopped(FMLServerStoppedEvent event) {
+        if (enabled && hullRecipeLocksEnabled) HullRecipeLocks.restore();
+        if (enabled && aeCellEnabled) AdvanceCellRefresh.stopServer();
     }
 
     @Mod.EventHandler

@@ -1,4 +1,8 @@
 item.frp.portable_terminal.name=便携预支终端
+item.frp.advance_cell.name=ME 预支元件
+item.frp.hull_lock_uhv.name=需要清算 UHV 债务
+item.frp.hull_lock_umv.name=需要清算 UMV 债务
+item.frp.hull_lock_final.name=需要完成最终清算
 frp.gui.mark=FRP 标记
 frp.gui.advance=FRP 预支
 frp.chat.item_too_large=[FRP] 此物品的 NBT 数据过大，无法安全同步。
@@ -9,6 +13,7 @@ frp.chat.mark_ineligible=[FRP] 此物品被禁止预支，或没有可识别的�
 frp.chat.mark_locked=[FRP] 协议状态或当前阶段不允许标记此物品。
 frp.chat.advance_locked=[FRP] 此物品无法预支，或协议已锁定。
 frp.chat.inventory_full=[FRP] 背包空间不足。
+frp.chat.repaid=[FRP] 已结算 %s 个物品，其余物品保留。
 frp.chat.command_status=[FRP] UHV 债务：%s，UMV 债务：%s，UHV 里程碑：%s，已终止或锁定：%s
 frp.chat.command_held=[FRP] %s — UHV 债务：%s，UMV 债务：%s，缓存类别：%s
 frp.chat.command_player=[FRP] 此命令需要由手持物品的玩家执行。

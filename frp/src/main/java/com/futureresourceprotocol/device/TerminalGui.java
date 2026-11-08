@@ -168,11 +168,14 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
         }
         RenderHelper.disableStandardItemLighting();
         if (!container.marking) {
+            GL11.glPushAttrib(GL11.GL_DEPTH_BUFFER_BIT);
+            GL11.glDisable(GL11.GL_DEPTH_TEST);
             for (int cell = 0; cell < 54 && scroll * 9 + cell < list.size(); cell++) {
                 int x = 9 + cell % 9 * 18;
                 int y = 18 + cell / 9 * 18;
                 String count = "2.1G";
                 GL11.glPushMatrix();
+                GL11.glTranslatef(0F, 0F, 300F);
                 GL11.glScalef(0.65F, 0.65F, 1F);
                 fontRendererObj.drawStringWithShadow(
                     count,
@@ -181,6 +184,7 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
                     0xffffff);
                 GL11.glPopMatrix();
             }
+            GL11.glPopAttrib();
         }
         int total = TerminalData.read(inventory.getStackInSlot(container.heldSlot))
             .size();
@@ -215,6 +219,8 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
             if (container.marking) {
                 if (button == 1 && item != null) send(1, item);
                 else if (button == 0 && inventory.getItemStack() != null) send(0, inventory.getItemStack());
+            } else if (button == 0 && inventory.getItemStack() != null) {
+                if (FutureResourceProtocol.portableRepaymentEnabled) send(4, inventory.getItemStack());
             } else if (button == 0 && item != null) send(isShiftKeyDown() ? 3 : 2, item);
             return;
         }

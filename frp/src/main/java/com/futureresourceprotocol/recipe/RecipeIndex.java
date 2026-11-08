@@ -153,9 +153,11 @@ public final class RecipeIndex {
     }
 
     public static boolean forbidden(ItemStack stack) {
-        return stack != null
-            && (ItemList.Hull_MAX.isStackEqual(stack, false, true) || ItemList.Hull_UMV.isStackEqual(stack, false, true)
-                || ItemList.Hull_UXV.isStackEqual(stack, false, true));
+        return stack != null && ((FutureResourceProtocol.hullLockToken != null
+            && stack.getItem() == FutureResourceProtocol.hullLockToken)
+            || ItemList.Hull_MAX.isStackEqual(stack, false, true)
+            || ItemList.Hull_UMV.isStackEqual(stack, false, true)
+            || ItemList.Hull_UXV.isStackEqual(stack, false, true));
     }
 
     public static boolean eligible(ItemStack stack) {

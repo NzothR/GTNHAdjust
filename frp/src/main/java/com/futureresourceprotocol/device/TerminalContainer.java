@@ -5,8 +5,10 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ChatComponentTranslation;
 
 import com.futureresourceprotocol.FutureResourceProtocol;
+import com.futureresourceprotocol.protocol.WorldProtocol;
 
 public final class TerminalContainer extends Container {
 
@@ -29,7 +31,9 @@ public final class TerminalContainer extends Container {
     @Override
     public boolean canInteractWith(EntityPlayer player) {
         ItemStack current = player.inventory.getStackInSlot(heldSlot);
-        boolean valid = current != null && current.getItem() == FutureResourceProtocol.terminal
+        boolean valid = current != null
+            && (current.getItem() == FutureResourceProtocol.terminal
+                || marking && current.getItem() == FutureResourceProtocol.advanceCell)
             && player.inventory.currentItem == heldSlot
             && current.hasTagCompound()
             && sameSession(
@@ -63,6 +67,28 @@ public final class TerminalContainer extends Container {
 
     @Override
     public ItemStack transferStackInSlot(EntityPlayer player, int slot) {
+        if (!marking && FutureResourceProtocol.portableRepaymentEnabled
+            && !player.worldObj.isRemote
+            && canInteractWith(player)
+            && slot >= 0
+            && slot < inventorySlots.size()) {
+            Slot target = (Slot) inventorySlots.get(slot);
+            if (target.getSlotIndex() == heldSlot || !target.getHasStack()) return null;
+            ItemStack item = target.getStack();
+            String key = WorldProtocol.key(item);
+            long paid = WorldProtocol.get()
+                .settle(key, item.stackSize);
+            item.stackSize -= (int) paid;
+            if (item.stackSize == 0) target.putStack(null);
+            else target.onSlotChanged();
+            player.addChatMessage(new ChatComponentTranslation("frp.chat.repaid", paid));
+            FutureResourceProtocol.debug(
+                "shift repayment player={} key={} paid={} remaining={}",
+                player.getCommandSenderName(),
+                key,
+                paid,
+                item.stackSize);
+        }
         return null;
     }
 }

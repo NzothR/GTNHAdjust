@@ -52,4 +52,33 @@ public class WorldProtocolTest {
         assertTrue(loaded.isTerminated());
         assertEquals(0, loaded.settle("x:y@0", 1));
     }
+
+    @Test
+    public void overpaymentConsumesOnlyOutstandingDebt() {
+        WorldProtocol ledger = new WorldProtocol();
+        String key = "example:item@3";
+        ledger.advance(key, false, 2);
+        assertEquals(2, ledger.settle(key, 64));
+        assertEquals(0, ledger.debt(key, false));
+        assertEquals(0, ledger.settle(key, 62));
+    }
+
+    @Test
+    public void hullPermissionFollowsBothDebtClassesAndFinalMilestone() {
+        WorldProtocol ledger = new WorldProtocol();
+        assertTrue(ledger.permitsHull(9));
+        assertTrue(ledger.permitsHull(12));
+        assertFalse(ledger.permitsHull(13));
+        assertTrue(ledger.completeUhv());
+        ledger.advance("example:umv@0", true, 1);
+        assertTrue(ledger.permitsHull(9));
+        assertFalse(ledger.permitsHull(12));
+        ledger.advance("example:uhv@0", false, 1);
+        assertFalse(ledger.permitsHull(9));
+        ledger.settle("example:uhv@0", 1);
+        ledger.settle("example:umv@0", 1);
+        assertTrue(ledger.permitsHull(12));
+        assertTrue(ledger.completeUmv());
+        assertTrue(ledger.permitsHull(13));
+    }
 }

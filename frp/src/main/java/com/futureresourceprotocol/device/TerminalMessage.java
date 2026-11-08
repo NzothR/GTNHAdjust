@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.ChatComponentTranslation;
 
 import com.futureresourceprotocol.FutureResourceProtocol;
@@ -78,7 +79,7 @@ public final class TerminalMessage implements IMessage {
             if (container.windowId != message.windowId || !container.canInteractWith(player)
                 || message.stack == null
                 || message.action < 0
-                || message.action > 3) return;
+                || message.action > 4) return;
             ItemStack terminal = player.inventory.getStackInSlot(container.heldSlot);
             List<ItemStack> marks = TerminalData.read(terminal);
             ItemStack requested = message.stack.copy();
@@ -127,6 +128,20 @@ public final class TerminalMessage implements IMessage {
                 marks.remove(index);
                 TerminalData.write(terminal, marks);
                 FutureResourceProtocol.debug("removed mark {} size={}", key, marks.size());
+            } else if (message.action == 4 && !container.marking && FutureResourceProtocol.portableRepaymentEnabled) {
+                ItemStack cursor = player.inventory.getItemStack();
+                if (!TerminalData.same(cursor, message.stack)) return;
+                long paid = world.settle(WorldProtocol.key(cursor), cursor.stackSize);
+                cursor.stackSize -= (int) paid;
+                if (cursor.stackSize == 0) player.inventory.setItemStack(null);
+                player.playerNetServerHandler.sendPacket(new S2FPacketSetSlot(-1, -1, player.inventory.getItemStack()));
+                player.addChatMessage(new ChatComponentTranslation("frp.chat.repaid", paid));
+                FutureResourceProtocol.debug(
+                    "cursor repayment player={} key={} paid={} remaining={}",
+                    player.getCommandSenderName(),
+                    key,
+                    paid,
+                    cursor.stackSize);
             } else if ((message.action == 2 || message.action == 3) && !container.marking && index >= 0) {
                 requested = marks.get(index)
                     .copy();
