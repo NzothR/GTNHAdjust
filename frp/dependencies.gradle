@@ -1,2 +1,6 @@
+def versions = project.extensions.getByName("elytraModpackVersion")
 dependencies {
+    compileOnly(versions.gtnhdev("GT5-Unofficial") as String) { transitive = false }
+    compileOnly(files("../ref/libs/nei-instance.jar"))
+    testImplementation("junit:junit:4.13.2")
 }

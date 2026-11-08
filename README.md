@@ -2,7 +2,7 @@
 
 面向 GT New Horizons 2.9.0 的个人调整模组。
 
-仓库另有独立的 [Future Resource Protocol 子项目](frp/README.md)，使用单独的模组和构建，不依赖 GTNH Adjust；当前仅有开发骨架，尚未实现玩法。
+仓库另有独立的 [Future Resource Protocol 子项目](frp/README.md)，使用单独的模组和构建，不依赖 GTNH Adjust；目前提供首轮测试版便携终端及世界账本，使用范围和限制见子项目文档。
 
 ## 代理联合工厂（基础版）
 
