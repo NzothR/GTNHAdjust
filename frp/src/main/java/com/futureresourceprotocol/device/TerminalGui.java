@@ -16,6 +16,7 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.input.Mouse;
@@ -84,14 +85,33 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
                 .trim();
         for (ItemStack item : sortedMarks()) {
             String key = WorldProtocol.key(item);
-            if (term.isEmpty() || item.getDisplayName()
-                .toLowerCase(Locale.ROOT)
+            if (term.isEmpty() || itemName(item).toLowerCase(Locale.ROOT)
                 .contains(term)
                 || (key != null && key.toLowerCase(Locale.ROOT)
                     .contains(term)))
                 filtered.add(item);
         }
         return filtered;
+    }
+
+    private static String itemName(ItemStack item) {
+        String name = EnumChatFormatting.getTextWithoutFormattingCodes(item.getDisplayName());
+        return name == null ? "" : name;
+    }
+
+    private boolean overSearch(int x, int y) {
+        return search != null && x >= search.xPosition
+            && x < search.xPosition + search.width
+            && y >= search.yPosition
+            && y < search.yPosition + search.height;
+    }
+
+    private void searchFor(ItemStack item) {
+        search.setText(itemName(item));
+        search.setFocused(true);
+        scroll = 0;
+        FutureResourceProtocol
+            .debug("search filled from item key={} name={}", WorldProtocol.key(item), search.getText());
     }
 
     private List<ItemStack> sortedMarks() {
@@ -260,6 +280,8 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
             8,
             128,
             0x404040);
+        // NEI renders its panels immediately after this foreground layer.
+        GL11.glColor4f(1F, 1F, 1F, 1F);
     }
 
     @Override
@@ -281,10 +303,11 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
     @Override
     protected void mouseClicked(int x, int y, int button) {
         search.mouseClicked(x, y, button);
-        if (button == 1 && x >= search.xPosition
-            && x < search.xPosition + search.width
-            && y >= search.yPosition
-            && y < search.yPosition + search.height) {
+        if (button == 0 && overSearch(x, y) && inventory.getItemStack() != null) {
+            searchFor(inventory.getItemStack());
+            return;
+        }
+        if (button == 1 && overSearch(x, y)) {
             search.setText("");
             scroll = 0;
             return;
@@ -344,7 +367,7 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
         int x = Mouse.getEventX() * width / mc.displayWidth;
         int y = height - Mouse.getEventY() * height / mc.displayHeight - 1;
         super.handleMouseInput();
-        if (release && container.marking && cell(x, y) >= 0) {
+        if (release && (overSearch(x, y) || container.marking && cell(x, y) >= 0)) {
             if (!dropFromPanel(ItemPanels.itemPanel, x, y)) dropFromPanel(ItemPanels.bookmarkPanel, x, y);
         }
         int wheel = Mouse.getEventDWheel();
@@ -361,6 +384,11 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
 
     @Override
     public boolean handleDragNDrop(GuiContainer gui, int x, int y, ItemStack stack, int button) {
+        if (gui == this && stack != null && button == 0 && overSearch(x, y)) {
+            searchFor(stack);
+            stack.stackSize = 0;
+            return true;
+        }
         if (gui == this && container.marking && stack != null && cell(x, y) >= 0 && button == 0) {
             FutureResourceProtocol.debug("NEI mark drop cell={} item={}", cell(x, y), WorldProtocol.key(stack));
             send(0, stack);
