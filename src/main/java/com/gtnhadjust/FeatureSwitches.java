@@ -35,6 +35,7 @@ final class FeatureSwitches {
     private static final String PATTERN_MAP_PRESERVATION = "patternRecipeMapPreservation";
     private static final String NEO_ECO_CRAFTING_FIX = "neoEcoCraftingRefreshFix";
     private static final String SOUL_VIAL = "soulVialExpandedCapture";
+    private static final String STRUCTURELIB_AE_AUTOPLACE = "structureLibAeAutoPlace";
 
     final boolean lootSimulator;
     final boolean proxyFactory;
@@ -55,13 +56,14 @@ final class FeatureSwitches {
     final boolean matrixPatternDiagnostics;
     final boolean matrixPatternLoadFix;
     final boolean soulVialExpandedCapture;
+    final boolean structureLibAeAutoPlace;
 
     private FeatureSwitches(boolean lootSimulator, boolean proxyFactory, boolean cropBreeder, boolean steamGreenhouse,
         boolean carpenterRecipes, boolean quickTerminal, boolean gtsrDiagnostics, boolean gtsrRecipeSpeedCompatibility,
         boolean patternDeduplication, boolean terminalInventoryFix, boolean terminalCraftingRefreshFix,
         boolean craftingDiagnostics, boolean neoEcoCraftingRefreshFix, boolean patternRecipeMapPreservation,
         boolean terminalNeiAlwaysShowPresence, boolean terminalSmartIngredients, boolean matrixPatternDiagnostics,
-        boolean matrixPatternLoadFix, boolean soulVialExpandedCapture) {
+        boolean matrixPatternLoadFix, boolean soulVialExpandedCapture, boolean structureLibAeAutoPlace) {
         this.lootSimulator = lootSimulator;
         this.proxyFactory = proxyFactory;
         this.cropBreeder = cropBreeder;
@@ -81,6 +83,7 @@ final class FeatureSwitches {
         this.matrixPatternDiagnostics = matrixPatternDiagnostics;
         this.matrixPatternLoadFix = matrixPatternLoadFix;
         this.soulVialExpandedCapture = soulVialExpandedCapture;
+        this.structureLibAeAutoPlace = structureLibAeAutoPlace;
     }
 
     static FeatureSwitches load(Path file) {
@@ -104,6 +107,7 @@ final class FeatureSwitches {
         defaults.setProperty(MATRIX_PATTERN_DIAGNOSTICS, "false");
         defaults.setProperty(MATRIX_PATTERN_LOAD_FIX, "true");
         defaults.setProperty(SOUL_VIAL, "true");
+        defaults.setProperty(STRUCTURELIB_AE_AUTOPLACE, "true");
         try {
             Files.createDirectories(file.getParent());
             if (!Files.exists(file)) {
@@ -138,7 +142,8 @@ final class FeatureSwitches {
                 read(values, SMART_INGREDIENTS),
                 read(values, MATRIX_PATTERN_DIAGNOSTICS, false),
                 read(values, MATRIX_PATTERN_LOAD_FIX),
-                read(values, SOUL_VIAL));
+                read(values, SOUL_VIAL),
+                read(values, STRUCTURELIB_AE_AUTOPLACE));
             LOG.info(
                 "Feature switches: lootSimulator=" + result.lootSimulator
                     + ", proxyFactory="
@@ -176,11 +181,14 @@ final class FeatureSwitches {
                     + ", matrixPatternLoadFix="
                     + result.matrixPatternLoadFix
                     + ", soulVialExpandedCapture="
-                    + result.soulVialExpandedCapture);
+                    + result.soulVialExpandedCapture
+                    + ", structureLibAeAutoPlace="
+                    + result.structureLibAeAutoPlace);
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
             return new FeatureSwitches(
+                false,
                 false,
                 false,
                 false,
@@ -218,6 +226,8 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (structureLibAeAutoPlace && loadedMods.contains("structurelib")
+            && loadedMods.contains("appliedenergistics2")) mixins.add("structurelib.StructureLibAeAutoPlaceMixin");
         if (soulVialExpandedCapture && loadedMods.contains("EnderIO")) mixins.add("fix.SoulVialCaptureMixin");
         if (cropBreeder && loadedMods.contains("gtneverreset")) {
             mixins.add("CropBreedingRulesMixin");

@@ -111,8 +111,11 @@ craftingDiagnostics=false
 matrixPatternDiagnostics=false
 matrixPatternLoadFix=true
 soulVialExpandedCapture=true
+structureLibAeAutoPlace=true
 lootSimulator=true
 ```
+
+`structureLibAeAutoPlace` 为 StructureLib 1.4.47 的多方块构造触发器补充 AE 网络材料来源。生存自动放置优先使用玩家库存及 StructureLib 原有来源，再通过玩家背包或 Baubles 中可用的 AE 无线终端从网络取料；需要无线范围内的活跃网络、终端供电及 AE `EXTRACT` 权限。网络提取按每次取料请求消耗 1 AE 电量。设为 `false` 后不会加载对应 Mixin；配置修改后重启，客户端和服务端应保持一致。适配 GTNH 2.9.0、StructureLib 1.4.47、AE2 及 GT-Never-Reset 0.1.34，无需迁移既有存档数据。
 
 `soulVialExpandedCapture` 扩展 GTNH 2.9.0 的 Ender IO 2.10.51 灵魂瓶：允许捕获原本因 Boss 判定或 Ender IO 灵魂瓶黑名单而被拒绝的生物，并支持右键末影龙等龙型多部位实体的部位。沿用灵魂瓶原有的 NBT 保存和释放方式；玩家、死亡实体以及缺少可还原注册名的实体不支持，其他模组仍可能阻止交互或移除。默认开启；设为 `false` 后不加载对应 Mixin，也不转发多部位交互。客户端和服务端应安装同版本并保持开关一致，修改后重启；开启 `general.debug` 可记录多部位捕获。收容或释放 Boss 可能影响其维度、战斗和世界事件，建议先在测试存档验证。
 
