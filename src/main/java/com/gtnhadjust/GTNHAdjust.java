@@ -43,6 +43,7 @@ public class GTNHAdjust {
     public static boolean terminalDebug;
     public static boolean patternDeduplication;
     public static boolean proxyFactoryEnabled;
+    public static boolean proxyDirectAeOutput;
     public static int steamGreenhouseMaxSeeds = 64;
     private int superFragmentMteId = 31990;
     private int lootSimulatorMteId = 31992;
@@ -129,6 +130,11 @@ public class GTNHAdjust {
             2048,
             32766,
             "Stable loot simulator controller ID. Do not change after obtaining or placing it; clients and servers must match.");
+        proxyDirectAeOutput = config.getBoolean(
+            "directAeOutput",
+            "proxyFactory",
+            false,
+            "Send proxy factory outputs directly to the controller AE network. Restart required.");
         proxyFactoryMteId = config.getInt(
             "mteId",
             "proxyFactory",

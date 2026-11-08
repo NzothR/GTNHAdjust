@@ -37,18 +37,23 @@ import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.gtnhadjust.GTNHAdjust;
 import com.xyp.gtneverreset.common.gui.modularui.multiblock.GTNRMultiBlockBaseGui;
 import com.xyp.gtneverreset.common.machine.hatch.ParameterModuleHatch;
-import com.xyp.gtneverreset.common.machine.multiMachineBase.GTNRMultiBlockBase;
 import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadProcessingLogic;
 import com.xyp.gtneverreset.common.machine.multiblock.UniversalJointFactory;
 import com.xyp.gtneverreset.common.machine.tooltip.StructureTooltipHooks;
 import com.xyp.gtneverreset.utils.structure.MultiblockStructureLoader;
 
+import appeng.api.config.Actionable;
 import appeng.api.networking.GridFlags;
 import appeng.api.networking.IGridNode;
+import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.security.MachineSource;
+import appeng.api.storage.data.IAEItemStack;
 import appeng.api.util.AECableType;
 import appeng.api.util.DimensionalCoord;
+import appeng.me.GridAccessException;
 import appeng.me.helpers.AENetworkProxy;
 import appeng.me.helpers.IGridProxyable;
+import appeng.util.item.AEItemStack;
 import gregtech.api.GregTechAPI;
 import gregtech.api.enums.Textures;
 import gregtech.api.enums.VoltageIndex;
@@ -72,7 +77,7 @@ import gregtech.common.tileentities.machines.MTEHatchCraftingInputME;
 import gregtech.common.tileentities.machines.MTEHatchInputBusME;
 
 @IMetaTileEntity.SkipGenerateDescription
-public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory>
+public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     implements ISurvivalConstructable, IGridProxyable {
 
     private static final IIconContainer MARK = Textures.BlockIcons.custom(GTNHAdjust.MOD_ID, "proxy/overlay_mark");
@@ -220,7 +225,7 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory>
     @Override
     protected void checkMachineHatches(List<StructureError> errors) {
         checkHatchMin(errors, InputBus.or(InputHatch), 1);
-        checkHatchMin(errors, OutputBus.or(OutputHatch), 1);
+        if (!GTNHAdjust.proxyDirectAeOutput) checkHatchMin(errors, OutputBus.or(OutputHatch), 1);
         checkHatchMin(errors, Energy.or(ExoticEnergy), 1);
         checkHatchMin(errors, Maintenance, 1);
         checkHatchMax(errors, Maintenance, 1);
@@ -239,6 +244,15 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory>
     @Override
     public void onPostTick(IGregTechTileEntity tile, long tick) {
         super.onPostTick(tile, tick);
+        if (tile.isServerSide() && GTNHAdjust.debug && tick % 200 == 0) {
+            GTNHAdjust.LOG.info(
+                "[proxy-ae] formed={} enabled={} direct={} active={} threads={}",
+                mMachine,
+                tile.isAllowedToWork(),
+                GTNHAdjust.proxyDirectAeOutput,
+                getProxy() != null && getProxy().isActive(),
+                getProxyThreadTasks().size());
+        }
         if (!tile.isServerSide() || !mMachine || !tile.isAllowedToWork() || tick % 20 != 0) return;
         if (operationMode == INPUT) importController();
         else if (operationMode == OUTPUT) exportController();
@@ -303,6 +317,28 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory>
         if (controllers.isEmpty()) return;
         ItemStack returned = controllers.get(controllers.size() - 1)
             .copy();
+        if (getOutputBusses().isEmpty() && GTNHAdjust.proxyDirectAeOutput) {
+            try {
+                if (getProxy() == null || !getProxy().isActive()) return;
+                IAEItemStack request = AEItemStack.create(returned);
+                MachineSource source = new MachineSource((IActionHost) getBaseMetaTileEntity());
+                IAEItemStack remaining = getProxy().getStorage()
+                    .getItemInventory()
+                    .injectItems(request, Actionable.SIMULATE, source);
+                if (remaining != null && remaining.getStackSize() > 0) return;
+                remaining = getProxy().getStorage()
+                    .getItemInventory()
+                    .injectItems(request, Actionable.MODULATE, source);
+                if (remaining != null && remaining.getStackSize() > 0) return;
+                controllers.remove(controllers.size() - 1);
+                refreshUnlockedMaps();
+                getBaseMetaTileEntity().markDirty();
+                if (GTNHAdjust.debug) GTNHAdjust.LOG.info("[proxy-ae] returned controller {}", returned);
+            } catch (GridAccessException e) {
+                if (GTNHAdjust.debug) GTNHAdjust.LOG.info("[proxy-ae] controller return network unavailable");
+            }
+            return;
+        }
         ItemEjectionHelper output = new ItemEjectionHelper(getOutputBusses(), true);
         if (output.ejectStack(returned) != 1) {
             if (GTNHAdjust.debug) GTNHAdjust.LOG.info("Proxy controller output blocked");

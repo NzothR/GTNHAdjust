@@ -1,0 +1,879 @@
+// Derived from GT-Never-Reset 0.1.34 GTNRMultiBlockBase.
+package com.gtnhadjust.machine.proxy;
+
+import static gregtech.api.util.GTUtility.validMTEList;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.OptionalInt;
+import java.util.TreeMap;
+import java.util.function.Supplier;
+
+import javax.annotation.Nonnull;
+
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.StatCollector;
+import net.minecraft.world.World;
+import net.minecraftforge.fluids.FluidStack;
+
+import com.gtnhadjust.GTNHAdjust;
+import com.xyp.gtneverreset.api.machine.MultiblockTooltipSource;
+import com.xyp.gtneverreset.common.gui.modularui.multiblock.GTNRMultiBlockBaseGui;
+import com.xyp.gtneverreset.common.machine.hatch.ParameterModuleHatch;
+import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadInputPreflight;
+import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadProcessingLogic;
+import com.xyp.gtneverreset.common.machine.tooltip.AutoMultiblockTooltipBuilder;
+import com.xyp.gtneverreset.common.machine.tooltip.StructureTooltipHooks;
+import com.xyp.gtneverreset.common.me.PatternInputScheduler;
+import com.xyp.gtneverreset.mixins.late.gregtech.OverclockCalculatorAccessorMixin;
+import com.xyp.gtneverreset.utils.enums.MachineModuleType;
+
+import gregtech.api.enums.GTValues;
+import gregtech.api.enums.HeatingCoilLevel;
+import gregtech.api.enums.VoidingMode;
+import gregtech.api.enums.VoltageIndex;
+import gregtech.api.interfaces.IHatchElement;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.logic.ProcessingLogic;
+import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
+import gregtech.api.metatileentity.implementations.MTEHatch;
+import gregtech.api.recipe.check.CheckRecipeResult;
+import gregtech.api.recipe.check.CheckRecipeResultRegistry;
+import gregtech.api.recipe.check.SingleRecipeCheck;
+import gregtech.api.structure.error.ErrorType;
+import gregtech.api.structure.error.StructureError;
+import gregtech.api.structure.error.StructureErrorRegistry;
+import gregtech.api.structure.error.StructureErrors;
+import gregtech.api.structure.error.TranslatableText;
+import gregtech.api.util.GTRecipe;
+import gregtech.api.util.GTUtility;
+import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.api.util.OverclockCalculator;
+import gregtech.api.util.shutdown.ShutDownReason;
+import gregtech.api.util.tooltip.TooltipHelper;
+
+public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> extends MTEExtendedPowerMultiBlockBase<T>
+    implements MultiblockTooltipSource {
+
+    private static final int RECIPE_CHECK_INTERVAL = 5;
+    private static final int MAX_STARTS_PER_TICK = 8;
+    private static final int HEAT_PROBE_DURATION = 400;
+    private static final int HEAT_PROBE_EUT = 8;
+    private static final int FIRST_HEAT_PROBE = 127;
+    private static final int SECOND_HEAT_PROBE = 997;
+    private static final int NO_CASING_UNLOCK = -1;
+
+    private static String threadCountText(int running, int total) {
+        // #tr gtnr.multiblock.threads
+        // # Running threads: {\\AQUA}%s{\\RESET} / {\\AQUA}%s{\\RESET}
+        // # zh_CN 运行线程：{\\AQUA}%s{\\RESET} / {\\AQUA}%s{\\RESET}
+        return StatCollector.translateToLocalFormatted("gtnr.multiblock.threads", running, total);
+    }
+
+    private final Map<Integer, ProxyThreadTask> threadTasks = new TreeMap<>();
+
+    private final List<ParameterModuleHatch> parameterModules = new ArrayList<>();
+    protected HeatingCoilLevel mCoilLevel = HeatingCoilLevel.None;
+    protected int mGlassTier = -1;
+    protected int mCasingTier = -1;
+    private final PatternInputScheduler patternScheduler = new PatternInputScheduler();
+    private int preparingThread = -1;
+    private boolean useRemainingPower;
+    private boolean paused = true;
+    private ProxyThreadTask pendingTask;
+    private TooltipProbeState tooltipProbeState;
+
+    protected ProxyThreadedMachine(int id, String name, String regionalName) {
+        super(id, name, regionalName);
+    }
+
+    protected ProxyThreadedMachine(String name) {
+        super(name);
+    }
+
+    @Override
+    public final void checkMachine(IGregTechTileEntity tile, ItemStack stack, List<StructureError> errors) {
+        mCoilLevel = HeatingCoilLevel.None;
+        mGlassTier = -1;
+        mCasingTier = -1;
+        checkMachineStructure(tile, stack, errors);
+        collectTooltipStructureRequirements(errors);
+        checkGlassEnergyHatchRequirement(errors);
+    }
+
+    protected void checkGlassEnergyHatchRequirement(List<StructureError> errors) {
+        int unlockTier = getGlassEnergyTierLimit();
+        if (unlockTier < 0 || mGlassTier >= unlockTier) return;
+        for (MTEHatch hatch : validMTEList(getExoticAndNormalEnergyHatchList())) {
+            if (hatch.getConnectionType() == MTEHatch.ConnectionType.LASER) {
+                errors.add(StructureErrors.glassTierNotEnough(unlockTier));
+                return;
+            }
+            if (hatch.mTier > mGlassTier) {
+                errors.add(StructureErrorRegistry.ENERGY_TIER_EXCEED_GLASS);
+                return;
+            }
+        }
+    }
+
+    protected abstract void checkMachineStructure(IGregTechTileEntity tile, ItemStack stack,
+        List<StructureError> errors);
+
+    /** Pure hatch/casing counts, shared by formation checks and automatic structure tooltips. */
+    protected void checkMachineHatches(List<StructureError> errors) {}
+
+    protected final void checkHatchMin(List<StructureError> errors,
+        IHatchElement<? super ProxyThreadedMachine<T>> element, int min) {
+        if (StructureTooltipHooks.onCheckHatches(this, min, StructureTooltipHooks.UNLIMITED, element)) return;
+        int count = Math.toIntExact(element.count(this));
+        if (count >= min) return;
+        List<String> keys = element.getDescriptionLangKeys();
+        TranslatableText name = TranslatableText.lang(keys.get(0));
+        for (int i = 1; i < keys.size(); i++) {
+            // #tr gtnr.structure.hatch.alternative
+            // # %s or %s
+            // # zh_CN %s或%s
+            name = TranslatableText.lang("gtnr.structure.hatch.alternative", name, TranslatableText.lang(keys.get(i)));
+        }
+        errors.add(StructureErrors.hatchCount(ErrorType.TOO_FEW, name, count, min));
+    }
+
+    @Override
+    public final void collectTooltipStructureRequirements(List<StructureError> errors) {
+        checkMachineHatches(errors);
+        Map<MachineModuleType, Integer> counts = new EnumMap<>(MachineModuleType.class);
+        for (ParameterModuleHatch hatch : parameterModules) counts.merge(hatch.getModuleType(), 1, Integer::sum);
+        for (var entry : counts.entrySet()) {
+            int limit = getParameterModuleLimit(entry.getKey());
+            if (entry.getValue() > limit) {
+                errors.add(
+                    StructureErrors.hatchCount(
+                        ErrorType.TOO_MANY,
+                        TranslatableText.lang(
+                            entry.getKey()
+                                .getTranslationKey()),
+                        entry.getValue(),
+                        limit));
+            }
+        }
+    }
+
+    @Override
+    protected final ProcessingLogic createProcessingLogic() {
+        return createRecipeThreadProcessingLogic();
+    }
+
+    protected RecipeThreadProcessingLogic createRecipeThreadProcessingLogic() {
+        return new RecipeThreadProcessingLogic();
+    }
+
+    @Override
+    protected void setupProcessingLogic(ProcessingLogic logic) {
+        super.setupProcessingLogic(logic);
+        long power = availableThreadPower();
+        long voltage = Math.min(power, Math.max(0, Math.min(getMaxInputVoltage(), getMachineVoltageLimit())));
+        logic.setAvailableVoltage(voltage)
+            .setAvailableAmperage(voltage == 0 ? 0 : Math.max(1, power / voltage))
+            .setAmperageOC(false)
+            .setMaxParallelSupplier(this::getTrueParallel)
+            .setSpeedBonus(1D / getSpeedMultiplier())
+            .setEuModifier(getEUtMultiplier())
+            .setOverclock(getOverclockTimeReduction(), getOverclockPowerIncrease());
+        if (GTNHAdjust.proxyDirectAeOutput) logic.setVoidProtection(false, false);
+        if (preparingThread >= 0) ((RecipeThreadProcessingLogic) logic).prepareRecipe(power);
+    }
+
+    @Override
+    protected CheckRecipeResult doCheckRecipe() {
+        CheckRecipeResult result = patternScheduler
+            .checkNext(mDualInputHatches, (RecipeThreadProcessingLogic) processingLogic);
+        return result.wasSuccessful() ? result : super.doCheckRecipe();
+    }
+
+    @Override
+    @Nonnull
+    public final CheckRecipeResult checkProcessing() {
+        if (!(processingLogic instanceof RecipeThreadProcessingLogic logic)) {
+            return CheckRecipeResultRegistry.INTERNAL_ERROR;
+        }
+        int slot = preparingThread < 0 ? firstFreeThread() : preparingThread;
+        if (slot < 0 || slot >= getTotalRecipeThreads() || threadTasks.containsKey(slot)) {
+            return CheckRecipeResultRegistry.NO_RECIPE;
+        }
+        preparingThread = slot;
+        SingleRecipeCheck previousRecipeCheck = getSingleRecipeCheck();
+        boolean committed = false;
+        try {
+            setupProcessingLogic(logic);
+            CheckRecipeResult result = postCheckRecipe(doCheckRecipe(), logic);
+            if (!result.wasSuccessful() && availableThreadPower() < remainingPower()) {
+                logic.finishRecipe();
+                useRemainingPower = true;
+                setupProcessingLogic(logic);
+                result = postCheckRecipe(doCheckRecipe(), logic);
+            }
+            if (!result.wasSuccessful()) return result;
+            long eut = logic.getCalculatedEut();
+            if (eut < 0 || !logic.canCommitInputs()) return CheckRecipeResultRegistry.INTERNAL_ERROR;
+            CheckRecipeResult inputResult = RecipeThreadInputPreflight.check(this, logic);
+            if (!inputResult.wasSuccessful()) return inputResult;
+            if (eut > availableThreadPower()) return CheckRecipeResultRegistry.insufficientPower(eut);
+            ProxyThreadTask task = new ProxyThreadTask(
+                slot,
+                eut,
+                Math.max(1, logic.getDuration()),
+                Math.max(1, logic.getCurrentParallels()),
+                new ProxyThreadOutputs(logic.getOutputItems(), logic.getOutputFluids()));
+            if (!logic.commitInputs()) return CheckRecipeResultRegistry.INTERNAL_ERROR;
+            committed = true;
+            threadTasks.put(slot, task);
+            if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
+                "[proxy-thread] started slot={} eut={} duration={} parallels={}",
+                slot,
+                eut,
+                task.getDuration(),
+                task.getParallels());
+            pendingTask = task;
+            mEfficiency = Math.max(1000, 10000 - (getIdealStatus() - getRepairStatus()) * 1000);
+            mEfficiencyIncrease = 10000;
+            updateSlots();
+            markDirty();
+            return CheckRecipeResultRegistry.SUCCESSFUL;
+        } finally {
+            if (!committed) setSingleRecipeCheck(previousRecipeCheck);
+            logic.finishRecipe();
+            useRemainingPower = false;
+            preparingThread = -1;
+        }
+    }
+
+    @Override
+    protected final void runMachine(IGregTechTileEntity tile, long tick) {
+        paused = !tile.isAllowedToWork();
+        if (paused) {
+            updateThreadDisplay();
+            return;
+        }
+        int total = getTotalRecipeThreads();
+        long power = usedThreadPower();
+        paused = power > Math.max(0, getMaxInputEu());
+        boolean hasRunning = threadTasks.values()
+            .stream()
+            .anyMatch(task -> task.getThread() < total && !task.isFinished());
+        if (!paused && hasRunning) {
+            mEfficiency = Math.max(1000, 10000 - (getIdealStatus() - getRepairStatus()) * 1000);
+            lEUt = -power;
+            paused = !doRandomMaintenanceDamage() || !onRunningTick(getControllerSlot())
+                || !polluteEnvironment(getPollutionPerTick(getControllerSlot()));
+            if (!paused) {
+                for (ProxyThreadTask task : threadTasks.values()) {
+                    if (task.getThread() < total) task.advance();
+                }
+                markDirty();
+            }
+        }
+        boolean completed = false;
+        for (Iterator<ProxyThreadTask> iterator = threadTasks.values()
+            .iterator(); iterator.hasNext();) {
+            ProxyThreadTask task = iterator.next();
+            if (task.isFinished() && task.getOutputs()
+                .flush(this)) {
+                iterator.remove();
+                if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
+                    "[proxy-thread] completed and delivered slot={} parallels={}",
+                    task.getThread(),
+                    task.getParallels());
+                recipesDone += task.getParallels();
+                outputAfterRecipe();
+                completed = true;
+                markDirty();
+            }
+        }
+        if (!paused && tile.isAllowedToWork()
+            && (completed || tick % RECIPE_CHECK_INTERVAL == 0
+                || tile.hasInventoryBeenModified()
+                || tile.hasWorkJustBeenEnabled()
+                || shouldCheckRecipeThisTick(tick))) {
+            for (int attempt = 0; attempt < MAX_STARTS_PER_TICK; attempt++) {
+                int slot = firstFreeThread();
+                if (slot < 0) break;
+                preparingThread = slot;
+                if (!checkRecipe()) break;
+            }
+        }
+        updateThreadDisplay();
+    }
+
+    @Override
+    public void startRecipeProcessing() {
+        super.startRecipeProcessing();
+        pendingTask = null;
+    }
+
+    @Override
+    public void endRecipeProcessing() {
+        try {
+            super.endRecipeProcessing();
+            if (pendingTask != null && !getCheckRecipeResult().wasSuccessful()) {
+                threadTasks.remove(pendingTask.getThread());
+                markDirty();
+            }
+        } finally {
+            pendingTask = null;
+        }
+    }
+
+    @Override
+    public void stopMachine(@Nonnull ShutDownReason reason) {
+        super.stopMachine(reason);
+        // A hard stop aborts recipes just like GT's native output buffer. Finished outputs remain deliverable.
+        if (!GTNHAdjust.proxyDirectAeOutput) threadTasks.values()
+            .removeIf(task -> !task.isFinished());
+        pendingTask = null;
+        preparingThread = -1;
+        useRemainingPower = false;
+        paused = true;
+        updateThreadDisplay();
+        markDirty();
+    }
+
+    private int firstFreeThread() {
+        int total = getTotalRecipeThreads();
+        for (int thread = 0; thread < total; thread++) {
+            if (!threadTasks.containsKey(thread)) return thread;
+        }
+        return -1;
+    }
+
+    private long usedThreadPower() {
+        int total = getTotalRecipeThreads();
+        long used = 0;
+        for (ProxyThreadTask task : threadTasks.values()) {
+            if (task.getThread() < total && !task.isFinished()) {
+                used += Math.min(Long.MAX_VALUE - used, task.getEUt());
+            }
+        }
+        return used;
+    }
+
+    private long remainingPower() {
+        return Math.max(0, getMaxInputEu() - usedThreadPower());
+    }
+
+    private long availableThreadPower() {
+        long remaining = remainingPower();
+        if (useRemainingPower || preparingThread < 0) return remaining;
+        int total = getTotalRecipeThreads();
+        long occupied = threadTasks.keySet()
+            .stream()
+            .filter(thread -> thread < total)
+            .count();
+        return remaining / Math.max(1, total - occupied);
+    }
+
+    @Override
+    public void clearHatches() {
+        super.clearHatches();
+        for (ParameterModuleHatch hatch : parameterModules) hatch.setWorking(false);
+        clearCraftingIcons(parameterModules);
+        parameterModules.clear();
+    }
+
+    @Override
+    public boolean addToMachineList(IGregTechTileEntity tile, int casingIndex) {
+        return addParameterModuleToMachineList(tile, casingIndex) || super.addToMachineList(tile, casingIndex);
+    }
+
+    public final boolean addParameterModuleToMachineList(IGregTechTileEntity tile, int casingIndex) {
+        if (tile == null || !(tile.getMetaTileEntity() instanceof ParameterModuleHatch hatch)) return false;
+        if (getParameterModuleLimit(hatch.getModuleType()) <= 0) return false;
+        if (!parameterModules.contains(hatch)) {
+            hatch.updateTexture(casingIndex);
+            hatch.updateCraftingIcon(getMachineCraftingIcon(), getBaseMetaTileEntity());
+            parameterModules.add(hatch);
+        }
+        return true;
+    }
+
+    public final List<ParameterModuleHatch> getParameterModules() {
+        return Collections.unmodifiableList(parameterModules);
+    }
+
+    @Override
+    public long getMaxInputVoltage() {
+        if (tooltipProbeState != null) return tooltipInputVoltage();
+        long voltage = 0;
+        for (var hatch : validMTEList(getExoticAndNormalEnergyHatchList())) {
+            voltage = Math.max(
+                voltage,
+                hatch.getBaseMetaTileEntity()
+                    .getInputVoltage());
+        }
+        return voltage;
+    }
+
+    @Override
+    public long getMaxInputEu() {
+        return tooltipProbeState == null ? super.getMaxInputEu() : tooltipInputVoltage();
+    }
+
+    private ParameterModuleHatch parameterModule(MachineModuleType type) {
+        for (ParameterModuleHatch module : parameterModules) {
+            if (module.getModuleType() == type) return module;
+        }
+        return null;
+    }
+
+    @Override
+    public String[] getInfoData() {
+        List<String> lines = new ArrayList<>(java.util.Arrays.asList(super.getInfoData()));
+        lines.add(threadCountText(getRunningRecipeThreads(), getTotalRecipeThreads()));
+        return lines.toArray(new String[0]);
+    }
+
+    @Override
+    protected MultiblockTooltipBuilder createTooltip() {
+        return new AutoMultiblockTooltipBuilder().addAutoTooltip(this)
+            .toolTipFinisher();
+    }
+
+    @Override
+    public String getTooltipMachineType() {
+        return getRecipeMap() == null ? null : StatCollector.translateToLocal(getRecipeMap().unlocalizedName);
+    }
+
+    @Override
+    public TooltipStats getTooltipStats() {
+        return getBaseMetaTileEntity() == null ? withBaseTooltipProbe(this::readTooltipStats) : readTooltipStats();
+    }
+
+    /** Base formulas shared with real processing; subclasses may retain their existing getTooltipStats override. */
+    protected TooltipStats readTooltipStats() {
+        return new TooltipStats(
+            getBaseParallelRecipes(),
+            getBaseSpeedMultiplier(),
+            getBaseEUtMultiplier(),
+            hasPerfectOverclock(),
+            getTotalRecipeThreads());
+    }
+
+    @Override
+    public TooltipStats getTooltipStatsAtTier(TieredPart part, int tier) {
+        if (part == null) throw new IllegalArgumentException("A tooltip probe needs a tiered part");
+        new TierRange(tier, tier);
+        if (part == TieredPart.VOLTAGE && tier >= GTValues.V.length) {
+            throw new IllegalArgumentException("Unsupported voltage probe tier: " + tier);
+        }
+        return withTooltipProbe(new TooltipProbeState(part, tier), this::getTooltipStats);
+    }
+
+    /** Uses live structure state normally and the isolated formula input while a tooltip is being sampled. */
+    protected final int getTooltipTier(TieredPart part, int runtimeTier) {
+        if (tooltipProbeState == null) return runtimeTier;
+        return tooltipProbeState.part() == part ? tooltipProbeState.tier() : 0;
+    }
+
+    /** Special energy getters should delegate to super while the detached tooltip inputs are active. */
+    protected final boolean isTooltipProbeActive() {
+        return tooltipProbeState != null;
+    }
+
+    @Override
+    public HeatRules getTooltipHeatRules() {
+        return withBaseTooltipProbe(() -> {
+            OverclockCalculatorAccessorMixin first = tooltipCalculator(FIRST_HEAT_PROBE);
+            OverclockCalculatorAccessorMixin second = tooltipCalculator(SECOND_HEAT_PROBE);
+            if (first == null || second == null) return null;
+            boolean heatOC = first.gtneverreset$heatOverclock();
+            boolean discount = first.gtneverreset$heatDiscount();
+            int voltageHeat = getVoltageHeatPerTier();
+            if (!heatOC && !discount && voltageHeat == 0) return null;
+            boolean usesRecipeHeat = first.gtneverreset$recipeHeat() != second.gtneverreset$recipeHeat();
+            int freeOverclocks = heatOC && !usesRecipeHeat
+                ? (int) Math
+                    .max(
+                        0L,
+                        ((long) first.gtneverreset$machineHeat() - first.gtneverreset$recipeHeat())
+                            / HEAT_OVERCLOCK_THRESHOLD)
+                : 0;
+            return new HeatRules(
+                heatOC,
+                discount,
+                first.gtneverreset$heatDiscountFactor(),
+                usesRecipeHeat,
+                voltageHeat,
+                getVoltageHeatFromTier(),
+                freeOverclocks);
+        });
+    }
+
+    @Override
+    public OptionalInt getTooltipTierSkips() {
+        return withBaseTooltipProbe(() -> {
+            OverclockCalculatorAccessorMixin calculator = tooltipCalculator(FIRST_HEAT_PROBE);
+            if (calculator == null || calculator.gtneverreset$maxTierSkip() == 1) return OptionalInt.empty();
+            int skips = calculator.gtneverreset$maxTierSkip();
+            if (skips < 0) throw new IllegalArgumentException("A recipe tier skip count cannot be negative");
+            return OptionalInt.of(skips);
+        });
+    }
+
+    private long tooltipInputVoltage() {
+        return tooltipProbeState.part() == TieredPart.VOLTAGE ? GTValues.V[tooltipProbeState.tier()] : 0;
+    }
+
+    private <R> R withBaseTooltipProbe(Supplier<R> read) {
+        return withTooltipProbe(tooltipProbeState == null ? new TooltipProbeState(null, 0) : tooltipProbeState, read);
+    }
+
+    private <R> R withTooltipProbe(TooltipProbeState state, Supplier<R> read) {
+        if (getBaseMetaTileEntity() != null) {
+            throw new IllegalStateException("Performance probes require a detached tooltip controller");
+        }
+        TooltipProbeState previous = tooltipProbeState;
+        HeatingCoilLevel coil = mCoilLevel;
+        int glass = mGlassTier;
+        int casing = mCasingTier;
+        tooltipProbeState = state;
+        try {
+            mCoilLevel = HeatingCoilLevel.getFromTier((byte) getTooltipTier(TieredPart.COIL, coil.getTier()));
+            mGlassTier = getTooltipTier(TieredPart.GLASS, glass);
+            mCasingTier = getTooltipTier(TieredPart.CASING, casing);
+            return read.get();
+        } finally {
+            mCoilLevel = coil;
+            mGlassTier = glass;
+            mCasingTier = casing;
+            tooltipProbeState = previous;
+        }
+    }
+
+    private OverclockCalculatorAccessorMixin tooltipCalculator(int recipeHeat) {
+        if (!(createProcessingLogic() instanceof RecipeThreadProcessingLogic logic)) return null;
+        GTRecipe recipe = new GTRecipe(
+            false,
+            new ItemStack[0],
+            new ItemStack[0],
+            null,
+            null,
+            null,
+            null,
+            null,
+            new FluidStack[0],
+            new FluidStack[0],
+            HEAT_PROBE_DURATION,
+            HEAT_PROBE_EUT,
+            recipeHeat);
+        OverclockCalculator calculator = logic.createTooltipOverclockCalculator(recipe);
+        if (!(calculator instanceof OverclockCalculatorAccessorMixin accessor)) {
+            throw new IllegalStateException("The configured overclock calculator is missing its tooltip accessor");
+        }
+        return accessor;
+    }
+
+    @Override
+    public int getTooltipRecipeThreads() {
+        return getTotalRecipeThreads();
+    }
+
+    @Override
+    public List<String> getTooltipFeatureLines() {
+        List<String> lines = new ArrayList<>();
+        int unlockTier = getGlassEnergyTierLimit();
+        if (unlockTier >= 0) {
+            // #tr gtnr.tooltip.glass.energy_limit
+            // # Below %s glass: energy hatch tier <= glass tier; no laser energy hatches
+            // # zh_CN 玻璃低于%s级时，能源仓等级不能超过玻璃等级，且不能使用激光能源仓
+            lines.add(
+                StatCollector.translateToLocalFormatted(
+                    "gtnr.tooltip.glass.energy_limit",
+                    TooltipHelper.voltageTierText(unlockTier, false)));
+        }
+        CasingVoltageLimit limit = casingVoltageLimit();
+        if (limit != null) {
+            // #tr gtnr.tooltip.casing.voltage_limit
+            // # Maximum processing voltage tier: casing voltage tier + %s
+            // # zh_CN 最高处理电压等级：外壳对应电压等级 + %s
+            lines.add(StatCollector.translateToLocalFormatted("gtnr.tooltip.casing.voltage_limit", limit.tiersAbove()));
+            if (limit.unlockTier() != NO_CASING_UNLOCK) {
+                // #tr gtnr.tooltip.casing.voltage_unlock
+                // # The processing voltage limit is removed at %s casings
+                // # zh_CN 外壳达到%s级时解除处理电压限制
+                lines.add(
+                    StatCollector.translateToLocalFormatted(
+                        "gtnr.tooltip.casing.voltage_unlock",
+                        TooltipHelper.voltageTierText(limit.unlockTier(), false)));
+            }
+        }
+        return lines;
+    }
+
+    private CasingVoltageLimit casingVoltageLimit() {
+        Integer offset = null;
+        TierRange range = getTooltipTierRange(TieredPart.CASING);
+        for (int tier = range.first(); tier <= range.last(); tier++) {
+            long voltage = withTooltipProbe(
+                new TooltipProbeState(TieredPart.CASING, tier),
+                this::getMachineVoltageLimit);
+            if (voltage <= 0) return null;
+            int voltageTier = GTUtility.getTier(voltage);
+            if (voltageTier >= VoltageIndex.MAX) {
+                return offset == null ? null : new CasingVoltageLimit(offset, casingVoltageTier(tier));
+            }
+            int difference = voltageTier - casingVoltageTier(tier);
+            if (offset != null && offset != difference) return null;
+            offset = difference;
+        }
+        return offset == null ? null : new CasingVoltageLimit(offset, NO_CASING_UNLOCK);
+    }
+
+    private void updateThreadDisplay() {
+        mOutputItems = null;
+        mOutputFluids = null;
+        mEUt = 0;
+        lEUt = paused ? 0 : -usedThreadPower();
+        mProgresstime = 0;
+        mMaxProgresstime = 0;
+        if (!paused) {
+            int total = getTotalRecipeThreads();
+            for (ProxyThreadTask task : threadTasks.values()) {
+                if (task.getThread() < total && !task.isFinished()) {
+                    mProgresstime = task.getProgress();
+                    mMaxProgresstime = task.getDuration();
+                    break;
+                }
+            }
+        }
+        for (ParameterModuleHatch module : parameterModules) {
+            module.setWorking(mMaxProgresstime > 0);
+        }
+    }
+
+    @Override
+    protected GTNRMultiBlockBaseGui<?> getGui() {
+        return new GTNRMultiBlockBaseGui<>(this);
+    }
+
+    @Override
+    public void saveNBTData(NBTTagCompound tag) {
+        super.saveNBTData(tag);
+        NBTTagList tasks = new NBTTagList();
+        for (ProxyThreadTask task : threadTasks.values()) tasks.appendTag(task.save());
+        tag.setTag("gtnrRecipeThreads", tasks);
+    }
+
+    @Override
+    public void loadNBTData(NBTTagCompound tag) {
+        super.loadNBTData(tag);
+        if (!tag.hasKey(INPUT_SEPARATION_NBT_KEY)) inputSeparation = getDefaultInputSeparationMode();
+        threadTasks.clear();
+        NBTTagList tasks = tag.getTagList("gtnrRecipeThreads", 10);
+        for (int index = 0; index < tasks.tagCount(); index++) {
+            ProxyThreadTask task = ProxyThreadTask.load(tasks.getCompoundTagAt(index));
+            if (threadTasks.put(task.getThread(), task) != null) {
+                throw new IllegalStateException("Duplicate saved recipe thread");
+            }
+        }
+        paused = true;
+        updateThreadDisplay();
+    }
+
+    @Override
+    public void getWailaNBTData(EntityPlayerMP player, TileEntity tile, NBTTagCompound tag, World world, int x, int y,
+        int z) {
+        super.getWailaNBTData(player, tile, tag, world, x, y, z);
+        tag.setInteger("gtnrRunningThreads", getRunningRecipeThreads());
+        tag.setInteger("gtnrTotalThreads", getTotalRecipeThreads());
+    }
+
+    /** Read live; subclasses may derive this from items, modules or structure state. */
+    public int getMaxRecipeThreads() {
+        return 1;
+    }
+
+    public final int getTotalRecipeThreads() {
+        return Math.max(1, getMaxRecipeThreads());
+    }
+
+    public final int getRunningRecipeThreads() {
+        IGregTechTileEntity tile = getBaseMetaTileEntity();
+        if (paused || !mMachine || tile == null || !tile.isAllowedToWork()) return 0;
+        int total = getTotalRecipeThreads();
+        int running = 0;
+        for (ProxyThreadTask task : threadTasks.values()) {
+            if (task.getThread() < total && !task.isFinished()) running++;
+        }
+        return running;
+    }
+
+    public final List<ProxyThreadTask> getProxyThreadTasks() {
+        return Collections.unmodifiableList(new ArrayList<>(threadTasks.values()));
+    }
+
+    protected int getBaseParallelRecipes() {
+        return 1;
+    }
+
+    protected double getBaseSpeedMultiplier() {
+        return 1;
+    }
+
+    protected double getBaseEUtMultiplier() {
+        return 1;
+    }
+
+    protected boolean hasPerfectOverclock() {
+        return false;
+    }
+
+    @Override
+    public final int getMaxParallelRecipes() {
+        ParameterModuleHatch module = parameterModule(MachineModuleType.Parallel);
+        long multiplier = module == null ? 1 : 1L + module.getParameter();
+        return (int) Math.min(Integer.MAX_VALUE, Math.max(1, getBaseParallelRecipes()) * multiplier);
+    }
+
+    public final double getSpeedMultiplier() {
+        ParameterModuleHatch module = parameterModule(MachineModuleType.Speed);
+        return getBaseSpeedMultiplier() * (module == null ? 1 : module.getParameter());
+    }
+
+    public final double getEUtMultiplier() {
+        ParameterModuleHatch module = parameterModule(MachineModuleType.PowerConsumption);
+        return getBaseEUtMultiplier() * (module == null ? 1 : module.getPowerMultiplier());
+    }
+
+    public final int getOverclockTimeReduction() {
+        ParameterModuleHatch module = parameterModule(MachineModuleType.Overclock);
+        return module == null ? (hasPerfectOverclock() ? 4 : 2) : module.getTimeReduction();
+    }
+
+    public final int getOverclockPowerIncrease() {
+        ParameterModuleHatch module = parameterModule(MachineModuleType.Overclock);
+        return module == null ? 4 : module.getPowerIncrease();
+    }
+
+    @Override
+    public boolean supportsVoidProtection() {
+        return true;
+    }
+
+    @Override
+    public VoidingMode getDefaultVoidingMode() {
+        return VoidingMode.VOID_NONE;
+    }
+
+    @Override
+    public boolean supportsInputSeparation() {
+        return true;
+    }
+
+    @Override
+    public boolean getDefaultInputSeparationMode() {
+        return true;
+    }
+
+    @Override
+    public final boolean supportsSingleRecipeLocking() {
+        return true;
+    }
+
+    @Override
+    public boolean getDefaultRecipeLockingMode() {
+        return false;
+    }
+
+    @Override
+    public final boolean supportsBatchMode() {
+        return true;
+    }
+
+    @Override
+    public boolean getDefaultBatchMode() {
+        return true;
+    }
+
+    /** Override only when the same heat-per-tier value is used by the machine's real heat formula. */
+    protected int getVoltageHeatPerTier() {
+        return 0;
+    }
+
+    protected int getVoltageHeatFromTier() {
+        return VoltageIndex.MV;
+    }
+
+    /** Glass tier that removes energy hatch restrictions; negative disables this rule. */
+    protected int getGlassEnergyTierLimit() {
+        return -1;
+    }
+
+    /** Shared processing voltage cap and tooltip source; independent of installed energy hatches. */
+    public long getMachineVoltageLimit() {
+        return GTValues.V[VoltageIndex.MAX];
+    }
+
+    /** Casing index zero represents LV unless a machine uses a different mapping. */
+    protected int casingVoltageTier(int casingTier) {
+        return casingTier + 1;
+    }
+
+    /** Shared by real machine heat and its tooltip; selecting a coil tier never changes the installed coil. */
+    protected final int coilAndVoltageHeat(HeatingCoilLevel runtimeCoil) {
+        HeatingCoilLevel coil = tooltipProbeState == null ? runtimeCoil
+            : HeatingCoilLevel.getFromTier((byte) getTooltipTier(TieredPart.COIL, runtimeCoil.getTier()));
+        long heat = coil.getHeat()
+            + (long) getVoltageHeatPerTier() * (GTUtility.getTier(getMaxInputEu()) - getVoltageHeatFromTier());
+        return (int) Math.max(Integer.MIN_VALUE, Math.min(Integer.MAX_VALUE, heat));
+    }
+
+    @Override
+    public int getParameterModuleLimit(MachineModuleType type) {
+        return 1;
+    }
+
+    private static final class TooltipProbeState {
+
+        private final TieredPart part;
+        private final int tier;
+
+        TooltipProbeState(TieredPart part, int tier) {
+            this.part = part;
+            this.tier = tier;
+        }
+
+        TieredPart part() {
+            return part;
+        }
+
+        int tier() {
+            return tier;
+        }
+    }
+
+    private static final class CasingVoltageLimit {
+
+        private final int tiersAbove, unlockTier;
+
+        CasingVoltageLimit(int tiersAbove, int unlockTier) {
+            this.tiersAbove = tiersAbove;
+            this.unlockTier = unlockTier;
+        }
+
+        int tiersAbove() {
+            return tiersAbove;
+        }
+
+        int unlockTier() {
+            return unlockTier;
+        }
+    }
+
+}

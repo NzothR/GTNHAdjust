@@ -3,7 +3,9 @@ package com.gtnhadjust.machine.proxy;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.fluids.FluidStack;
 
 import com.cleanroommc.modularui.api.IPanelHandler;
 import com.cleanroommc.modularui.api.drawable.IKey;
@@ -50,6 +52,28 @@ final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
     @Override
     protected void registerSyncValues(PanelSyncManager syncManager) {
         super.registerSyncValues(syncManager);
+        syncManager.syncValue("itemOutput", new GenericListSyncHandler<>(() -> {
+            List<ItemStack> values = new ArrayList<>();
+            for (ProxyThreadTask task : multiblock.getProxyThreadTasks()) task.getOutputs()
+                .appendDisplayItems(values);
+            return values;
+        },
+            values -> multiblock.mOutputItems = values.toArray(new ItemStack[0]),
+            NetworkUtils::readItemStack,
+            NetworkUtils::writeItemStack,
+            ItemStack::areItemStacksEqual,
+            ItemStack::copy));
+        syncManager.syncValue("fluidOutput", new GenericListSyncHandler<>(() -> {
+            List<FluidStack> values = new ArrayList<>();
+            for (ProxyThreadTask task : multiblock.getProxyThreadTasks()) task.getOutputs()
+                .appendDisplayFluids(values);
+            return values;
+        },
+            values -> multiblock.mOutputFluids = values.toArray(new FluidStack[0]),
+            NetworkUtils::readFluidStack,
+            NetworkUtils::writeFluidStack,
+            (left, right) -> left.isFluidEqual(right) && left.amount == right.amount,
+            FluidStack::copy));
         syncManager.syncValue(
             "proxyOperationMode",
             new IntSyncValue(multiblock::getOperationMode, multiblock::setClientOperationMode));
