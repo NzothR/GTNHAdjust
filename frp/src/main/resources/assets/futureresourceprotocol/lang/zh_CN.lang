@@ -52,3 +52,5 @@ frp.chat.bookmark_page_changed=[FRP] 收藏页已切换，未导出；请在目�
 frp.chat.bookmark_failed=[FRP] NEI 收藏导出失败或数量过大，请查看客户端日志。
 frp.chat.bookmark_disabled=[FRP] NEI 收藏导出功能已在配置中关闭。
 frp.chat.terminal_syncing=[FRP] 终端正在同步，请稍后重试。
+frp.tooltip.hull_debt_locked=有债务未偿还，暂不能解锁
+frp.tooltip.hull_final_locked=最终清算尚未完成，暂不能解锁

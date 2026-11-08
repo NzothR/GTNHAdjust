@@ -52,3 +52,5 @@ frp.chat.bookmark_page_changed=[FRP] Bookmark page changed; retry on the target 
 frp.chat.bookmark_failed=[FRP] NEI bookmark export failed or is too large; see the client log.
 frp.chat.bookmark_disabled=[FRP] NEI bookmark export is disabled in the configuration.
 frp.chat.terminal_syncing=[FRP] The terminal is synchronizing; try again shortly.
+frp.tooltip.hull_debt_locked=Outstanding debt; unlock unavailable
+frp.tooltip.hull_final_locked=Final settlement incomplete; unlock unavailable

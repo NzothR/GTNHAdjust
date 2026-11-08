@@ -17,6 +17,9 @@ import com.futureresourceprotocol.device.TerminalGuiHandler;
 import com.futureresourceprotocol.device.TerminalMessage;
 import com.futureresourceprotocol.device.TerminalModeMessage;
 import com.futureresourceprotocol.protocol.ProtocolCommand;
+import com.futureresourceprotocol.recipe.ClientHullLocks;
+import com.futureresourceprotocol.recipe.HullLockEvents;
+import com.futureresourceprotocol.recipe.HullLockMessage;
 import com.futureresourceprotocol.recipe.HullLockToken;
 import com.futureresourceprotocol.recipe.HullRecipeLocks;
 import com.futureresourceprotocol.recipe.RecipeIndex;
@@ -106,6 +109,12 @@ public class FutureResourceProtocol {
         NETWORK.registerMessage(TerminalControlMessage.Handler.class, TerminalControlMessage.class, 3, Side.SERVER);
         NETWORK.registerMessage(BookmarkExportMessage.Handler.class, BookmarkExportMessage.class, 4, Side.CLIENT);
         NETWORK.registerMessage(TerminalModeMessage.Handler.class, TerminalModeMessage.class, 5, Side.CLIENT);
+        NETWORK.registerMessage(HullLockMessage.Handler.class, HullLockMessage.class, 6, Side.CLIENT);
+        FMLCommonHandler.instance()
+            .bus()
+            .register(new HullLockEvents());
+        if (FMLCommonHandler.instance()
+            .getSide() == Side.CLIENT) ClientHullLocks.register();
         FMLCommonHandler.instance()
             .bus()
             .register(new TerminalMessage.Handler());
