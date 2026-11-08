@@ -13,8 +13,8 @@ import com.futureresourceprotocol.recipe.RecipeIndex;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
@@ -68,7 +68,8 @@ public class FutureResourceProtocol {
     }
 
     @Mod.EventHandler
-    public void loadComplete(FMLLoadCompleteEvent event) {
+    public void serverStarted(FMLServerStartedEvent event) {
+        // Other mods can register GT recipes during their own LoadComplete and ServerStarting events.
         if (enabled) RecipeIndex.rebuild();
     }
 

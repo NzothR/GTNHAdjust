@@ -27,10 +27,16 @@ public final class RecipeIndex {
     private static final Map<String, Boolean> OVERRIDES = new HashMap<>();
     private static String[] allowed = new String[0];
     private static String[] overrides = new String[0];
+    private static boolean allowAll;
 
     private RecipeIndex() {}
 
     public static void configure(Configuration config) {
+        allowAll = config.getBoolean(
+            "allowAllItems",
+            "recipes",
+            false,
+            "Allow any item regardless of recipe, except forbidden machine hulls. Restart required; client and server must match.");
         allowed = config.getStringList(
             "additionalEligible",
             "recipes",
@@ -53,7 +59,7 @@ public final class RecipeIndex {
     public static void rebuild() {
         QUALIFIED.clear();
         OVERRIDES.clear();
-        FutureResourceProtocol.debug("building recipe index: start crafting recipes");
+        FutureResourceProtocol.debug("building recipe index: start crafting recipes, allowAllItems={}", allowAll);
         try {
             for (Object value : CraftingManager.getInstance()
                 .getRecipeList()) {
@@ -154,7 +160,8 @@ public final class RecipeIndex {
 
     public static boolean eligible(ItemStack stack) {
         String key = WorldProtocol.key(stack);
-        return key != null && !forbidden(stack) && QUALIFIED.containsKey(key);
+        return EligibilityPolicy
+            .allows(key != null, forbidden(stack), !allowAll && QUALIFIED.containsKey(key), allowAll);
     }
 
     public static boolean classify(ItemStack stack, WorldProtocol world) {

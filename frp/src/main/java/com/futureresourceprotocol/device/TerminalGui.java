@@ -1,15 +1,20 @@
 package com.futureresourceprotocol.device;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ResourceLocation;
 
@@ -19,7 +24,9 @@ import org.lwjgl.opengl.GL11;
 import com.futureresourceprotocol.FutureResourceProtocol;
 import com.futureresourceprotocol.protocol.WorldProtocol;
 
+import codechicken.nei.ItemList;
 import codechicken.nei.ItemPanels;
+import codechicken.nei.ItemSorter;
 import codechicken.nei.PanelWidget;
 import codechicken.nei.api.INEIGuiHandler;
 import cpw.mods.fml.relauncher.Side;
@@ -36,6 +43,10 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
     private GuiTextField search;
     private int scroll;
     private boolean draggingScrollbar;
+    private List<ItemStack> neiOrder;
+    private NBTTagCompound cachedMarks;
+    private List<ItemStack> sortedMarks;
+    private final Map<Item, Map<Integer, Integer>> neiRanks = new IdentityHashMap<>();
 
     public TerminalGui(TerminalContainer container, InventoryPlayer inventory) {
         super(container);
@@ -60,7 +71,7 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
             : search.getText()
                 .toLowerCase(Locale.ROOT)
                 .trim();
-        for (ItemStack item : TerminalData.read(inventory.getStackInSlot(container.heldSlot))) {
+        for (ItemStack item : sortedMarks()) {
             String key = WorldProtocol.key(item);
             if (term.isEmpty() || item.getDisplayName()
                 .toLowerCase(Locale.ROOT)
@@ -70,6 +81,37 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
                 filtered.add(item);
         }
         return filtered;
+    }
+
+    private List<ItemStack> sortedMarks() {
+        ItemStack terminal = inventory.getStackInSlot(container.heldSlot);
+        NBTTagCompound tag = terminal == null ? null : terminal.getTagCompound();
+        List<ItemStack> currentOrder = ItemList.items;
+        if (currentOrder != neiOrder) {
+            neiOrder = currentOrder;
+            neiRanks.clear();
+            for (int i = 0; i < currentOrder.size(); i++) {
+                ItemStack item = currentOrder.get(i);
+                if (item != null && item.getItem() != null)
+                    neiRanks.computeIfAbsent(item.getItem(), ignored -> new HashMap<>())
+                        .putIfAbsent(item.getItemDamage(), i);
+            }
+            sortedMarks = null;
+        }
+        if (sortedMarks == null || (tag == null ? cachedMarks != null : !tag.equals(cachedMarks))) {
+            sortedMarks = TerminalData.read(terminal);
+            cachedMarks = tag == null ? null : (NBTTagCompound) tag.copy();
+            sortedMarks.sort((a, b) -> {
+                int byRank = Integer.compare(rank(a), rank(b));
+                return byRank != 0 ? byRank : ItemSorter.instance.compare(a, b);
+            });
+        }
+        return sortedMarks;
+    }
+
+    private int rank(ItemStack item) {
+        Map<Integer, Integer> variants = neiRanks.get(item.getItem());
+        return variants == null ? Integer.MAX_VALUE : variants.getOrDefault(item.getItemDamage(), Integer.MAX_VALUE);
     }
 
     private int cell(int x, int y) {
@@ -125,6 +167,21 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
                 18 + cell / 9 * 18);
         }
         RenderHelper.disableStandardItemLighting();
+        if (!container.marking) {
+            for (int cell = 0; cell < 54 && scroll * 9 + cell < list.size(); cell++) {
+                int x = 9 + cell % 9 * 18;
+                int y = 18 + cell / 9 * 18;
+                String count = "2.1G";
+                GL11.glPushMatrix();
+                GL11.glScalef(0.65F, 0.65F, 1F);
+                fontRendererObj.drawStringWithShadow(
+                    count,
+                    (int) ((x + 17 - fontRendererObj.getStringWidth(count) * 0.65F) / 0.65F),
+                    (int) ((y + 11) / 0.65F),
+                    0xffffff);
+                GL11.glPopMatrix();
+            }
+        }
         int total = TerminalData.read(inventory.getStackInSlot(container.heldSlot))
             .size();
         fontRendererObj.drawString(total + "/" + TerminalData.MAX, 8, 128, 0x404040);
@@ -140,6 +197,14 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler {
     @Override
     protected void mouseClicked(int x, int y, int button) {
         search.mouseClicked(x, y, button);
+        if (button == 1 && x >= search.xPosition
+            && x < search.xPosition + search.width
+            && y >= search.yPosition
+            && y < search.yPosition + search.height) {
+            search.setText("");
+            scroll = 0;
+            return;
+        }
         if (button == 0 && x >= guiLeft + 175 && x < guiLeft + 186 && y >= guiTop + 18 && y < guiTop + 126) {
             draggingScrollbar = true;
             updateScrollbar(y);
