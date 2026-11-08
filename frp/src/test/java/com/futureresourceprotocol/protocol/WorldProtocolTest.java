@@ -122,4 +122,27 @@ public class WorldProtocolTest {
         assertEquals(2, ledger.settle("example:item@0", 2));
         assertEquals(initial + 2, ledger.debtRevision());
     }
+
+    @Test
+    public void bypassAllowsEarlyUmvDebtAndPersistsPerWorld() {
+        WorldProtocol ledger = new WorldProtocol();
+        String key = "example:umv@0";
+        assertFalse(ledger.canAdvance(true));
+        assertTrue(ledger.setAllowAllItems(true));
+        assertTrue(ledger.canRecord(key, true, 64));
+        ledger.advance(key, true, 64);
+        assertEquals(0, ledger.debt(key, false));
+        assertEquals(64, ledger.debt(key, true));
+        NBTTagCompound tag = new NBTTagCompound();
+        ledger.writeToNBT(tag);
+        WorldProtocol loaded = new WorldProtocol();
+        loaded.readFromNBT(tag);
+        assertTrue(loaded.allowAllItems());
+        assertEquals(64, loaded.debt(key, true));
+        assertTrue(loaded.setAllowAllItems(false));
+        assertFalse(loaded.canAdvance(true));
+        assertEquals(64, loaded.debt(key, true));
+        assertEquals(64, loaded.settle(key, 64));
+    }
+
 }

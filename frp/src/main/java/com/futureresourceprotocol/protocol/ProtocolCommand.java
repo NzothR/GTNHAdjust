@@ -20,7 +20,7 @@ public final class ProtocolCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/frp status|held|milestone uhv|milestone umv confirm";
+        return "/frp status|held|allowall [on|off|toggle]|milestone uhv|milestone umv confirm";
     }
 
     @Override
@@ -47,6 +47,21 @@ public final class ProtocolCommand extends CommandBase {
                 world.stageDebt(true),
                 yesNo(world.isUhvMilestone()),
                 yesNo(world.isTerminated()));
+            return;
+        }
+        if (args.length >= 1 && args[0].equals("allowall")) {
+            if (args.length == 1) {
+                say(sender, "frp.chat.allow_all_status", yesNo(world.allowAllItems()));
+            } else if (args.length == 2 && (args[1].equalsIgnoreCase("on") || args[1].equalsIgnoreCase("off")
+                || args[1].equalsIgnoreCase("toggle"))) {
+                    boolean enabled = args[1].equalsIgnoreCase("toggle") ? !world.allowAllItems()
+                        : args[1].equalsIgnoreCase("on");
+                    if (world.setAllowAllItems(enabled)) {
+                        say(sender, "frp.chat.allow_all_status", yesNo(enabled));
+                        FutureResourceProtocol.LOG
+                            .info("FRP operator {} set world allowAllItems={}", sender.getCommandSenderName(), enabled);
+                    } else say(sender, "frp.chat.allow_all_invalid");
+                } else say(sender, "frp.chat.command_usage", getCommandUsage(sender));
             return;
         }
         if (!(sender instanceof EntityPlayerMP)) {

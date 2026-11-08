@@ -90,15 +90,16 @@ public final class TerminalMessage implements IMessage {
             boolean marked = world.hasMark(requested);
             String key = WorldProtocol.key(requested);
             FutureResourceProtocol.debug(
-                "request player={} action={} key={} marked={} count={} marking={}",
+                "request player={} action={} key={} marked={} count={} marking={} bypass={}",
                 player.getCommandSenderName(),
                 message.action,
                 key,
                 marked,
                 world.markCount(),
-                container.marking);
+                container.marking,
+                world.allowAllItems());
             if (message.action == 0 && container.marking) {
-                boolean eligible = RecipeIndex.eligible(requested);
+                boolean eligible = RecipeIndex.eligible(requested, world);
                 boolean umv = eligible && RecipeIndex.classify(requested, world);
                 if (!eligible || !world.canAdvance(umv) || marked || world.markCount() >= WorldProtocol.MAX_MARKS) {
                     String reason = marked ? "frp.chat.mark_duplicate"
@@ -149,7 +150,7 @@ public final class TerminalMessage implements IMessage {
                         paid,
                         cursor.stackSize);
                 } else if (AdvanceInteraction.isAdvance(message.action) && !container.marking && marked) {
-                    boolean eligible = RecipeIndex.eligible(requested);
+                    boolean eligible = RecipeIndex.eligible(requested, world);
                     boolean umv = eligible && RecipeIndex.classify(requested, world);
                     int amount = AdvanceInteraction.amount(message.action, requested.getMaxStackSize());
                     ItemStack cursor = player.inventory.getItemStack();

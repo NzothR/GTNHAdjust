@@ -24,6 +24,7 @@ import gregtech.api.util.GTRecipe;
 public final class RecipeIndex {
 
     private static final Map<String, Boolean> QUALIFIED = new HashMap<>();
+    private static final Map<String, Long> VOLTAGES = new HashMap<>();
     private static final Map<String, Boolean> OVERRIDES = new HashMap<>();
     private static String[] allowed = new String[0];
     private static String[] overrides = new String[0];
@@ -36,7 +37,7 @@ public final class RecipeIndex {
             "allowAllItems",
             "recipes",
             false,
-            "Allow any item regardless of recipe, except forbidden machine hulls. Restart required; client and server must match.");
+            "Default for recipe and stage bypass; world command may override. UMV and higher voltage and blacklist remain forbidden. Restart to change default.");
         allowed = config.getStringList(
             "additionalEligible",
             "recipes",
@@ -49,15 +50,18 @@ public final class RecipeIndex {
             "Class overrides as modid:item@meta=UHV or =UMV. Restart required; only future advances change class.");
     }
 
-    private static void add(ItemStack stack, Boolean umv) {
+    private static void add(ItemStack stack, long voltage) {
+        Boolean umv = voltage > 0 ? Boolean.valueOf(EligibilityPolicy.isUmvClass(voltage, GTValues.V[8])) : null;
         String key = WorldProtocol.key(stack);
         if (key == null) return;
+        if (voltage > 0) VOLTAGES.putIfAbsent(key, voltage);
         if (!QUALIFIED.containsKey(key)) QUALIFIED.put(key, umv);
         else if (QUALIFIED.get(key) == null && umv != null) QUALIFIED.put(key, umv);
     }
 
     public static void rebuild() {
         QUALIFIED.clear();
+        VOLTAGES.clear();
         OVERRIDES.clear();
         FutureResourceProtocol.debug("building recipe index: start crafting recipes, allowAllItems={}", allowAll);
         try {
@@ -65,7 +69,7 @@ public final class RecipeIndex {
                 .getRecipeList()) {
                 if (value instanceof IRecipe) {
                     try {
-                        add(((IRecipe) value).getRecipeOutput(), null);
+                        add(((IRecipe) value).getRecipeOutput(), 0);
                     } catch (RuntimeException | LinkageError ex) {
                         FutureResourceProtocol.debug(
                             "crafting recipe output unavailable, recipe={} error={}",
@@ -83,7 +87,7 @@ public final class RecipeIndex {
             for (Object value : FurnaceRecipes.smelting()
                 .getSmeltingList()
                 .values()) {
-                if (value instanceof ItemStack) add((ItemStack) value, null);
+                if (value instanceof ItemStack) add((ItemStack) value, 0);
             }
         } catch (RuntimeException | LinkageError ex) {
             FutureResourceProtocol.LOG.error("FRP furnace recipe scan failed: {}", ex.toString());
@@ -104,8 +108,7 @@ public final class RecipeIndex {
                     for (GTRecipe recipe : sorted) {
                         if (!recipe.mEnabled || recipe.mFakeRecipe || recipe.mOutputs == null) continue;
                         recipes++;
-                        Boolean stage = recipe.mEUt > 0 ? Boolean.valueOf(recipe.mEUt >= GTValues.V[9]) : null;
-                        for (ItemStack out : recipe.mOutputs) add(out, stage);
+                        for (ItemStack out : recipe.mOutputs) add(out, recipe.mEUt);
                     }
                 } catch (RuntimeException | LinkageError ex) {
                     FutureResourceProtocol.LOG.warn("FRP skipped GT recipe map {}: {}", name, ex.toString());
@@ -160,10 +163,26 @@ public final class RecipeIndex {
             || ItemList.Hull_UXV.isStackEqual(stack, false, true));
     }
 
-    public static boolean eligible(ItemStack stack) {
+    public static boolean defaultAllowAll() {
+        return allowAll;
+    }
+
+    public static boolean eligible(ItemStack stack, WorldProtocol world) {
         String key = WorldProtocol.key(stack);
-        return EligibilityPolicy
-            .allows(key != null, forbidden(stack), !allowAll && QUALIFIED.containsKey(key), allowAll);
+        Long voltage = VOLTAGES.get(key);
+        boolean blocked = forbidden(stack);
+        boolean aboveLimit = voltage != null && EligibilityPolicy.exceedsUmvLimit(voltage, GTValues.V[11]);
+        boolean allowed = EligibilityPolicy
+            .allows(key != null, blocked, QUALIFIED.containsKey(key), world.allowAllItems(), aboveLimit);
+        if (!allowed) FutureResourceProtocol.debug(
+            "eligibility denied key={} recipe={} voltage={} aboveUmvLimit={} blacklist={} bypass={}",
+            key,
+            QUALIFIED.containsKey(key),
+            voltage,
+            aboveLimit,
+            blocked,
+            world.allowAllItems());
+        return allowed;
     }
 
     public static boolean classify(ItemStack stack, WorldProtocol world) {

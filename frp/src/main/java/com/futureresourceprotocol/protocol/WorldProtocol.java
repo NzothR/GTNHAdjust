@@ -15,6 +15,7 @@ import net.minecraft.world.WorldServer;
 
 import com.futureresourceprotocol.FutureResourceProtocol;
 import com.futureresourceprotocol.device.TerminalData;
+import com.futureresourceprotocol.recipe.RecipeIndex;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 
@@ -27,6 +28,7 @@ public final class WorldProtocol extends WorldSavedData {
     private boolean uhvMilestone;
     private boolean terminated;
     private boolean invalid;
+    private Boolean allowAllOverride;
     private long debtRevision;
     private long markRevision;
     private NBTTagList worldMarks = new NBTTagList();
@@ -168,8 +170,20 @@ public final class WorldProtocol extends WorldSavedData {
         return terminated || invalid;
     }
 
+    public boolean allowAllItems() {
+        return allowAllOverride != null ? allowAllOverride : RecipeIndex.defaultAllowAll();
+    }
+
+    public boolean setAllowAllItems(boolean enabled) {
+        if (invalid) return false;
+        allowAllOverride = enabled;
+        markDirty();
+        FutureResourceProtocol.debug("world recipe and stage bypass changed enabled={}", enabled);
+        return true;
+    }
+
     public boolean canAdvance(boolean umv) {
-        return !isTerminated() && (!umv || uhvMilestone);
+        return !isTerminated() && (!umv || uhvMilestone || allowAllItems());
     }
 
     public boolean isUhvMilestone() {
@@ -287,6 +301,7 @@ public final class WorldProtocol extends WorldSavedData {
                 .error("Unsupported FRP world data version {}; protocol locked", nbt.getInteger("version"));
             return;
         }
+        allowAllOverride = nbt.hasKey("allowAllItems", 1) ? nbt.getBoolean("allowAllItems") : null;
         uhvMilestone = nbt.getBoolean("uhvMilestone");
         terminated = nbt.getBoolean("terminated");
         worldMarks = (NBTTagList) nbt.getTagList("worldMarks", 10)
@@ -327,6 +342,7 @@ public final class WorldProtocol extends WorldSavedData {
     public void writeToNBT(NBTTagCompound nbt) {
         if (invalid) throw new IllegalStateException("Refusing to overwrite invalid FRP ledger");
         nbt.setInteger("version", VERSION);
+        if (allowAllOverride != null) nbt.setBoolean("allowAllItems", allowAllOverride);
         nbt.setBoolean("uhvMilestone", uhvMilestone);
         nbt.setBoolean("terminated", terminated);
         nbt.setTag("worldMarks", worldMarks.copy());
