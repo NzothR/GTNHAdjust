@@ -23,6 +23,7 @@ import gregtech.api.recipe.RecipeMaps;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.util.GTRecipe;
+import gregtech.api.util.OverclockCalculator;
 import gregtech.common.tileentities.machines.IDualInputInventoryWithPattern;
 import gregtech.common.tileentities.machines.MTEHatchCraftingInputME;
 
@@ -103,6 +104,15 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
                 .findAll()
                 .peek(recipe -> controller.setProcessingRecipeMap(map)))
             .filter(this::matchesPatternOutputs);
+    }
+
+    @Override
+    @Nonnull
+    protected OverclockCalculator createOverclockCalculator(@Nonnull GTRecipe recipe) {
+        RecipeMap<?> map = controller.getRecipeMap();
+        double factor = ProxyRecipeDuration
+            .factor(map == null ? null : map.unlocalizedName, controller.getRecipeGlassTier());
+        return super.createOverclockCalculator(recipe).setDurationModifier(speedBoost * factor);
     }
 
     @Override

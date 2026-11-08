@@ -578,6 +578,10 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
         return Math.pow(EU_MULTIPLIER_PER_GLASS_TIER, getGlassUpgrades());
     }
 
+    int getRecipeGlassTier() {
+        return Math.max(1, mGlassTier);
+    }
+
     private int getGlassUpgrades() {
         return Math.max(0, mGlassTier - BASE_GLASS_TIER);
     }
