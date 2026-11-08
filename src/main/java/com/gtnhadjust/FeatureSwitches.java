@@ -18,6 +18,7 @@ final class FeatureSwitches {
     private static final Logger LOG = Logger.getLogger("GTNHAdjust");
     private static final String LOOT_SIMULATOR = "lootSimulator";
     private static final String PROXY_FACTORY = "proxyFactory";
+    private static final String PROXY_TRACE = "proxyDispatchDiagnostics";
     private static final String CROP = "cropBreeder";
     private static final String GREENHOUSE = "steamGreenhouse";
     private static final String CARPENTER = "carpenterRecipes";
@@ -39,6 +40,7 @@ final class FeatureSwitches {
 
     final boolean lootSimulator;
     final boolean proxyFactory;
+    final boolean proxyDispatchDiagnostics;
     final boolean cropBreeder;
     final boolean steamGreenhouse;
     final boolean carpenterRecipes;
@@ -63,9 +65,11 @@ final class FeatureSwitches {
         boolean patternDeduplication, boolean terminalInventoryFix, boolean terminalCraftingRefreshFix,
         boolean craftingDiagnostics, boolean neoEcoCraftingRefreshFix, boolean patternRecipeMapPreservation,
         boolean terminalNeiAlwaysShowPresence, boolean terminalSmartIngredients, boolean matrixPatternDiagnostics,
-        boolean matrixPatternLoadFix, boolean soulVialExpandedCapture, boolean structureLibAeAutoPlace) {
+        boolean matrixPatternLoadFix, boolean soulVialExpandedCapture, boolean structureLibAeAutoPlace,
+        boolean proxyDispatchDiagnostics) {
         this.lootSimulator = lootSimulator;
         this.proxyFactory = proxyFactory;
+        this.proxyDispatchDiagnostics = proxyDispatchDiagnostics;
         this.cropBreeder = cropBreeder;
         this.steamGreenhouse = steamGreenhouse;
         this.carpenterRecipes = carpenterRecipes;
@@ -90,6 +94,7 @@ final class FeatureSwitches {
         Properties defaults = new Properties();
         defaults.setProperty(LOOT_SIMULATOR, "true");
         defaults.setProperty(PROXY_FACTORY, "true");
+        defaults.setProperty(PROXY_TRACE, "false");
         defaults.setProperty(CROP, "true");
         defaults.setProperty(GREENHOUSE, "true");
         defaults.setProperty(CARPENTER, "true");
@@ -143,7 +148,8 @@ final class FeatureSwitches {
                 read(values, MATRIX_PATTERN_DIAGNOSTICS, false),
                 read(values, MATRIX_PATTERN_LOAD_FIX),
                 read(values, SOUL_VIAL),
-                read(values, STRUCTURELIB_AE_AUTOPLACE));
+                read(values, STRUCTURELIB_AE_AUTOPLACE),
+                read(values, PROXY_TRACE, false));
             LOG.info(
                 "Feature switches: lootSimulator=" + result.lootSimulator
                     + ", proxyFactory="
@@ -183,11 +189,14 @@ final class FeatureSwitches {
                     + ", soulVialExpandedCapture="
                     + result.soulVialExpandedCapture
                     + ", structureLibAeAutoPlace="
-                    + result.structureLibAeAutoPlace);
+                    + result.structureLibAeAutoPlace
+                    + ", proxyDispatchDiagnostics="
+                    + result.proxyDispatchDiagnostics);
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
             return new FeatureSwitches(
+                false,
                 false,
                 false,
                 false,
@@ -226,6 +235,9 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (proxyFactory && proxyDispatchDiagnostics
+            && loadedMods.contains("gtneverreset")
+            && loadedMods.contains("appliedenergistics2")) mixins.add("diagnostic.ProxyCpuDispatchAuditMixin");
         if (structureLibAeAutoPlace && loadedMods.contains("structurelib")
             && loadedMods.contains("appliedenergistics2")) mixins.add("structurelib.StructureLibAeAutoPlaceMixin");
         if (soulVialExpandedCapture && loadedMods.contains("EnderIO")) mixins.add("fix.SoulVialCaptureMixin");

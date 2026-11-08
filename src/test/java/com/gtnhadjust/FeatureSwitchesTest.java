@@ -33,6 +33,39 @@ public class FeatureSwitchesTest {
     }
 
     @Test
+    public void proxyDispatchDiagnosticsIsOptInAndRequiresBothMods() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset", "appliedenergistics2"));
+        String mixin = "diagnostic.ProxyCpuDispatchAuditMixin";
+        assertFalse(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .contains(mixin));
+        Files.write(file, Arrays.asList("proxyDispatchDiagnostics=true"), StandardCharsets.ISO_8859_1);
+        assertTrue(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .contains(mixin));
+        assertTrue(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, true)
+                .contains(mixin));
+        assertFalse(
+            FeatureSwitches.load(file)
+                .selectMixins(new HashSet<>(), false)
+                .contains(mixin));
+        Files.write(
+            file,
+            Arrays.asList("proxyDispatchDiagnostics=true", "proxyFactory=false"),
+            StandardCharsets.ISO_8859_1);
+        assertFalse(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .contains(mixin));
+    }
+
+    @Test
     public void lootSimulatorHasIndependentSwitch() throws Exception {
         Path file = folder.newFile()
             .toPath();
