@@ -2,6 +2,10 @@ gt.blockmachines.gtnhadjust.super_fragment_collector.name=Super Fragment World C
 gtnhadjust.recipe.super_fragment_collection=Super Fragment World Collection
 gt.blockmachines.gtnhadjust.loot_simulator.name=Loot Simulation Chamber
 gt.blockmachines.gtnhadjust.proxy_factory.name=Proxy Joint Factory
+gtnhadjust.proxy.operation.0=Proxy Joint Factory: Run mode
+gtnhadjust.proxy.operation.1=Proxy Joint Factory: Input mode
+gtnhadjust.proxy.operation.2=Proxy Joint Factory: Output mode
+gtnhadjust.proxy.count=Stored controllers: %s; unlocked recipe maps: %s
 
 gtnhadjust.recipe.super_fragment_ore=Dimension Resources: Ores
 gtnhadjust.recipe.super_fragment_gem=Dimension Resources: Gems

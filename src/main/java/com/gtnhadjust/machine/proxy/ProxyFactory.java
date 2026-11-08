@@ -13,11 +13,20 @@ import static gregtech.api.enums.HatchElement.OutputHatch;
 import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
 import static gregtech.api.util.GTStructureUtility.chainAllGlasses;
 import static gregtech.api.util.GTStructureUtility.ofHatchAdder;
+import static gregtech.api.util.GTUtility.validMTEList;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -25,6 +34,7 @@ import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructa
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.gtnhadjust.GTNHAdjust;
 import com.xyp.gtneverreset.common.gui.modularui.multiblock.GTNRMultiBlockBaseGui;
 import com.xyp.gtneverreset.common.machine.hatch.ParameterModuleHatch;
 import com.xyp.gtneverreset.common.machine.multiMachineBase.GTNRMultiBlockBase;
@@ -39,11 +49,18 @@ import gregtech.api.enums.VoltageIndex;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
-import gregtech.api.modularui2.GTGuiTextures;
+import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.recipe.RecipeMap;
+import gregtech.api.recipe.check.CheckRecipeResult;
+import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.GTUtility;
+import gregtech.api.util.ItemEjectionHelper;
+import gregtech.common.tileentities.machines.IDualInputHatch;
+import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
+import gregtech.common.tileentities.machines.MTEHatchCraftingInputME;
+import gregtech.common.tileentities.machines.MTEHatchInputBusME;
 
 @IMetaTileEntity.SkipGenerateDescription
 public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> implements ISurvivalConstructable {
@@ -57,7 +74,8 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> impleme
     private static final int CASING_TEXTURE_ID = 16;
     private static final String STRUCTURE_PIECE = "main";
     private static final int OFFSET_X = 24, OFFSET_Y = 15, OFFSET_Z = 0;
-    public static final List<RecipeMap<?>> RECIPE_MAPS = UniversalJointFactory.RECIPE_MAPS;
+    private static final int RUN = 0, INPUT = 1, OUTPUT = 2;
+    private static final int MAX_CONTROLLERS = 256;
 
     public static int parallelsForTier(int tier) {
         int upgrades = (int) Math.min(30, Math.max(0L, (long) tier - VoltageIndex.LV));
@@ -71,6 +89,11 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> impleme
 
     private IStructureDefinition<ProxyFactory> definition;
     private RecipeMap<?> processingRecipeMap;
+    private final List<ItemStack> controllers = new ArrayList<>();
+    private List<RecipeMap<?>> unlockedMaps;
+    private List<String> clientRecipeNames;
+    private String savedRecipeName;
+    private int operationMode = RUN;
 
     public ProxyFactory(int id, String name, String regionalName) {
         super(id, name, regionalName);
@@ -156,9 +179,194 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> impleme
     }
 
     @Override
+    protected CheckRecipeResult doCheckRecipe() {
+        return operationMode == RUN ? super.doCheckRecipe() : CheckRecipeResultRegistry.NO_RECIPE;
+    }
+
+    @Override
+    public void onPostTick(IGregTechTileEntity tile, long tick) {
+        super.onPostTick(tile, tick);
+        if (!tile.isServerSide() || !mMachine || !tile.isAllowedToWork() || tick % 20 != 0) return;
+        if (operationMode == INPUT) importController();
+        else if (operationMode == OUTPUT) exportController();
+    }
+
+    @Override
+    public void onScrewdriverRightClick(ForgeDirection side, EntityPlayer player, float x, float y, float z,
+        ItemStack tool) {
+        if (!player.isSneaking()) {
+            super.onScrewdriverRightClick(side, player, x, y, z, tool);
+            return;
+        }
+        if (getBaseMetaTileEntity().isServerSide()) {
+            cycleOperationMode();
+            GTUtility.sendChatToPlayer(
+                player,
+                StatCollector.translateToLocal("gtnhadjust.proxy.operation." + operationMode));
+        }
+    }
+
+    int getOperationMode() {
+        return operationMode;
+    }
+
+    void setClientOperationMode(int mode) {
+        operationMode = Math.floorMod(mode, 3);
+    }
+
+    void cycleOperationMode() {
+        operationMode = (operationMode + 1) % 3;
+        getBaseMetaTileEntity().markDirty();
+    }
+
+    private void importController() {
+        if (controllers.size() >= MAX_CONTROLLERS) return;
+        Set<String> existing = new HashSet<>(getUnlockedRecipeNames());
+        for (MTEHatchInputBus bus : validMTEList(mInputBusses)) {
+            // ME virtual slots and crafting buffers require a separate transaction protocol.
+            if (bus instanceof MTEHatchInputBusME || bus instanceof MTEHatchCraftingInputME
+                || bus instanceof IDualInputHatch
+                || bus instanceof IRecipeProcessingAwareHatch) continue;
+            IGregTechTileEntity inventory = bus.getBaseMetaTileEntity();
+            if (inventory == null) continue;
+            for (int i = 0; i < inventory.getSizeInventory(); i++) {
+                ItemStack candidate = inventory.getStackInSlot(i);
+                if (candidate == null || candidate.stackSize <= 0) continue;
+                List<String> maps = ProxyFactoryControllerRegistry.maps(candidate);
+                if (!ProxyFactoryUnlockRules.addsNew(existing, maps)) continue;
+                ItemStack removed = inventory.decrStackSize(i, 1);
+                if (removed == null || removed.stackSize != 1) continue;
+                controllers.add(removed.copy());
+                refreshUnlockedMaps();
+                if (GTNHAdjust.debug) GTNHAdjust.LOG.info("Proxy controller accepted: {}, maps={}", removed, maps);
+                inventory.markDirty();
+                getBaseMetaTileEntity().markDirty();
+                return;
+            }
+        }
+    }
+
+    private void exportController() {
+        if (controllers.isEmpty()) return;
+        ItemStack returned = controllers.get(controllers.size() - 1)
+            .copy();
+        ItemEjectionHelper output = new ItemEjectionHelper(getOutputBusses(), true);
+        if (output.ejectStack(returned) != 1) {
+            if (GTNHAdjust.debug) GTNHAdjust.LOG.info("Proxy controller output blocked");
+            return;
+        }
+        output.commit();
+        ItemStack removed = controllers.remove(controllers.size() - 1);
+        refreshUnlockedMaps();
+        if (GTNHAdjust.debug) GTNHAdjust.LOG.info("Proxy controller returned: {}", removed);
+        getBaseMetaTileEntity().markDirty();
+    }
+
+    private void refreshUnlockedMaps() {
+        List<RecipeMap<?>> previous = unlockedMaps;
+        String selected = previous != null && !previous.isEmpty()
+            ? previous.get(Math.floorMod(machineMode, previous.size())).unlocalizedName
+            : savedRecipeName;
+        List<RecipeMap<?>> maps = new ArrayList<>(UniversalJointFactory.RECIPE_MAPS);
+        List<String> original = new ArrayList<>();
+        for (RecipeMap<?> map : maps) original.add(map.unlocalizedName);
+        List<List<String>> supplied = new ArrayList<>();
+        for (ItemStack controller : controllers) supplied.add(ProxyFactoryControllerRegistry.maps(controller));
+        for (String name : ProxyFactoryUnlockRules
+            .orderedAdditional(original, ProxyFactoryRecipeWhitelist.ADDITIONAL, supplied)) {
+            RecipeMap<?> map = RecipeMap.ALL_RECIPE_MAPS.get(name);
+            if (map != null && !maps.contains(map)) maps.add(map);
+        }
+        unlockedMaps = Collections.unmodifiableList(maps);
+        int index = 0;
+        if (selected != null) {
+            for (int i = 0; i < maps.size(); i++) {
+                if (selected.equals(maps.get(i).unlocalizedName)) {
+                    index = i;
+                    break;
+                }
+            }
+        } else if (previous == null) index = Math.floorMod(machineMode, maps.size());
+        machineMode = index;
+        savedRecipeName = null;
+    }
+
+    List<String> getUnlockedRecipeNames() {
+        List<String> result = new ArrayList<>();
+        for (RecipeMap<?> map : getAvailableRecipeMaps()) result.add(map.unlocalizedName);
+        return result;
+    }
+
+    void setClientRecipeNames(List<String> names) {
+        clientRecipeNames = new ArrayList<>(names);
+    }
+
+    boolean isRecipeMapUnlocked(RecipeMap<?> map) {
+        return map != null && getAvailableRecipeMaps().contains(map);
+    }
+
+    @Override
+    public void saveNBTData(NBTTagCompound tag) {
+        super.saveNBTData(tag);
+        NBTTagList saved = new NBTTagList();
+        for (ItemStack controller : controllers) saved.appendTag(controller.writeToNBT(new NBTTagCompound()));
+        tag.setTag("gtnhadjustProxyControllers", saved);
+        tag.setInteger("gtnhadjustProxyOperation", operationMode);
+        RecipeMap<?> selected = getRecipeMap();
+        if (selected != null) tag.setString("gtnhadjustProxySelectedMap", selected.unlocalizedName);
+    }
+
+    @Override
+    public void loadNBTData(NBTTagCompound tag) {
+        super.loadNBTData(tag);
+        controllers.clear();
+        NBTTagList saved = tag.getTagList("gtnhadjustProxyControllers", 10);
+        for (int i = 0; i < saved.tagCount(); i++) {
+            ItemStack stack = ItemStack.loadItemStackFromNBT(saved.getCompoundTagAt(i));
+            if (stack != null && stack.stackSize > 0) controllers.add(stack);
+        }
+        operationMode = Math.floorMod(tag.getInteger("gtnhadjustProxyOperation"), 3);
+        savedRecipeName = tag.hasKey("gtnhadjustProxySelectedMap") ? tag.getString("gtnhadjustProxySelectedMap") : null;
+        unlockedMaps = null;
+        clientRecipeNames = null;
+    }
+
+    @Override
+    public void onBlockDestroyed() {
+        IGregTechTileEntity tile = getBaseMetaTileEntity();
+        if (tile != null && tile.isServerSide() && tile.getWorld() != null) {
+            for (ItemStack controller : controllers) {
+                tile.getWorld()
+                    .spawnEntityInWorld(
+                        new EntityItem(
+                            tile.getWorld(),
+                            tile.getXCoord() + 0.5,
+                            tile.getYCoord() + 0.5,
+                            tile.getZCoord() + 0.5,
+                            controller.copy()));
+            }
+            controllers.clear();
+        }
+        super.onBlockDestroyed();
+    }
+
+    @Override
+    public String[] getInfoData() {
+        List<String> lines = new ArrayList<>();
+        Collections.addAll(lines, super.getInfoData());
+        lines.add(StatCollector.translateToLocal("gtnhadjust.proxy.operation." + operationMode));
+        lines.add(
+            StatCollector.translateToLocalFormatted(
+                "gtnhadjust.proxy.count",
+                controllers.size(),
+                getAvailableRecipeMaps().size()));
+        return lines.toArray(new String[0]);
+    }
+
+    @Override
     public RecipeMap<?> getRecipeMap() {
-        return processingRecipeMap == null ? RECIPE_MAPS.get(Math.floorMod(machineMode, RECIPE_MAPS.size()))
-            : processingRecipeMap;
+        List<RecipeMap<?>> maps = getAvailableRecipeMaps();
+        return processingRecipeMap == null ? maps.get(Math.floorMod(machineMode, maps.size())) : processingRecipeMap;
     }
 
     void setProcessingRecipeMap(RecipeMap<?> map) {
@@ -167,7 +375,16 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> impleme
 
     @Override
     public List<RecipeMap<?>> getAvailableRecipeMaps() {
-        return RECIPE_MAPS;
+        if (getBaseMetaTileEntity() != null && getBaseMetaTileEntity().isClientSide() && clientRecipeNames != null) {
+            List<RecipeMap<?>> maps = new ArrayList<>();
+            for (String name : clientRecipeNames) {
+                RecipeMap<?> map = RecipeMap.ALL_RECIPE_MAPS.get(name);
+                if (map != null && !maps.contains(map)) maps.add(map);
+            }
+            if (!maps.isEmpty()) return maps;
+        }
+        if (unlockedMaps == null) refreshUnlockedMaps();
+        return unlockedMaps;
     }
 
     @Override
@@ -198,11 +415,7 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> impleme
 
     @Override
     protected GTNRMultiBlockBaseGui<ProxyFactory> getGui() {
-        GTNRMultiBlockBaseGui<ProxyFactory> gui = new GTNRMultiBlockBaseGui<>(this);
-        for (int mode = 0; mode < RECIPE_MAPS.size(); mode++) {
-            gui.withMachineModeIcons(GTGuiTextures.OVERLAY_BUTTON_MACHINEMODE_DEFAULT);
-        }
-        return gui;
+        return new ProxyFactoryGui(this);
     }
 
     @Override
@@ -212,12 +425,23 @@ public final class ProxyFactory extends GTNRMultiBlockBase<ProxyFactory> impleme
 
     @Override
     public int nextMachineMode() {
-        return (getMachineMode() + 1) % RECIPE_MAPS.size();
+        return (getMachineMode() + 1) % getAvailableRecipeMaps().size();
+    }
+
+    void changeRecipeMode(boolean previous) {
+        int count = getAvailableRecipeMaps().size();
+        setMachineMode(Math.floorMod(getMachineMode() + (previous ? -1 : 1), count));
+        getBaseMetaTileEntity().markDirty();
     }
 
     @Override
     public void setMachineMode(int index) {
-        if (index >= 0 && index < RECIPE_MAPS.size()) super.setMachineMode(index);
+        if (index < 0) return;
+        if (getBaseMetaTileEntity() != null && getBaseMetaTileEntity().isClientSide()) {
+            super.setMachineMode(index);
+        } else {
+            super.setMachineMode(index % getAvailableRecipeMaps().size());
+        }
     }
 
     @Override

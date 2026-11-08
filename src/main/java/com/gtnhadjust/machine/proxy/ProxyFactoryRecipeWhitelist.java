@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/** Registry names for the planned proxy whitelist; not yet connected to machine execution. */
+/** Registry names eligible for proxy factory unlocks. */
 public final class ProxyFactoryRecipeWhitelist {
 
     private ProxyFactoryRecipeWhitelist() {}
@@ -38,7 +38,7 @@ public final class ProxyFactoryRecipeWhitelist {
             "gt.recipe.orewasher" // 洗矿机
         ));
 
-    // 静态核对出的扩展候选；未接入运行逻辑，特殊条件须后续实现。
+    // 静态核对出的扩展候选；解锁后使用原工厂通用逻辑，不模拟原机器特殊条件。
     public static final List<String> ADDITIONAL = Collections.unmodifiableList(
         Arrays.asList(
             "gg.recipe.componentassemblyline", // 部件装配线

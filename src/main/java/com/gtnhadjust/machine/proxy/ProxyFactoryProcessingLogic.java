@@ -41,7 +41,7 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
         patternRecipeMap = null;
         if (inventory instanceof RecipeMapPatternInventory mapped && mapped.getRecipeMapName() != null) {
             RecipeMap<?> requested = PatternRecipeMap.resolve(mapped.getRecipeMapName());
-            if (requested == null || !ProxyFactory.RECIPE_MAPS.contains(requested)) return false;
+            if (requested == null || !controller.isRecipeMapUnlocked(requested)) return false;
             patternRecipeMap = requested;
         }
         pattern = inventory instanceof SuperMTEHatchCraftingInputME.PatternSlot<?>slot ? slot.getPatternDetails()
