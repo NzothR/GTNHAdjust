@@ -21,6 +21,7 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 /** Observes the multiplier at the receiving hatch, inside GTNR's batch wrapper. */
 @Mixin(
     targets = { "com.xyp.gtneverreset.common.machine.hatch.SuperMTEHatchCraftingInputME",
+        "com.xyp.gtneverreset.common.machine.hatch.CircuitMEPatternBuffer",
         "gregtech.common.tileentities.machines.MTEHatchCraftingInputME" },
     remap = false)
 public abstract class ProxyHatchDispatchAuditMixin {

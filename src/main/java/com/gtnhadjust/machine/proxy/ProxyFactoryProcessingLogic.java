@@ -31,6 +31,8 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     private final ProxyFactory controller;
     private ICraftingPatternDetails pattern;
     private RecipeMap<?> patternRecipeMap;
+    private IDualInputInventoryWithPattern traceInventory;
+    private String tracePattern;
 
     public ProxyFactoryProcessingLogic(ProxyFactory controller) {
         this.controller = controller;
@@ -39,6 +41,8 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     @Override
     public boolean tryCachePossibleRecipesFromPattern(IDualInputInventoryWithPattern inventory) {
         resetPatternInventory();
+        traceInventory = null;
+        tracePattern = null;
         pattern = null;
         patternRecipeMap = null;
         if (inventory instanceof RecipeMapPatternInventory mapped && mapped.getRecipeMapName() != null) {
@@ -48,6 +52,8 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
         }
         pattern = inventory instanceof SuperMTEHatchCraftingInputME.PatternSlot<?>slot ? slot.getPatternDetails()
             : inventory instanceof MTEHatchCraftingInputME.PatternSlot<?>slot ? slot.getPatternDetails() : null;
+        traceInventory = inventory;
+        tracePattern = pattern == null ? "none" : Arrays.toString(pattern.getCondensedAEOutputs());
         // Match current accumulated inputs, including virtual tools and fractional AE deliveries.
         // The native input-only cache cannot distinguish recipes with identical inputs in different maps.
         return true;
@@ -117,6 +123,36 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
         if (ProxyFactoryEssentia.requiresEssentiaCell(current) && !controller.hasCreativeEssentiaCell())
             return CheckRecipeResultRegistry.NO_RECIPE;
         return matchesPatternOutputs(recipe) ? super.validateRecipe(recipe) : CheckRecipeResultRegistry.NO_RECIPE;
+    }
+
+    /** Describes the exact copies that will be committed, before their source amounts change. */
+    String describePlannedInputs() {
+        StringBuilder result = new StringBuilder();
+        result.append("inventory=")
+            .append(
+                traceInventory == null ? "none"
+                    : traceInventory.getClass()
+                        .getName())
+            .append("@")
+            .append(traceInventory == null ? "none" : Integer.toHexString(System.identityHashCode(traceInventory)))
+            .append(" patternOutputs=")
+            .append(tracePattern)
+            .append(" items=[");
+        if (inputItems != null) for (ItemStack item : inputItems) {
+            if (item != null && getPlannedConsumption(item) > 0) result.append(item)
+                .append(" consume=")
+                .append(getPlannedConsumption(item))
+                .append(';');
+        }
+        result.append("] fluids=[");
+        if (inputFluids != null) for (FluidStack fluid : inputFluids) {
+            if (fluid != null && getPlannedConsumption(fluid) > 0) result.append(fluid)
+                .append(" consume=")
+                .append(getPlannedConsumption(fluid))
+                .append(';');
+        }
+        return result.append(']')
+            .toString();
     }
 
     private boolean matchesPatternOutputs(GTRecipe recipe) {

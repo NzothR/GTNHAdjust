@@ -240,6 +240,8 @@ final class FeatureSwitches {
             && loadedMods.contains("appliedenergistics2")) {
             mixins.add("diagnostic.ProxyCpuDispatchAuditMixin");
             mixins.add("diagnostic.ProxyHatchDispatchAuditMixin");
+            mixins.add("diagnostic.ProxyCpuReceiveAuditMixin");
+            mixins.add("diagnostic.ProxyCircuitSlotAuditMixin");
         }
         if (structureLibAeAutoPlace && loadedMods.contains("structurelib")
             && loadedMods.contains("appliedenergistics2")) mixins.add("structurelib.StructureLibAeAutoPlaceMixin");

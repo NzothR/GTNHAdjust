@@ -232,6 +232,12 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
                 Math.max(1, logic.getDuration()),
                 Math.max(1, logic.getCurrentParallels()),
                 new ProxyThreadOutputs(logic.getOutputItems(), logic.getOutputFluids()));
+            if (GTNHAdjust.debug && logic instanceof ProxyFactoryProcessingLogic) GTNHAdjust.LOG.info(
+                "[proxy-flow] thread={} planned {} itemOutputs={} fluidOutputs={}",
+                slot,
+                ((ProxyFactoryProcessingLogic) logic).describePlannedInputs(),
+                java.util.Arrays.toString(logic.getOutputItems()),
+                java.util.Arrays.toString(logic.getOutputFluids()));
             if (!logic.commitInputs()) return CheckRecipeResultRegistry.INTERNAL_ERROR;
             committed = true;
             threadTasks.put(slot, task);
@@ -333,8 +339,13 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
 
     @Override
     public void stopMachine(@Nonnull ShutDownReason reason) {
+        if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
+            "[proxy-flow] stop reason={} direct={} retainedTasks={}",
+            reason,
+            GTNHAdjust.proxyDirectAeOutput,
+            threadTasks.size());
         super.stopMachine(reason);
-        // A hard stop aborts recipes just like GT's native output buffer. Finished outputs remain deliverable.
+        // Legacy mode aborts unfinished recipes; direct-output mode retains them for resumption.
         if (!GTNHAdjust.proxyDirectAeOutput) threadTasks.values()
             .removeIf(task -> !task.isFinished());
         pendingTask = null;
@@ -668,6 +679,8 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
         NBTTagList tasks = new NBTTagList();
         for (ProxyThreadTask task : threadTasks.values()) tasks.appendTag(task.save());
         tag.setTag("gtnrRecipeThreads", tasks);
+        if (GTNHAdjust.debug && !threadTasks.isEmpty())
+            GTNHAdjust.LOG.info("[proxy-flow] saved threads={}", threadTasks.size());
     }
 
     @Override
@@ -684,6 +697,8 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
         }
         paused = true;
         updateThreadDisplay();
+        if (GTNHAdjust.debug && !threadTasks.isEmpty())
+            GTNHAdjust.LOG.info("[proxy-flow] restored threads={}", threadTasks.size());
     }
 
     @Override

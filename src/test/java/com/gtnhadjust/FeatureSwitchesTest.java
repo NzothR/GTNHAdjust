@@ -39,11 +39,17 @@ public class FeatureSwitchesTest {
         Set<String> mods = new HashSet<>(Arrays.asList("gtneverreset", "appliedenergistics2"));
         String mixin = "diagnostic.ProxyCpuDispatchAuditMixin";
         String hatchMixin = "diagnostic.ProxyHatchDispatchAuditMixin";
+        List<String> allProxyAudits = Arrays
+            .asList(mixin, hatchMixin, "diagnostic.ProxyCircuitSlotAuditMixin", "diagnostic.ProxyCpuReceiveAuditMixin");
         assertFalse(
             FeatureSwitches.load(file)
                 .selectMixins(mods, false)
                 .contains(mixin));
         Files.write(file, Arrays.asList("proxyDispatchDiagnostics=true"), StandardCharsets.ISO_8859_1);
+        assertTrue(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .containsAll(allProxyAudits));
         assertTrue(
             FeatureSwitches.load(file)
                 .selectMixins(mods, false)
@@ -60,6 +66,10 @@ public class FeatureSwitchesTest {
             file,
             Arrays.asList("proxyDispatchDiagnostics=true", "proxyFactory=false"),
             StandardCharsets.ISO_8859_1);
+        for (String audit : allProxyAudits) assertFalse(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .contains(audit));
         assertFalse(
             FeatureSwitches.load(file)
                 .selectMixins(mods, false)
