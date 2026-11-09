@@ -39,3 +39,6 @@ gtnhadjust.proxy.search=搜索配方池名称或注册名
 gtnhadjust.nei.network_present=网络中存在
 gtnhadjust.nei.craftable=可合成
 gtnhadjust.nei.missing=缺失物品
+gtnhadjust.quest.ae_detect=检索AE网络/交付
+gtnhadjust.quest.ae_unavailable=无法连接有电且拥有提取权限的无线AE网络，已仅检查背包。
+gtnhadjust.quest.ae_error=AE任务检索中断，请检查服务端日志。

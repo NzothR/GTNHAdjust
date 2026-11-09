@@ -54,6 +54,8 @@ public class GTNHAdjust {
             net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new SoulVialMultipartHandler());
         patternDeduplication = FeatureConfig.get().patternDeduplication;
         proxyFactoryEnabled = FeatureConfig.get().proxyFactory;
+        if (FeatureConfig.get().questAeRetrieval && Loader.isModLoaded("betterquesting")
+            && Loader.isModLoaded("appliedenergistics2")) com.gtnhadjust.quest.QuestAeNetwork.init();
         if (FeatureConfig.get().quickTerminal || patternDeduplication) TerminalNotifications.init();
         Configuration config = new Configuration(event.getSuggestedConfigurationFile());
         debug = config.getBoolean(

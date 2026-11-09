@@ -39,3 +39,6 @@ gtnhadjust.proxy.search=Search name or registry ID
 gtnhadjust.nei.network_present=Available in network
 gtnhadjust.nei.craftable=Craftable
 gtnhadjust.nei.missing=Missing items
+gtnhadjust.quest.ae_detect=Detect AE Network / Submit
+gtnhadjust.quest.ae_unavailable=No powered wireless AE network with extract permission is available; only inventories were checked.
+gtnhadjust.quest.ae_error=AE quest retrieval was interrupted; check the server log.

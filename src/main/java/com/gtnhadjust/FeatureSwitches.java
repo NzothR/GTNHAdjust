@@ -17,6 +17,7 @@ final class FeatureSwitches {
 
     private static final Logger LOG = Logger.getLogger("GTNHAdjust");
     private static final String HOLOGRAM = "hologramImprovements";
+    private static final String QUEST_AE = "questAeRetrieval";
     private static final String YSMU_ARMS = "ysmuAnimatedArms";
     private static final String LOOT_SIMULATOR = "lootSimulator";
     private static final String PROXY_FACTORY = "proxyFactory";
@@ -41,6 +42,7 @@ final class FeatureSwitches {
     private static final String STRUCTURELIB_AE_AUTOPLACE = "structureLibAeAutoPlace";
 
     final boolean hologramImprovements;
+    final boolean questAeRetrieval;
     final boolean ysmuAnimatedArms;
     final boolean lootSimulator;
     final boolean proxyFactory;
@@ -70,7 +72,9 @@ final class FeatureSwitches {
         boolean craftingDiagnostics, boolean neoEcoCraftingRefreshFix, boolean patternRecipeMapPreservation,
         boolean terminalNeiAlwaysShowPresence, boolean terminalSmartIngredients, boolean matrixPatternDiagnostics,
         boolean matrixPatternLoadFix, boolean soulVialExpandedCapture, boolean structureLibAeAutoPlace,
-        boolean proxyDispatchDiagnostics, boolean ysmuAnimatedArms, boolean hologramImprovements) {
+        boolean proxyDispatchDiagnostics, boolean ysmuAnimatedArms, boolean hologramImprovements,
+        boolean questAeRetrieval) {
+        this.questAeRetrieval = questAeRetrieval;
         this.hologramImprovements = hologramImprovements;
         this.ysmuAnimatedArms = ysmuAnimatedArms;
         this.lootSimulator = lootSimulator;
@@ -104,6 +108,7 @@ final class FeatureSwitches {
         defaults.setProperty(PROXY_FACTORY, "true");
         defaults.setProperty(PROXY_TRACE, "false");
         defaults.setProperty(CROP, "true");
+        defaults.setProperty(QUEST_AE, "true");
         defaults.setProperty(GREENHOUSE, "true");
         defaults.setProperty(CARPENTER, "true");
         defaults.setProperty(TERMINAL, "true");
@@ -159,7 +164,8 @@ final class FeatureSwitches {
                 read(values, STRUCTURELIB_AE_AUTOPLACE),
                 read(values, PROXY_TRACE, false),
                 read(values, YSMU_ARMS),
-                read(values, HOLOGRAM));
+                read(values, HOLOGRAM),
+                read(values, QUEST_AE));
             LOG.info(
                 "Feature switches: lootSimulator=" + result.lootSimulator
                     + ", proxyFactory="
@@ -232,6 +238,7 @@ final class FeatureSwitches {
                 false,
                 false,
                 false,
+                false,
                 false);
         }
     }
@@ -251,6 +258,10 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (questAeRetrieval && loadedMods.contains("betterquesting") && loadedMods.contains("appliedenergistics2")) {
+            mixins.add("quest.TaskRetrievalMixin");
+            if (client) mixins.add("quest.QuestScreenMixin");
+        }
         if (client && ysmuAnimatedArms && loadedMods.contains("gtnrlib") && loadedMods.contains("ysmu")) {
             mixins.add("animation.YsmuHandTransformMixin");
             mixins.add("animation.GtnrAnimatedArmMixin");

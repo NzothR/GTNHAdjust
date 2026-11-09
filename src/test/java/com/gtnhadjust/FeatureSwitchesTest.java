@@ -24,6 +24,34 @@ public class FeatureSwitchesTest {
         Arrays.asList("gtneverreset", "sciencenotleisure", "cropsnh"));
 
     @Test
+    public void questAeSwitchControlsBothSidesAndDependencies() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("betterquesting", "appliedenergistics2"));
+        FeatureSwitches enabled = FeatureSwitches.load(file);
+        assertTrue(
+            enabled.selectMixins(mods, false)
+                .contains("quest.TaskRetrievalMixin"));
+        assertFalse(
+            enabled.selectMixins(mods, false)
+                .contains("quest.QuestScreenMixin"));
+        assertTrue(
+            enabled.selectMixins(mods, true)
+                .contains("quest.QuestScreenMixin"));
+        assertFalse(
+            enabled.selectMixins(new HashSet<>(), true)
+                .contains("quest.TaskRetrievalMixin"));
+        Files.write(file, Arrays.asList("questAeRetrieval=false"), StandardCharsets.ISO_8859_1);
+        FeatureSwitches disabled = FeatureSwitches.load(file);
+        assertFalse(
+            disabled.selectMixins(mods, true)
+                .contains("quest.QuestScreenMixin"));
+        assertFalse(
+            disabled.selectMixins(mods, false)
+                .contains("quest.TaskRetrievalMixin"));
+    }
+
+    @Test
     public void ysmuArmsAreClientOnlyAndRequireBothMods() throws Exception {
         Path file = folder.newFile()
             .toPath();
