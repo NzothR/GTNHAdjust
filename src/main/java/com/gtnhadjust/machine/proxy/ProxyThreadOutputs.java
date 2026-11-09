@@ -2,7 +2,6 @@
 package com.gtnhadjust.machine.proxy;
 
 import java.math.BigInteger;
-import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
@@ -21,9 +20,7 @@ import appeng.me.GridAccessException;
 import appeng.util.item.AEFluidStack;
 import appeng.util.item.AEItemStack;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
-import gregtech.api.util.FluidEjectionHelper;
 import gregtech.api.util.GTUtility;
-import gregtech.api.util.ItemEjectionHelper;
 
 /** Compact output ledger: stack objects describe types, while quantities never pass through int or long. */
 public final class ProxyThreadOutputs {
@@ -84,30 +81,9 @@ public final class ProxyThreadOutputs {
         }
     }
 
-    /**
-     * Delivers a bounded slice using native transactions. A blocked fluid output cannot commit only the items.
-     * Remaining amounts are reduced only after both output transactions commit, and persist in the task NBT.
-     */
+    /** Finished output stays in the ledger until the controller network accepts it. */
     public boolean flush(MTEMultiBlockBase machine) {
-        if (GTNHAdjust.proxyDirectAeOutput && machine instanceof ProxyFactory) return flushAe((ProxyFactory) machine);
-        BigInteger largest = largest();
-        if (largest.signum() == 0) return true;
-        int high = largest.min(BigInteger.valueOf(Integer.MAX_VALUE))
-            .intValueExact();
-        if (transfer(machine, largest, high, false)) {
-            transfer(machine, largest, high, true);
-            return largest().signum() == 0;
-        }
-        if (high == 1 || !transfer(machine, largest, 1, false)) return false;
-        int low = 1;
-        high--;
-        while (low < high) {
-            int middle = (int) (((long) low + high + 1) / 2);
-            if (transfer(machine, largest, middle, false)) low = middle;
-            else high = middle - 1;
-        }
-        if (low > 0) transfer(machine, largest, low, true);
-        return largest().signum() == 0;
+        return machine instanceof ProxyFactory && flushAe((ProxyFactory) machine);
     }
 
     private boolean flushAe(ProxyFactory machine) {
@@ -159,45 +135,6 @@ public final class ProxyThreadOutputs {
             if (GTNHAdjust.debug) GTNHAdjust.LOG.info("[proxy-ae] network unavailable during output");
         }
         return largest().signum() == 0;
-    }
-
-    private static int slice(BigInteger amount, BigInteger largest, int units) {
-        if (amount.signum() == 0) return 0;
-        return amount.multiply(BigInteger.valueOf(units))
-            .divide(largest)
-            .max(BigInteger.ONE)
-            .intValueExact();
-    }
-
-    private boolean transfer(MTEMultiBlockBase machine, BigInteger largest, int units, boolean commit) {
-        ItemEjectionHelper itemHelper = new ItemEjectionHelper(machine.getOutputBusses(), machine.protectsExcessItem());
-        FluidEjectionHelper fluidHelper = new FluidEjectionHelper(
-            machine.getOutputHatches(),
-            machine.protectsExcessFluid());
-        int[] itemSlice = new int[items.length];
-        int[] fluidSlice = new int[fluids.length];
-        for (int i = 0; i < items.length; i++) {
-            itemSlice[i] = slice(itemAmounts[i], largest, units);
-            if (itemSlice[i] > 0
-                && itemHelper.ejectItems(Collections.singletonList(items[i]), itemSlice[i]) != itemSlice[i])
-                return false;
-        }
-        for (int i = 0; i < fluids.length; i++) {
-            fluidSlice[i] = slice(fluidAmounts[i], largest, units);
-            if (fluidSlice[i] > 0
-                && fluidHelper.ejectFluids(Collections.singletonList(fluids[i]), fluidSlice[i]) != fluidSlice[i])
-                return false;
-        }
-        if (commit) {
-            itemHelper.commit();
-            fluidHelper.commit();
-            for (int i = 0; i < items.length; i++)
-                itemAmounts[i] = itemAmounts[i].subtract(BigInteger.valueOf(itemSlice[i]));
-            for (int i = 0; i < fluids.length; i++)
-                fluidAmounts[i] = fluidAmounts[i].subtract(BigInteger.valueOf(fluidSlice[i]));
-            machine.markDirty();
-        }
-        return true;
     }
 
     public NBTTagCompound save() {

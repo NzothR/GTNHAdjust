@@ -32,6 +32,9 @@ public class ProxyFactoryRecipeWhitelistTest {
         for (String included : Arrays.asList(
             "simplification.recipe.petrochemical_complex", // 石油化工综合体
             "gt.recipe.furnace", // 默认解锁的熔炉
+            "tst.recipe.CrystallineInfinitierRecipeMap.name",
+            "tst.recipe.IndustrialAlchemyTowerRecipeMap.name",
+            "tst.recipe.VisualExtremeCraftRecipeMap.name",
             "tst.common.recipe.VisualExtremeCraftRecipeMap.name", // 梦魇转换配方池
             "gt.recipe.multicentrifuge", // 原厂离心，优先于排除大型蒸汽离心机。
             "gg.recipe.componentassemblyline", // 用户明确要求全局保留。
@@ -49,6 +52,7 @@ public class ProxyFactoryRecipeWhitelistTest {
             "gtnl.recipe.petrochemical_plant", // 石化工厂仍排除
             "gt.recipe.blastfurnace", // 太阳烈焰能量锻炉与工业高炉共用。
             "gt.recipe.fakeAssemblylineProcess",
+            "tst.recipe.AssemblyLineWithoutResearchRecipeMap.name",
             "tst.common.recipe.AssemblyLineWithoutResearchRecipeMap.name",
             "gt.recipe.cyclotron",
             "gt.recipe.flotationcell",

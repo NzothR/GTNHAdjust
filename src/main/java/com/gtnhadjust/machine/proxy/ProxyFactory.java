@@ -51,10 +51,12 @@ import gregtech.api.GregTechAPI;
 import gregtech.api.enums.Textures;
 import gregtech.api.enums.VoltageIndex;
 import gregtech.api.interfaces.IIconContainer;
+import gregtech.api.interfaces.IOutputBus;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
+import gregtech.api.metatileentity.implementations.MTEHatchOutputBus;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.RecipeMaps;
 import gregtech.api.recipe.check.CheckRecipeResult;
@@ -218,7 +220,6 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     @Override
     protected void checkMachineHatches(List<StructureError> errors) {
         checkHatchMin(errors, InputBus.or(InputHatch), 1);
-        if (!GTNHAdjust.proxyDirectAeOutput) checkHatchMin(errors, OutputBus.or(OutputHatch), 1);
         checkHatchMin(errors, Energy.or(ExoticEnergy), 1);
         checkHatchMin(errors, Maintenance, 1);
         checkHatchMax(errors, Maintenance, 1);
@@ -239,10 +240,9 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
         super.onPostTick(tile, tick);
         if (tile.isServerSide() && GTNHAdjust.debug && tick % 200 == 0) {
             GTNHAdjust.LOG.info(
-                "[proxy-ae] formed={} enabled={} direct={} active={} threads={}",
+                "[proxy-ae] formed={} enabled={} active={} threads={}",
                 mMachine,
                 tile.isAllowedToWork(),
-                GTNHAdjust.proxyDirectAeOutput,
                 getProxy() != null && getProxy().isActive(),
                 getProxyThreadTasks().size());
         }
@@ -310,12 +310,38 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
         if (controllers.isEmpty()) return;
         ItemStack returned = controllers.get(controllers.size() - 1)
             .copy();
-        ItemEjectionHelper output = new ItemEjectionHelper(getOutputBusses(), true);
-        if (output.ejectStack(returned) != 1) {
-            if (GTNHAdjust.debug) GTNHAdjust.LOG.info("Proxy controller output blocked");
+        IOutputBus selected = null;
+        for (IOutputBus bus : getOutputBusses()) {
+            boolean eligible = ProxyControllerOutputPolicy.accepts(
+                bus.getBusType()
+                    .name());
+            ItemEjectionHelper output = eligible ? new ItemEjectionHelper(Collections.singletonList(bus), true) : null;
+            boolean accepted = eligible && output.ejectStack(returned.copy()) == 1;
+            if (GTNHAdjust.debug && bus instanceof MTEHatchOutputBus hatch && hatch.getBaseMetaTileEntity() != null) {
+                IGregTechTileEntity tile = hatch.getBaseMetaTileEntity();
+                GTNHAdjust.LOG.info(
+                    "[proxy-controller] bus={} type={} eligible={} accepted={} pos=({}, {}, {}) facing={}",
+                    bus.getClass()
+                        .getName(),
+                    bus.getBusType(),
+                    eligible,
+                    accepted,
+                    tile.getXCoord(),
+                    tile.getYCoord(),
+                    tile.getZCoord(),
+                    tile.getFrontFacing());
+            }
+            if (accepted) {
+                output.commit();
+                selected = bus;
+                break;
+            }
+        }
+        if (selected == null) {
+            if (GTNHAdjust.debug)
+                GTNHAdjust.LOG.info("[proxy-controller] output blocked; saved={}", controllers.size());
             return;
         }
-        output.commit();
         ItemStack removed = controllers.remove(controllers.size() - 1);
         refreshUnlockedMaps();
         if (GTNHAdjust.debug) GTNHAdjust.LOG.info("Proxy controller returned: {}", removed);

@@ -15,6 +15,8 @@ public final class ProxyFactoryEssentia {
             case "gtnl.recipe.industrial_crucible":
             case "gtnl.recipe.industrial_infusion_crafting":
             case "gtnl.recipe.industrial_shaped_arcane_crafting":
+            case "tst.recipe.IndustrialAlchemyTowerRecipeMap.name":
+            case "tst.recipe.IndustrialMagicMatrixRecipeMap.name":
             case "tst.common.recipe.IndustrialAlchemyTowerRecipeMap.name":
             case "tst.common.recipe.IndustrialMagicMatrixRecipeMap.name":
                 return true;

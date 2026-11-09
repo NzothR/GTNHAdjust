@@ -206,7 +206,7 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
             .setSpeedBonus(1D / getSpeedMultiplier())
             .setEuModifier(getEUtMultiplier())
             .setOverclock(getOverclockTimeReduction(), getOverclockPowerIncrease());
-        if (GTNHAdjust.proxyDirectAeOutput) logic.setVoidProtection(false, false);
+        logic.setVoidProtection(false, false);
         if (preparingThread >= 0) ((RecipeThreadProcessingLogic) logic).prepareRecipe(power);
     }
 
@@ -358,15 +358,9 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
 
     @Override
     public void stopMachine(@Nonnull ShutDownReason reason) {
-        if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
-            "[proxy-flow] stop reason={} direct={} retainedTasks={}",
-            reason,
-            GTNHAdjust.proxyDirectAeOutput,
-            threadTasks.size());
+        if (GTNHAdjust.debug)
+            GTNHAdjust.LOG.info("[proxy-flow] stop reason={} retainedTasks={}", reason, threadTasks.size());
         super.stopMachine(reason);
-        // Legacy mode aborts unfinished recipes; direct-output mode retains them for resumption.
-        if (!GTNHAdjust.proxyDirectAeOutput) threadTasks.values()
-            .removeIf(task -> !task.isFinished());
         pendingTask = null;
         preparingThread = -1;
         useRemainingPower = false;
