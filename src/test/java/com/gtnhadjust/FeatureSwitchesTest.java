@@ -47,6 +47,44 @@ public class FeatureSwitchesTest {
     }
 
     @Test
+    public void hologramSwitchControlsReplacementAndAeMaterialIntegration() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("structurelib", "gregtech", "appliedenergistics2"));
+        FeatureSwitches enabled = FeatureSwitches.load(file);
+        for (String mixin : Arrays.asList(
+            "structurelib.HologramConstructMixin",
+            "structurelib.HologramWalkerMixin",
+            "structurelib.StructureLibAeAutoPlaceMixin")) {
+            assertTrue(
+                enabled.selectMixins(mods, true)
+                    .contains(mixin));
+            assertTrue(
+                enabled.selectMixins(mods, false)
+                    .contains(mixin));
+        }
+        Files.write(file, Arrays.asList("hologramImprovements=false"), StandardCharsets.ISO_8859_1);
+        FeatureSwitches disabled = FeatureSwitches.load(file);
+        assertFalse(
+            disabled.selectMixins(mods, false)
+                .contains("structurelib.HologramConstructMixin"));
+        assertFalse(
+            disabled.selectMixins(mods, false)
+                .contains("structurelib.HologramWalkerMixin"));
+        assertFalse(
+            disabled.selectMixins(mods, false)
+                .contains("structurelib.StructureLibAeAutoPlaceMixin"));
+        Files.write(file, Arrays.asList("structureLibAeAutoPlace=false"), StandardCharsets.ISO_8859_1);
+        FeatureSwitches noAeSource = FeatureSwitches.load(file);
+        assertTrue(
+            noAeSource.selectMixins(mods, false)
+                .contains("structurelib.HologramConstructMixin"));
+        assertFalse(
+            noAeSource.selectMixins(mods, false)
+                .contains("structurelib.StructureLibAeAutoPlaceMixin"));
+    }
+
+    @Test
     public void proxyFactoryHasIndependentSwitch() throws Exception {
         Path file = folder.newFile()
             .toPath();

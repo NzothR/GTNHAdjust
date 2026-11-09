@@ -62,7 +62,7 @@ public final class AeAutoPlaceItemSource implements IItemSource {
         if (maximum <= 0) return Collections.emptyMap();
 
         try {
-            Access access = findAccess();
+            Access access = findAccess(SecurityPermissions.EXTRACT);
             if (access == null) return Collections.emptyMap();
 
             List<PlannedExtraction> plan = new ArrayList<>();
@@ -110,7 +110,7 @@ public final class AeAutoPlaceItemSource implements IItemSource {
         }
     }
 
-    private Access findAccess() {
+    private Access findAccess(SecurityPermissions permission) {
         List<ItemStack> terminals = new ArrayList<>();
         addTerminal(terminals, PlayerInventoryUtil.getFirstWirelessTerminal(player));
         for (ItemStack stack : player.inventory.mainInventory) addTerminal(terminals, stack);
@@ -134,7 +134,7 @@ public final class AeAutoPlaceItemSource implements IItemSource {
 
             ISecurityGrid security = host.getGrid()
                 .getCache(ISecurityGrid.class);
-            if (security == null || !security.hasPermission(player, SecurityPermissions.EXTRACT)) continue;
+            if (security == null || !security.hasPermission(player, permission)) continue;
 
             IMEMonitor<IAEItemStack> monitor = host.getItemInventory();
             if (monitor == null
@@ -144,6 +144,30 @@ public final class AeAutoPlaceItemSource implements IItemSource {
             return new Access(host, monitor, actionSource);
         }
         return null;
+    }
+
+    /** Return as much of a dismantled stack as the player's wireless AE network can accept. */
+    public static ItemStack returnToNetwork(EntityPlayerMP player, ItemStack stack) {
+        if (player == null || stack == null || stack.stackSize <= 0) return stack;
+        try {
+            Access access = new AeAutoPlaceItemSource(null, player).findAccess(SecurityPermissions.INJECT);
+            if (access == null) return stack;
+            IAEItemStack request = appeng.util.item.AEItemStack.create(stack);
+            if (request == null) return stack;
+            IAEItemStack simulated = access.monitor
+                .injectItems(request.copy(), Actionable.SIMULATE, access.actionSource);
+            if (simulated != null && simulated.getStackSize() >= request.getStackSize()) return stack;
+            if (access.host.extractAEPower(ACCESS_POWER, Actionable.MODULATE, PowerMultiplier.CONFIG)
+                < ACCESS_POWER * 0.99) return stack;
+            IAEItemStack remaining = access.monitor.injectItems(request, Actionable.MODULATE, access.actionSource);
+            if (remaining == null || remaining.getStackSize() <= 0) return null;
+            ItemStack result = stack.copy();
+            result.stackSize = (int) Math.min(Integer.MAX_VALUE, remaining.getStackSize());
+            return result;
+        } catch (RuntimeException failure) {
+            if (GTNHAdjust.debug) GTNHAdjust.LOG.warn("Hologram AE return failed", failure);
+            return stack;
+        }
     }
 
     private static void addTerminal(List<ItemStack> terminals, ItemStack candidate) {

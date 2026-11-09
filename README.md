@@ -124,11 +124,16 @@ craftingDiagnostics=false
 matrixPatternDiagnostics=false
 matrixPatternLoadFix=true
 soulVialExpandedCapture=true
+hologramImprovements=true
 structureLibAeAutoPlace=true
 lootSimulator=true
 ```
 
-`structureLibAeAutoPlace` 为 StructureLib 1.4.47 的多方块构造触发器补充 AE 网络材料来源。生存自动放置优先使用玩家库存及 StructureLib 原有来源，再通过玩家背包或 Baubles 中可用的 AE 无线终端从网络取料；需要无线范围内的活跃网络、终端供电及 AE `EXTRACT` 权限。网络提取按每次取料请求消耗 1 AE 电量。设为 `false` 后不会加载对应 Mixin；配置修改后重启，客户端和服务端应保持一致。适配 GTNH 2.9.0、StructureLib 1.4.47、AE2 及 GT-Never-Reset 0.1.34，无需迁移既有存档数据。
+`hologramImprovements` 是多方块机器全息投影仪使用改善的总开关，默认开启；设为 `false` 后不加载替换功能及原有 AE 材料来源 Mixin。配置修改后重启，客户端与服务端应保持一致。适配 GTNH 2.9.0、StructureLib 1.4.47 和 GregTech；不同模组的结构元素若未暴露可确认的单一信道及等级候选，则安全跳过。
+
+生存模式下，在投影仪中显式设置等级信道（如 `coil`）后，潜行右键 GT 多方块主机会按 StructureLib 的建造配额逐块处理：已是目标等级的方块保持不变；只有结构定义能确认属于同一信道等级序列的既有方块才会替换，其他方块、舱室和带方块实体的位置不拆除；对应位置为空时沿用正常生存放置。替换前检查目标材料和玩家破坏权限；无法放置时尽量恢复原方块及材料。机器正在工作时需先停止。拆下方块先放入玩家背包，背包放不下时尝试通过有 `INJECT` 权限且有电、在范围内的无线终端送入 AE 网络，仍无法接收时在玩家处掉落。支持普通单方块掉落；无法安全识别或有特殊掉落的结构方块跳过。更换可能暂时使多方块解体，建议先在测试存档验证目标机器、断网和背包已满的情况。
+
+原有 `structureLibAeAutoPlace` 子开关继续控制从 AE 网络取建筑材料，默认开启，并受总开关控制；生存放置优先使用玩家库存及 StructureLib 原有来源，再通过可用的 AE 无线终端取料，需要无线范围内的活跃网络、终端供电及 AE `EXTRACT` 权限，每次取料请求消耗 1 AE 电量。
 
 `soulVialExpandedCapture` 扩展 GTNH 2.9.0 的 Ender IO 2.10.51 灵魂瓶：允许捕获原本因 Boss 判定或 Ender IO 灵魂瓶黑名单而被拒绝的生物，并支持右键末影龙等龙型多部位实体的部位。沿用灵魂瓶原有的 NBT 保存和释放方式；玩家、死亡实体以及缺少可还原注册名的实体不支持，其他模组仍可能阻止交互或移除。默认开启；设为 `false` 后不加载对应 Mixin，也不转发多部位交互。客户端和服务端应安装同版本并保持开关一致，修改后重启；开启 `general.debug` 可记录多部位捕获。收容或释放 Boss 可能影响其维度、战斗和世界事件，建议先在测试存档验证。
 

@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 final class FeatureSwitches {
 
     private static final Logger LOG = Logger.getLogger("GTNHAdjust");
+    private static final String HOLOGRAM = "hologramImprovements";
     private static final String YSMU_ARMS = "ysmuAnimatedArms";
     private static final String LOOT_SIMULATOR = "lootSimulator";
     private static final String PROXY_FACTORY = "proxyFactory";
@@ -39,6 +40,7 @@ final class FeatureSwitches {
     private static final String SOUL_VIAL = "soulVialExpandedCapture";
     private static final String STRUCTURELIB_AE_AUTOPLACE = "structureLibAeAutoPlace";
 
+    final boolean hologramImprovements;
     final boolean ysmuAnimatedArms;
     final boolean lootSimulator;
     final boolean proxyFactory;
@@ -68,7 +70,8 @@ final class FeatureSwitches {
         boolean craftingDiagnostics, boolean neoEcoCraftingRefreshFix, boolean patternRecipeMapPreservation,
         boolean terminalNeiAlwaysShowPresence, boolean terminalSmartIngredients, boolean matrixPatternDiagnostics,
         boolean matrixPatternLoadFix, boolean soulVialExpandedCapture, boolean structureLibAeAutoPlace,
-        boolean proxyDispatchDiagnostics, boolean ysmuAnimatedArms) {
+        boolean proxyDispatchDiagnostics, boolean ysmuAnimatedArms, boolean hologramImprovements) {
+        this.hologramImprovements = hologramImprovements;
         this.ysmuAnimatedArms = ysmuAnimatedArms;
         this.lootSimulator = lootSimulator;
         this.proxyFactory = proxyFactory;
@@ -95,6 +98,7 @@ final class FeatureSwitches {
 
     static FeatureSwitches load(Path file) {
         Properties defaults = new Properties();
+        defaults.setProperty(HOLOGRAM, "true");
         defaults.setProperty(YSMU_ARMS, "true");
         defaults.setProperty(LOOT_SIMULATOR, "true");
         defaults.setProperty(PROXY_FACTORY, "true");
@@ -154,7 +158,8 @@ final class FeatureSwitches {
                 read(values, SOUL_VIAL),
                 read(values, STRUCTURELIB_AE_AUTOPLACE),
                 read(values, PROXY_TRACE, false),
-                read(values, YSMU_ARMS));
+                read(values, YSMU_ARMS),
+                read(values, HOLOGRAM));
             LOG.info(
                 "Feature switches: lootSimulator=" + result.lootSimulator
                     + ", proxyFactory="
@@ -198,11 +203,14 @@ final class FeatureSwitches {
                     + ", proxyDispatchDiagnostics="
                     + result.proxyDispatchDiagnostics
                     + ", ysmuAnimatedArms="
-                    + result.ysmuAnimatedArms);
+                    + result.ysmuAnimatedArms
+                    + ", hologramImprovements="
+                    + result.hologramImprovements);
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
             return new FeatureSwitches(
+                false,
                 false,
                 false,
                 false,
@@ -255,7 +263,12 @@ final class FeatureSwitches {
             mixins.add("diagnostic.ProxyCpuReceiveAuditMixin");
             mixins.add("diagnostic.ProxyCircuitSlotAuditMixin");
         }
-        if (structureLibAeAutoPlace && loadedMods.contains("structurelib")
+        if (hologramImprovements && loadedMods.contains("structurelib") && loadedMods.contains("gregtech")) {
+            mixins.add("structurelib.HologramConstructMixin");
+            mixins.add("structurelib.HologramWalkerMixin");
+        }
+        if (hologramImprovements && structureLibAeAutoPlace
+            && loadedMods.contains("structurelib")
             && loadedMods.contains("appliedenergistics2")) mixins.add("structurelib.StructureLibAeAutoPlaceMixin");
         if (soulVialExpandedCapture && loadedMods.contains("EnderIO")) mixins.add("fix.SoulVialCaptureMixin");
         if (cropBreeder && loadedMods.contains("gtneverreset")) {
