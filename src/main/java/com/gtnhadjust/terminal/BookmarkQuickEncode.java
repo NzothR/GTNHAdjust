@@ -1,5 +1,7 @@
 package com.gtnhadjust.terminal;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -84,7 +86,10 @@ public final class BookmarkQuickEncode {
                     for (int i = 0; i < outputs.size(); i++) out[i] = processingStack(oneRecipe(outputs.get(i)));
                 }
             } else {
-                for (int i = 0; i < inputs.size(); i++) in[i] = processingStack(oneRecipe(inputs.get(i)));
+                List<ItemStack> selectedInputs = new ArrayList<>();
+                for (BookmarkItem item : inputs) selectedInputs.add(oneRecipe(item));
+                List<ItemStack> preparedInputs = prepareGtnrInputs(selectedInputs, terminal.shouldKeepNonConsumables());
+                for (int i = 0; i < preparedInputs.size(); i++) in[i] = processingStack(preparedInputs.get(i));
                 for (int i = 0; i < outputs.size(); i++) out[i] = processingStack(oneRecipe(outputs.get(i)));
             }
             String map = handler instanceof GTNEIDefaultHandler
@@ -107,10 +112,42 @@ public final class BookmarkQuickEncode {
             terminal.transferRecipe(
                 new RecipeTransferPayload(crafting, true, 4, false, in, out, arcaneLayout, map),
                 search);
-        } catch (RuntimeException | LinkageError failure) {
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
             GTNHAdjust.LOG.warn("Quick terminal: cannot encode clicked bookmark", failure);
             ClientNotice.show("收藏配方写入失败，详情见客户端日志。");
         }
+    }
+
+    /** Invoke the same GTNR preprocessing used by its NEI import before the shared server-side encoder. */
+    private static List<ItemStack> prepareGtnrInputs(List<ItemStack> selected, boolean keepNonConsumables)
+        throws ReflectiveOperationException {
+        Class<?> ingredientClass = Class
+            .forName("com.xyp.gtneverreset.compat.nei.TerminalRecipeIngredients$Ingredient");
+        Constructor<?> constructor = ingredientClass.getDeclaredConstructor(Object.class, int.class);
+        constructor.setAccessible(true);
+        Method getStack = ingredientClass.getDeclaredMethod("getStack");
+        getStack.setAccessible(true);
+        List<Object> ingredients = new ArrayList<>();
+        for (int i = 0; i < selected.size(); i++) {
+            ItemStack item = selected.get(i);
+            if (item != null) ingredients.add(constructor.newInstance(item.copy(), i));
+        }
+        if (keepNonConsumables) {
+            Class<?> transfer = Class.forName("com.xyp.gtneverreset.compat.nei.QuickTerminalRecipeTransferHandler");
+            Method retain = transfer.getDeclaredMethod("retainSupportedNonConsumables", List.class);
+            retain.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            List<Object> prepared = (List<Object>) retain.invoke(null, ingredients);
+            ingredients = prepared;
+        }
+        Class<?> terminalIngredients = Class.forName("com.xyp.gtneverreset.compat.nei.TerminalRecipeIngredients");
+        Method clearNull = terminalIngredients.getDeclaredMethod("clearNull", List.class);
+        clearNull.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        List<Object> prepared = (List<Object>) clearNull.invoke(null, ingredients);
+        List<ItemStack> result = new ArrayList<>();
+        for (Object ingredient : prepared) result.add((ItemStack) getStack.invoke(ingredient));
+        return result;
     }
 
     private static boolean sameRecipe(BookmarkItem clicked, BookmarkItem candidate) {
