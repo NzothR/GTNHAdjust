@@ -35,3 +35,7 @@ gtnhadjust.proxy.previous=上一页
 gtnhadjust.proxy.next=下一页
 
 gtnhadjust.proxy.search=搜索配方池名称或注册名
+
+gtnhadjust.nei.network_present=网络中存在
+gtnhadjust.nei.craftable=可合成
+gtnhadjust.nei.missing=缺失物品

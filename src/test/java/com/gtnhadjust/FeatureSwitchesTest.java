@@ -405,6 +405,7 @@ public class FeatureSwitchesTest {
         assertEquals(
             Arrays.asList(
                 "terminal.NeiOverlayButtonAccessor",
+                "terminal.NeiOverlayTooltipMixin",
                 "terminal.NeiAlwaysShowPresenceMixin",
                 "fix.QuickTerminalInventoryPacketMixin",
                 "fix.QuickTerminalRecipeScreenMixin",

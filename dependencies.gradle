@@ -42,6 +42,7 @@ dependencies {
     compileOnly(files("ref/libs/gtnl-instance.jar"))
     compileOnly(files("ref/libs/modularui2-instance.jar"))
     compileOnly(files("ref/libs/nei-instance.jar"))
+    compileOnly(files("ref/libs/codechickencore-instance.jar"))
     compileOnly(files("ref/libs/ae2-instance.jar"))
     compileOnly(files("ref/libs/nee-instance.jar"))
     compileOnly(files("ref/libs/gtsr-instance.jar"))

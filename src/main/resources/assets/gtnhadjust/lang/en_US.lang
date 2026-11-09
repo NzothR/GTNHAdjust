@@ -35,3 +35,7 @@ gtnhadjust.proxy.previous=Previous
 gtnhadjust.proxy.next=Next
 
 gtnhadjust.proxy.search=Search name or registry ID
+
+gtnhadjust.nei.network_present=Available in network
+gtnhadjust.nei.craftable=Craftable
+gtnhadjust.nei.missing=Missing items

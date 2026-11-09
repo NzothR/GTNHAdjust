@@ -316,6 +316,7 @@ final class FeatureSwitches {
             && loadedMods.contains("gtneverreset")
             && loadedMods.contains("neenergistics")) {
             mixins.add("terminal.NeiOverlayButtonAccessor");
+            mixins.add("terminal.NeiOverlayTooltipMixin");
             mixins.add("terminal.NeiAlwaysShowPresenceMixin");
         }
         if (client && terminalInventoryFix && loadedMods.contains("gtneverreset")) {

@@ -1,0 +1,109 @@
+package com.gtnhadjust.terminal;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
+
+import org.lwjgl.opengl.GL11;
+
+import com.github.vfyjxf.nee.utils.GuiUtils;
+import com.github.vfyjxf.nee.utils.Ingredient;
+import com.github.vfyjxf.nee.utils.IngredientTracker;
+import com.xyp.gtneverreset.client.gui.GuiQuickEncodingTerminal;
+
+import appeng.api.AEApi;
+import appeng.api.storage.data.IAEItemStack;
+import appeng.api.storage.data.IAEStack;
+import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.ItemStackAmount;
+import codechicken.nei.ItemsTooltipLineHandler;
+import codechicken.nei.guihook.GuiContainerManager;
+import codechicken.nei.recipe.GuiOverlayButton;
+import codechicken.nei.recipe.StackInfo;
+
+/** Builds a fresh snapshot for each tooltip from the terminal's synchronized network inventory. */
+public final class OverlayIngredientTooltip {
+
+    private OverlayIngredientTooltip() {}
+
+    public static void append(GuiOverlayButton button, GuiQuickEncodingTerminal terminal, List<String> tooltip) {
+        IngredientTracker tracker = new IngredientTracker(
+            terminal,
+            button.handlerRef.handler,
+            button.handlerRef.recipeIndex);
+        List<IAEStack<?>> network = GuiUtils.getStorageStacks(terminal, stack -> true);
+        ItemStackAmount present = new ItemStackAmount();
+        ItemStackAmount missing = new ItemStackAmount();
+        List<ItemStack> craftable = new ArrayList<>();
+        for (Ingredient ingredient : tracker.getIngredients()) {
+            if (ingredient.getIngredient() == null || ingredient.getIngredient().item == null) continue;
+            ItemStack shown = ingredient.getIngredient().item;
+            for (IAEStack<?> available : network) {
+                if (!ingredient.matches(available)) continue;
+                ItemStack icon = iconFor(available, shown);
+                if (icon == null) continue;
+                if (available.getStackSize() > 0) present.put(icon, available.getStackSize());
+                if (available.isCraftable()) craftable.add(icon);
+            }
+            if (ingredient.getMissingCount() > 0) missing.add(shown, ingredient.getMissingCount());
+        }
+        appendAmounts(tooltip, "gtnhadjust.nei.network_present", EnumChatFormatting.GREEN, present);
+        if (!craftable.isEmpty()) {
+            ItemsTooltipLineHandler handler = ItemsTooltipLineHandler
+                .of(StatCollector.translateToLocal("gtnhadjust.nei.craftable"), craftable, Integer.MAX_VALUE, 0);
+            handler.setLabelColor(EnumChatFormatting.BLUE);
+            handler.setAmountRenderer(OverlayIngredientTooltip::drawCraftable);
+            tooltip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(handler));
+        }
+        appendAmounts(tooltip, "gtnhadjust.nei.missing", EnumChatFormatting.RED, missing);
+    }
+
+    private static ItemStack iconFor(IAEStack<?> available, ItemStack shown) {
+        if (available instanceof IAEItemStack) {
+            ItemStack stack = ((IAEItemStack) available).getItemStack();
+            if (stack == null) return null;
+            stack = stack.copy();
+            stack.stackSize = 1;
+            return stack;
+        }
+        return StackInfo.isFluidDisplayItem(shown) ? shown.copy() : null;
+    }
+
+    private static void appendAmounts(List<String> tooltip, String label, EnumChatFormatting color,
+        ItemStackAmount amounts) {
+        List<ItemStack> icons = new ArrayList<>();
+        for (java.util.Map.Entry<net.minecraft.nbt.NBTTagCompound, Long> entry : amounts.entrySet()) {
+            ItemStack icon = StackInfo.loadFromNBT(entry.getKey(), 1);
+            if (icon != null) icons.add(icon);
+        }
+        if (icons.isEmpty()) return;
+        ItemsTooltipLineHandler handler = ItemsTooltipLineHandler
+            .of(StatCollector.translateToLocal(label), icons, Integer.MAX_VALUE, 0);
+        handler.setLabelColor(color);
+        ItemsTooltipLineHandler.TotalAmountRenderer renderer = new ItemsTooltipLineHandler.TotalAmountRenderer();
+        handler.setAmountRenderer((x, y, stack, ignored) -> renderer.draw(x, y, stack, amounts.getOrDefault(stack, 0)));
+        tooltip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(handler));
+    }
+
+    private static void drawCraftable(int x, int y, ItemStack stack, long ignored) {
+        GuiContainerManager.drawItem(x, y, stack, true, "");
+        ItemStack pattern = AEApi.instance()
+            .definitions()
+            .items()
+            .encodedPattern()
+            .maybeStack(1)
+            .orNull();
+        if (pattern == null) return;
+        GL11.glPushMatrix();
+        try {
+            GL11.glTranslatef(x, y, 200.0F);
+            GL11.glScalef(0.4F, 0.4F, 1.0F);
+            GuiContainerManager.drawItem(0, 0, pattern);
+        } finally {
+            GL11.glPopMatrix();
+        }
+    }
+}

@@ -90,7 +90,7 @@ $env:TMP = $env:TEMP
 .\gradlew.bat build
 ```
 
-构建产物位于 `build/libs/`。YSMU 兼容编译还需将客户端的 `gtnrlib-0.1.31.jar` 和 `ysmu-1.9.jar` 复制到 `ref/libs/` 对应文件名；它们仅供编译，不打包进模组。开发约定和本机环境见 [AGENTS.md](AGENTS.md)；参考仓库位于不提交的 `ref/`。
+构建产物位于 `build/libs/`。NEI 提示编译还需将客户端的 `CodeChickenCore-1.4.22.jar` 保存为 `ref/libs/codechickencore-instance.jar`。YSMU 兼容编译还需将客户端的 `gtnrlib-0.1.31.jar` 和 `ysmu-1.9.jar` 复制到 `ref/libs/` 对应文件名；它们仅供编译，不打包进模组。开发约定和本机环境见 [AGENTS.md](AGENTS.md)；参考仓库位于不提交的 `ref/`。
 
 Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅助任务使用相应的旧版 Java 工具链，并可将其下载到上述项目内的 Gradle 缓存。当前模组使用示例的 Jabel 模式生成 Java 8 字节码。CropsNH 和 GregTech 依赖通过 GTNH 2.9.0 清单解析。构建还需要将 服务端使用的 GT-Never-Reset 0.1.34 包保存为不提交的 `ref/libs/gtneverreset-0.1.34.jar`；该文件的 SHA-256 为 `56b44a22b7acb767f74a04a5441aa6ac3a50afd57547688adb365526805e8d75`。
 
@@ -160,7 +160,7 @@ GT-Never-Reset 0.1.32 已在 NEI 导入时将切割机展示配方池映射到�
 
 GTNR 快速编码终端配方池保留修复：修改并重新编码已有加工样板时，在原样板与终端记录的来源一致时保留配方池；NEI 导入仍以新配方为准。`config/gtnhadjust-features.properties` 中 `patternRecipeMapPreservation` 默认开启，关闭后不加载此 Mixin；修改须重启并保持客户端与服务端一致。适配 GTNH 2.9.0 与 GT-Never-Reset 0.1.32；`general.debug` 开启时记录保留操作。
 
-二合一无线终端打开的 NEI 配方界面常显材料的网络状态图标，并在可合成的输入左上角显示 AE2 样板标记。`config/gtnhadjust-features.properties` 中 `terminalNeiAlwaysShowPresence` 默认开启，关闭后不加载对应 Mixin；依赖 `terminalInventoryFix`、NEI 2.8.171、NotEnoughEnergistics 和 GT-Never-Reset 0.1.32，仅客户端显示，配置变更后重启。
+二合一无线终端打开的 NEI 配方界面常显材料的网络状态图标，并在可合成的输入左上角显示 AE2 样板标记。悬停合成表覆盖按钮时，按当前网络数据展示绿色“网络中存在”（图标及网络数量）、蓝色“可合成”（图标及左上角样板标记）和红色“缺失物品”（图标及缺少数量），没有内容的分组自动隐藏；同一材料有库存且可合成时可同时出现在两组，库存不足时也会显示缺少部分。流体数量以 L 显示。数据来自客户端终端的已同步网络列表，随网络状态和当前配方更新。`config/gtnhadjust-features.properties` 中 `terminalNeiAlwaysShowPresence` 默认开启，关闭后不加载对应 Mixin；依赖 `terminalInventoryFix`、NEI 2.8.171、NotEnoughEnergistics 和 GT-Never-Reset 0.1.32，仅客户端显示，配置变更后重启。
 
 二合一终端从 NEI 导入时，优先使用匹配的完整收藏配方；否则对可选输入依次优先选择收藏的普通物品或收藏配方产物、对应等级的任意电路板、网络可合成项、网络已有项，同优先级从候选末尾向前选；无匹配时保留 NEI 当前项。分组配方会选择完整成员以保留对应的流体用量。`terminalSmartIngredients` 默认开启，依赖 `quickTerminal`，关闭后不加载对应 Mixin，重启生效；适配 GTNH 2.9.0、GTNR 0.1.32 和 NEI 2.8.171。
 
