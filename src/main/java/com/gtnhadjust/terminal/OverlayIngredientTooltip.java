@@ -3,6 +3,7 @@ package com.gtnhadjust.terminal;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
@@ -38,19 +39,33 @@ public final class OverlayIngredientTooltip {
         ItemStackAmount present = new ItemStackAmount();
         ItemStackAmount missing = new ItemStackAmount();
         List<ItemStack> craftable = new ArrayList<>();
+        ItemStackAmount allCraftable = new ItemStackAmount();
+        long currentTime = Minecraft.getSystemTime();
         for (Ingredient ingredient : tracker.getIngredients()) {
             if (ingredient.getIngredient() == null || ingredient.getIngredient().item == null) continue;
             ItemStack shown = ingredient.getIngredient().item;
+            boolean hasStored = false, hasCraftable = false;
+            ItemStackAmount candidates = new ItemStackAmount();
             for (IAEStack<?> available : network) {
                 if (!ingredient.matches(available)) continue;
                 ItemStack icon = iconFor(available, shown);
                 if (icon == null) continue;
-                if (available.getStackSize() > 0) present.put(icon, available.getStackSize());
-                if (available.isCraftable()) craftable.add(icon);
+                if (available.getStackSize() > 0) {
+                    hasStored = true;
+                    present.put(icon, available.getStackSize());
+                }
+                if (available.isCraftable()) {
+                    hasCraftable = true;
+                    candidates.put(icon, 1);
+                    allCraftable.put(icon, 1);
+                }
             }
-            if (ingredient.getMissingCount() > 0) missing.add(shown, ingredient.getMissingCount());
+            List<ItemStack> choices = candidates.values();
+            if (!choices.isEmpty())
+                craftable.add(choices.get(OverlayGroupPolicy.candidateIndex(choices.size(), currentTime)));
+            if (OverlayGroupPolicy.isMissing(hasCraftable, hasStored, ingredient.getMissingCount()))
+                missing.add(shown, ingredient.getMissingCount());
         }
-        appendAmounts(tooltip, "gtnhadjust.nei.network_present", EnumChatFormatting.GREEN, present);
         if (!craftable.isEmpty()) {
             ItemsTooltipLineHandler handler = ItemsTooltipLineHandler
                 .of(StatCollector.translateToLocal("gtnhadjust.nei.craftable"), craftable, Integer.MAX_VALUE, 0);
@@ -58,6 +73,12 @@ public final class OverlayIngredientTooltip {
             handler.setAmountRenderer(OverlayIngredientTooltip::drawCraftable);
             tooltip.add(GuiDraw.TOOLTIP_HANDLER + GuiDraw.getTipLineId(handler));
         }
+        for (ItemStack icon : allCraftable.values()) {
+            present.remove(icon);
+            missing.remove(icon);
+        }
+        for (ItemStack icon : present.values()) missing.remove(icon);
+        appendAmounts(tooltip, "gtnhadjust.nei.network_present", EnumChatFormatting.GREEN, present);
         appendAmounts(tooltip, "gtnhadjust.nei.missing", EnumChatFormatting.RED, missing);
     }
 

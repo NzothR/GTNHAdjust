@@ -160,7 +160,7 @@ GT-Never-Reset 0.1.32 已在 NEI 导入时将切割机展示配方池映射到�
 
 GTNR 快速编码终端配方池保留修复：修改并重新编码已有加工样板时，在原样板与终端记录的来源一致时保留配方池；NEI 导入仍以新配方为准。`config/gtnhadjust-features.properties` 中 `patternRecipeMapPreservation` 默认开启，关闭后不加载此 Mixin；修改须重启并保持客户端与服务端一致。适配 GTNH 2.9.0 与 GT-Never-Reset 0.1.32；`general.debug` 开启时记录保留操作。
 
-二合一无线终端打开的 NEI 配方界面常显材料的网络状态图标，并在可合成的输入左上角显示 AE2 样板标记。悬停合成表覆盖按钮时，按当前网络数据展示绿色“网络中存在”（图标及网络数量）、蓝色“可合成”（图标及左上角样板标记）和红色“缺失物品”（图标及缺少数量），没有内容的分组自动隐藏；同一材料有库存且可合成时可同时出现在两组，库存不足时也会显示缺少部分。流体数量以 L 显示。数据来自客户端终端的已同步网络列表，随网络状态和当前配方更新。`config/gtnhadjust-features.properties` 中 `terminalNeiAlwaysShowPresence` 默认开启，关闭后不加载对应 Mixin；依赖 `terminalInventoryFix`、NEI 2.8.171、NotEnoughEnergistics 和 GT-Never-Reset 0.1.32，仅客户端显示，配置变更后重启。
+二合一无线终端打开的 NEI 配方界面常显材料的网络状态图标，并在可合成的输入左上角显示 AE2 样板标记。悬停合成表覆盖按钮时，按顺序展示蓝色“可合成”（图标及左上角样板标记）、绿色“网络中存在”（图标及网络数量）和红色“缺失物品”（图标及缺少数量），没有内容的分组自动隐藏。可合成的物品不再出现在网络现有组；同一材料的多个可合成候选只占一个图标位置，每秒轮换。材料的任一候选在网络中有库存或可合成时，不显示该材料的缺失项，即使库存不足也不显示缺口。流体数量以 L 显示。数据来自客户端终端的已同步网络列表，随网络状态和当前配方更新。`config/gtnhadjust-features.properties` 中 `terminalNeiAlwaysShowPresence` 默认开启，关闭后不加载对应 Mixin；依赖 `terminalInventoryFix`、NEI 2.8.171、NotEnoughEnergistics 和 GT-Never-Reset 0.1.32，仅客户端显示，配置变更后重启。
 
 二合一终端从 NEI 导入时，优先使用匹配的完整收藏配方；否则对可选输入依次优先选择收藏的普通物品或收藏配方产物、对应等级的任意电路板、网络可合成项、网络已有项，同优先级从候选末尾向前选；无匹配时保留 NEI 当前项。分组配方会选择完整成员以保留对应的流体用量。`terminalSmartIngredients` 默认开启，依赖 `quickTerminal`，关闭后不加载对应 Mixin，重启生效；适配 GTNH 2.9.0、GTNR 0.1.32 和 NEI 2.8.171。
 
