@@ -144,7 +144,7 @@ public class FeatureSwitchesTest {
         assertTrue(Files.isRegularFile(file));
         assertTrue(switches.carpenterRecipes);
         assertEquals(
-            19,
+            20,
             switches.selectMixins(MODS, true)
                 .size());
         assertEquals(
@@ -251,9 +251,15 @@ public class FeatureSwitchesTest {
             StandardCharsets.ISO_8859_1);
         FeatureSwitches enabled = FeatureSwitches.load(file);
         assertEquals(
-            8,
+            9,
             enabled.selectMixins(MODS, true)
                 .size());
+        assertTrue(
+            enabled.selectMixins(MODS, true)
+                .contains("terminal.BookmarkEncodeClickMixin"));
+        assertFalse(
+            enabled.selectMixins(MODS, false)
+                .contains("terminal.BookmarkEncodeClickMixin"));
         assertEquals(
             2,
             enabled.selectMixins(MODS, false)

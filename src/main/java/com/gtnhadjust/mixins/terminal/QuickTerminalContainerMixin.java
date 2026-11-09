@@ -18,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.gtnhadjust.GTNHAdjust;
 import com.gtnhadjust.terminal.PatternDuplicates;
+import com.gtnhadjust.terminal.PatternEncodingResult;
 import com.gtnhadjust.terminal.Reflection;
 import com.gtnhadjust.terminal.TerminalNotifications;
 import com.gtnhadjust.terminal.TransferMetadata;
@@ -48,18 +49,19 @@ public abstract class QuickTerminalContainerMixin {
     }
 
     @Unique
-    private boolean gtnhadjust$outputWasEmpty;
+    private ItemStack gtnhadjust$previousOutput;
 
     @Inject(method = "applyRecipeTransfer", at = @At("HEAD"), remap = false)
     private void gtnhadjust$beforeTransfer(RecipeTransferPayload payload, CallbackInfo ci) {
-        gtnhadjust$outputWasEmpty = encodedPatternSlot != null && !encodedPatternSlot.getHasStack();
+        gtnhadjust$previousOutput = encodedPatternSlot == null ? null : encodedPatternSlot.getStack();
     }
 
     @Inject(method = "applyRecipeTransfer", at = @At("RETURN"), remap = false)
     private void gtnhadjust$upload(RecipeTransferPayload payload, CallbackInfo ci) {
         if (!Platform.isServer() || !payload.shouldEncode()) return;
-        if (!gtnhadjust$outputWasEmpty || encodedPatternSlot == null || !encodedPatternSlot.getHasStack()) {
-            gtnhadjust$report(gtnhadjust$outputWasEmpty ? "编码失败：未生成样板，请检查空白样板、配方和能源。" : "未自动上传：编码输出槽原本有样板，请先取出后重试。");
+        if (!PatternEncodingResult
+            .isNew(gtnhadjust$previousOutput, encodedPatternSlot == null ? null : encodedPatternSlot.getStack())) {
+            gtnhadjust$report("编码失败：未生成新样板，请检查空白样板、配方和能源；原样板已保留。");
             return;
         }
         ItemStack pattern = encodedPatternSlot.getStack();

@@ -267,6 +267,7 @@ final class FeatureSwitches {
             mixins.add("terminal.QuickTerminalContainerMixin");
             if (client) {
                 mixins.add("terminal.QuickTerminalGuiMixin");
+                mixins.add("terminal.BookmarkEncodeClickMixin");
                 mixins.add("terminal.InterfaceTerminalSettingsAccessor");
                 mixins.add("terminal.QuickTerminalSettingsMixin");
                 mixins.add("terminal.QuickTerminalRecipeMixin");

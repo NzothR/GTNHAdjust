@@ -90,7 +90,7 @@ $env:TMP = $env:TEMP
 .\gradlew.bat build
 ```
 
-构建产物位于 `build/libs/`。NEI 提示编译还需将客户端的 `CodeChickenCore-1.4.22.jar` 保存为 `ref/libs/codechickencore-instance.jar`。YSMU 兼容编译还需将客户端的 `gtnrlib-0.1.31.jar` 和 `ysmu-1.9.jar` 复制到 `ref/libs/` 对应文件名；它们仅供编译，不打包进模组。开发约定和本机环境见 [AGENTS.md](AGENTS.md)；参考仓库位于不提交的 `ref/`。
+构建产物位于 `build/libs/`。NEI 提示及收藏配方编译还需将客户端的 `CodeChickenCore-1.4.22.jar` 和 `ae2fc-1.5.116-gtnh.jar` 分别保存为 `ref/libs/codechickencore-instance.jar` 和 `ref/libs/ae2fc-instance.jar`。YSMU 兼容编译还需将客户端的 `gtnrlib-0.1.31.jar` 和 `ysmu-1.9.jar` 复制到 `ref/libs/` 对应文件名；它们仅供编译，不打包进模组。开发约定和本机环境见 [AGENTS.md](AGENTS.md)；参考仓库位于不提交的 `ref/`。
 
 Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅助任务使用相应的旧版 Java 工具链，并可将其下载到上述项目内的 Gradle 缓存。当前模组使用示例的 Jabel 模式生成 Java 8 字节码。CropsNH 和 GregTech 依赖通过 GTNH 2.9.0 清单解析。构建还需要将 服务端使用的 GT-Never-Reset 0.1.34 包保存为不提交的 `ref/libs/gtneverreset-0.1.34.jar`；该文件的 SHA-256 为 `56b44a22b7acb767f74a04a5441aa6ac3a50afd57547688adb365526805e8d75`。
 
@@ -152,7 +152,7 @@ lootSimulator=true
 
 GT-Never-Reset 0.1.32 已在 NEI 导入时将切割机展示配方池映射到真实配方池，本模组不再注入旧的 `factoryRecipeMapFix`。此前已编码且记录了展示配方池的旧样板不会自动迁移，遇到通用联合工厂无法匹配时需重新从 NEI 导入并编码；其他配方池不受该撤除影响。
 
-终端调整以 GT-Never-Reset 0.1.32、NEI 2.8.171、AE2 rv3-beta-1095 为基准。客户端与服务端必须安装相同版本的本模组，并将 `quickTerminal` 设置为相同值：该功能扩展了终端配方转移的数据包。旧配置文件没有该项时默认为 `true`；要关闭时手动添加 `quickTerminal=false` 并重启两端。普通 `+` 传入配方，Shift/Alt + `+` 进一步自动编码；匹配到完整收藏配方时优先使用收藏的材料和产物；其他多候选输入按下述 `terminalSmartIngredients` 规则选择，关闭该功能时保留既有选择行为。编码后只有一个产出槽位的样板才会尝试自动上传；失败或多产出时保留在终端编码槽。自动上传使用已同步的接口名称来确定候选，由服务端验证接口和空位并写入；如果客户端尚未收到接口列表，可能找不到本地化名称的目标。接口搜索仍遵循 GT-Never-Reset 的 `fillSearchFromNeiRecipes` 设置。终端的详细调试日志可在 `config/gtnhadjust.cfg` 中的 `quickTerminal.debug` 开启，默认关闭。
+终端调整以 GT-Never-Reset 0.1.32、NEI 2.8.171、AE2 rv3-beta-1095 为基准。客户端与服务端必须安装相同版本的本模组，并将 `quickTerminal` 设置为相同值：该功能扩展了终端配方转移的数据包。旧配置文件没有该项时默认为 `true`；要关闭时手动添加 `quickTerminal=false` 并重启两端。普通 `+` 传入配方，Shift/Alt + `+` 进一步自动编码；在二合一终端的 NEI 收藏面板对一条收藏配方的产物按 Alt+左键，可直接使用该条收藏（同一收藏组及配方）的材料和产物编码并尝试上传，不使用其他收藏配方或智能候选选择。该快捷操作占用终端中 NEI 原有的 Alt+左键折叠操作；对普通收藏物品或材料不拦截。收藏中的材料或产物不完整时按现有收藏内容写入，不补全；合成配方需要能够还原原有合成格位置；若加工配方的原 NEI 处理器不可恢复，仍按收藏内容尝试编码，但无法自动取得配方池和接口搜索名，样板将留在编码槽供检查。匹配到完整收藏配方时优先使用收藏的材料和产物；其他多候选输入按下述 `terminalSmartIngredients` 规则选择，关闭该功能时保留既有选择行为。编码槽已有样板时也允许重新编码并上传新结果；编码失败时保留原样板，不上传旧样板。编码后只有一个产出槽位的样板才会尝试自动上传；失败或多产出时保留在终端编码槽。自动上传使用已同步的接口名称来确定候选，由服务端验证接口和空位并写入；如果客户端尚未收到接口列表，可能找不到本地化名称的目标。接口搜索仍遵循 GT-Never-Reset 的 `fillSearchFromNeiRecipes` 设置。终端的详细调试日志可在 `config/gtnhadjust.cfg` 中的 `quickTerminal.debug` 开启，默认关闭。
 
 `terminalInventoryFix` 独立控制二合一终端的客户端库存同步及 NEI 状态修复，基于 AE2 rv3-beta-1095、NEI 2.8.171 和 NotEnoughEnergistics 1.7.50。旧配置缺省启用，添加 `terminalInventoryFix=false` 并重启客户端可彻底停用相关 Mixin；服务端无需此修复。库存状态指示复用 NotEnoughEnergistics，未安装该模组时只启用库存数据包转发。
 
