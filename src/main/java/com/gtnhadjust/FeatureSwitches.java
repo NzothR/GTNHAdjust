@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 final class FeatureSwitches {
 
     private static final Logger LOG = Logger.getLogger("GTNHAdjust");
+    private static final String YSMU_ARMS = "ysmuAnimatedArms";
     private static final String LOOT_SIMULATOR = "lootSimulator";
     private static final String PROXY_FACTORY = "proxyFactory";
     private static final String PROXY_TRACE = "proxyDispatchDiagnostics";
@@ -38,6 +39,7 @@ final class FeatureSwitches {
     private static final String SOUL_VIAL = "soulVialExpandedCapture";
     private static final String STRUCTURELIB_AE_AUTOPLACE = "structureLibAeAutoPlace";
 
+    final boolean ysmuAnimatedArms;
     final boolean lootSimulator;
     final boolean proxyFactory;
     final boolean proxyDispatchDiagnostics;
@@ -66,7 +68,8 @@ final class FeatureSwitches {
         boolean craftingDiagnostics, boolean neoEcoCraftingRefreshFix, boolean patternRecipeMapPreservation,
         boolean terminalNeiAlwaysShowPresence, boolean terminalSmartIngredients, boolean matrixPatternDiagnostics,
         boolean matrixPatternLoadFix, boolean soulVialExpandedCapture, boolean structureLibAeAutoPlace,
-        boolean proxyDispatchDiagnostics) {
+        boolean proxyDispatchDiagnostics, boolean ysmuAnimatedArms) {
+        this.ysmuAnimatedArms = ysmuAnimatedArms;
         this.lootSimulator = lootSimulator;
         this.proxyFactory = proxyFactory;
         this.proxyDispatchDiagnostics = proxyDispatchDiagnostics;
@@ -92,6 +95,7 @@ final class FeatureSwitches {
 
     static FeatureSwitches load(Path file) {
         Properties defaults = new Properties();
+        defaults.setProperty(YSMU_ARMS, "true");
         defaults.setProperty(LOOT_SIMULATOR, "true");
         defaults.setProperty(PROXY_FACTORY, "true");
         defaults.setProperty(PROXY_TRACE, "false");
@@ -149,7 +153,8 @@ final class FeatureSwitches {
                 read(values, MATRIX_PATTERN_LOAD_FIX),
                 read(values, SOUL_VIAL),
                 read(values, STRUCTURELIB_AE_AUTOPLACE),
-                read(values, PROXY_TRACE, false));
+                read(values, PROXY_TRACE, false),
+                read(values, YSMU_ARMS));
             LOG.info(
                 "Feature switches: lootSimulator=" + result.lootSimulator
                     + ", proxyFactory="
@@ -191,11 +196,14 @@ final class FeatureSwitches {
                     + ", structureLibAeAutoPlace="
                     + result.structureLibAeAutoPlace
                     + ", proxyDispatchDiagnostics="
-                    + result.proxyDispatchDiagnostics);
+                    + result.proxyDispatchDiagnostics
+                    + ", ysmuAnimatedArms="
+                    + result.ysmuAnimatedArms);
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
             return new FeatureSwitches(
+                false,
                 false,
                 false,
                 false,
@@ -235,6 +243,10 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (client && ysmuAnimatedArms && loadedMods.contains("gtnrlib") && loadedMods.contains("ysmu")) {
+            mixins.add("animation.YsmuHandTransformMixin");
+            mixins.add("animation.GtnrAnimatedArmMixin");
+        }
         if (proxyFactory && proxyDispatchDiagnostics
             && loadedMods.contains("gtneverreset")
             && loadedMods.contains("appliedenergistics2")) {

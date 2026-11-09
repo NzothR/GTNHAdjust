@@ -4,6 +4,10 @@
 
 仓库另有独立的 [Future Resource Protocol 子项目](frp/README.md)，使用单独的模组和构建，不依赖 GTNH Adjust；目前提供首轮测试版便携终端及世界账本，使用范围和限制见子项目文档。
 
+## YSMU 第一人称动画兼容
+
+安装 YSMU 1.9 和 GTNRLib 0.1.31 时，GTNRLib 第一人称持物动画使用 YSMU 当前模型的第一人称手臂，物品及手臂动作仍由 GTNRLib 控制。双手动作的左臂使用右臂模型镜像，模型未准备好、禁用自身模型或手臂时回退 GTNRLib 原手臂；模型的左右臂外观不对称时镜像无法还原左臂。兼容尚需在游戏内验证不同模型、手持物品和双手动作，不针对光影渲染适配。该功能只在客户端生效，`config/gtnhadjust-features.properties` 的 `ysmuAnimatedArms` 默认开启，修改后重启客户端；适配 GTNH 2.9.0、GTNR 0.1.34、GTNRLib 0.1.31 和 YSMU 1.9，其他版本需重新验证。
+
 ## 代理联合工厂（基础版）
 
 代理联合工厂可由一个 GTNR 通用联合工厂控制器在工作台无序合成。结构、仓室要求、参数模块、线程、供电、超频以及样板配方池和产物匹配沿用 GT-Never-Reset 0.1.34。控制器正面纹理右下角显示“依”。机器界面可打开已解锁配方池分页列表，名称随客户端语言显示，并随控制器的输入和退回更新；搜索框可按本地化名称或注册名筛选。
@@ -84,7 +88,7 @@ $env:TMP = $env:TEMP
 .\gradlew.bat build
 ```
 
-构建产物位于 `build/libs/`。开发约定和本机环境见 [AGENTS.md](AGENTS.md)；参考仓库位于不提交的 `ref/`。
+构建产物位于 `build/libs/`。YSMU 兼容编译还需将客户端的 `gtnrlib-0.1.31.jar` 和 `ysmu-1.9.jar` 复制到 `ref/libs/` 对应文件名；它们仅供编译，不打包进模组。开发约定和本机环境见 [AGENTS.md](AGENTS.md)；参考仓库位于不提交的 `ref/`。
 
 Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅助任务使用相应的旧版 Java 工具链，并可将其下载到上述项目内的 Gradle 缓存。当前模组使用示例的 Jabel 模式生成 Java 8 字节码。CropsNH 和 GregTech 依赖通过 GTNH 2.9.0 清单解析。构建还需要将 服务端使用的 GT-Never-Reset 0.1.34 包保存为不提交的 `ref/libs/gtneverreset-0.1.34.jar`；该文件的 SHA-256 为 `56b44a22b7acb767f74a04a5441aa6ac3a50afd57547688adb365526805e8d75`。
 
@@ -100,6 +104,7 @@ Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅�
 
 ```properties
 proxyFactory=true
+ysmuAnimatedArms=true
 cropBreeder=true
 steamGreenhouse=true
 carpenterRecipes=true

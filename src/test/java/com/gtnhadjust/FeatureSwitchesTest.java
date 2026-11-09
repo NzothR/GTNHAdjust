@@ -24,6 +24,29 @@ public class FeatureSwitchesTest {
         Arrays.asList("gtneverreset", "sciencenotleisure", "cropsnh"));
 
     @Test
+    public void ysmuArmsAreClientOnlyAndRequireBothMods() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("gtnrlib", "ysmu"));
+        List<String> mixins = Arrays.asList("animation.YsmuHandTransformMixin", "animation.GtnrAnimatedArmMixin");
+        FeatureSwitches enabled = FeatureSwitches.load(file);
+        assertTrue(
+            enabled.selectMixins(mods, true)
+                .containsAll(mixins));
+        assertFalse(
+            enabled.selectMixins(mods, false)
+                .contains(mixins.get(0)));
+        assertFalse(
+            enabled.selectMixins(new HashSet<>(Arrays.asList("gtnrlib")), true)
+                .contains(mixins.get(0)));
+        Files.write(file, Arrays.asList("ysmuAnimatedArms=false"), StandardCharsets.ISO_8859_1);
+        for (String mixin : mixins) assertFalse(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, true)
+                .contains(mixin));
+    }
+
+    @Test
     public void proxyFactoryHasIndependentSwitch() throws Exception {
         Path file = folder.newFile()
             .toPath();
