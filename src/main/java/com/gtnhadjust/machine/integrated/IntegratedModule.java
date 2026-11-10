@@ -2,7 +2,6 @@ package com.gtnhadjust.machine.integrated;
 
 import java.util.List;
 
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -13,6 +12,7 @@ import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.gtnewhorizon.structurelib.structure.StructureUtility;
 import com.science.gtnl.utils.StructureUtils;
 
+import bartworks.common.loaders.ItemRegistry;
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.HatchElement;
 import gregtech.api.enums.Materials;
@@ -61,16 +61,16 @@ public final class IntegratedModule extends MTEExtendedPowerMultiBlockBase<Integ
                 "main",
                 StructureUtility
                     .transpose(StructureUtils.readStructureFromFile("gtnhadjust:multiblock/integrated_line/module")))
-            .addElement('A', StructureUtility.ofBlock(Blocks.glass, 0))
-            .addElement('B', Casings.AssemblyLineCasing.asElement())
-            .addElement('C', Casings.ProcessorMachineCasing.asElement())
-            .addElement('D', Casings.SteelGearBoxCasing.asElement())
-            .addElement('E', Casings.FusionMachineCasing.asElement())
-            .addElement('F', Casings.TungstensteelPipeCasing.asElement())
-            .addElement('G', Casings.MotorMachineCasing.asElement())
-            .addElement('H', GTStructureUtility.ofFrame(Materials.Steel))
-            .addElement('I', Casings.RobustTungstenSteelMachineCasing.asElement())
-            .addElement('J', Casings.CleanStainlessSteelMachineCasing.asElement())
+            .addElement('A', StructureUtility.ofBlock(ItemRegistry.bw_realglas2, 1))
+            .addElement('B', Casings.ZPMMachineCasing.asElement())
+            .addElement('C', Casings.UEVMachineCasing.asElement())
+            .addElement('D', Casings.UEVMachineCasing.asElement())
+            .addElement('E', Casings.UVMachineCasing.asElement())
+            .addElement('F', Casings.UVSolenoidSuperconductorCoil.asElement())
+            .addElement('G', Casings.UHVSolenoidSuperconductorCoil.asElement())
+            .addElement('H', GTStructureUtility.ofFrame(Materials.NaquadahAlloy))
+            .addElement('I', Casings.UHVMachineCasing.asElement())
+            .addElement('J', Casings.ZPMMachineCasing.asElement())
             .addElement(
                 'K',
                 StructureUtility.ofChain(
@@ -81,9 +81,9 @@ public final class IntegratedModule extends MTEExtendedPowerMultiBlockBase<Integ
                             HatchElement.OutputBus,
                             HatchElement.InputHatch,
                             HatchElement.OutputHatch)
-                        .casingIndex(Casings.RobustTungstenSteelMachineCasing.getTextureId())
+                        .casingIndex(Casings.UHVMachineCasing.getTextureId())
                         .hint(1)
-                        .buildAndChain(Casings.RobustTungstenSteelMachineCasing.asElement())))
+                        .buildAndChain(Casings.UHVMachineCasing.asElement())))
             .build();
         return structure;
     }
@@ -116,7 +116,7 @@ public final class IntegratedModule extends MTEExtendedPowerMultiBlockBase<Integ
     @Override
     public ITexture[] getTexture(IGregTechTileEntity tile, ForgeDirection side, ForgeDirection facing, int color,
         boolean active, boolean redstone) {
-        ITexture casing = Casings.RobustTungstenSteelMachineCasing.getCasingTexture();
+        ITexture casing = Casings.UHVMachineCasing.getCasingTexture();
         return side == facing ? new ITexture[] { casing, TextureFactory.builder()
             .addIcon(FACE)
             .extFacing()
