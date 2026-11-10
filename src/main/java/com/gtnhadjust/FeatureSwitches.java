@@ -260,7 +260,12 @@ final class FeatureSwitches {
         List<String> mixins = new ArrayList<>();
         if (questAeRetrieval && loadedMods.contains("betterquesting") && loadedMods.contains("appliedenergistics2")) {
             mixins.add("quest.TaskRetrievalMixin");
-            if (client) mixins.add("quest.QuestScreenMixin");
+            if (client) {
+                mixins.add("quest.QuestScreenMixin");
+                mixins.add("quest.QuestTaskPanelMixin");
+                mixins.add("quest.QuestItemClickMixin");
+                mixins.add("quest.QuestInteractiveItemClickMixin");
+            }
         }
         if (client && ysmuAnimatedArms && loadedMods.contains("gtnrlib") && loadedMods.contains("ysmu")) {
             mixins.add("animation.YsmuHandTransformMixin");

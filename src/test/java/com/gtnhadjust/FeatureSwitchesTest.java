@@ -38,6 +38,21 @@ public class FeatureSwitchesTest {
         assertTrue(
             enabled.selectMixins(mods, true)
                 .contains("quest.QuestScreenMixin"));
+        assertTrue(
+            enabled.selectMixins(mods, true)
+                .contains("quest.QuestTaskPanelMixin"));
+        assertTrue(
+            enabled.selectMixins(mods, true)
+                .contains("quest.QuestItemClickMixin"));
+        assertTrue(
+            enabled.selectMixins(mods, true)
+                .contains("quest.QuestInteractiveItemClickMixin"));
+        assertFalse(
+            enabled.selectMixins(mods, false)
+                .contains("quest.QuestTaskPanelMixin"));
+        assertFalse(
+            enabled.selectMixins(mods, false)
+                .contains("quest.QuestItemClickMixin"));
         assertFalse(
             enabled.selectMixins(new HashSet<>(), true)
                 .contains("quest.TaskRetrievalMixin"));
@@ -46,6 +61,15 @@ public class FeatureSwitchesTest {
         assertFalse(
             disabled.selectMixins(mods, true)
                 .contains("quest.QuestScreenMixin"));
+        assertFalse(
+            disabled.selectMixins(mods, true)
+                .contains("quest.QuestTaskPanelMixin"));
+        assertFalse(
+            disabled.selectMixins(mods, true)
+                .contains("quest.QuestItemClickMixin"));
+        assertFalse(
+            disabled.selectMixins(mods, true)
+                .contains("quest.QuestInteractiveItemClickMixin"));
         assertFalse(
             disabled.selectMixins(mods, false)
                 .contains("quest.TaskRetrievalMixin"));

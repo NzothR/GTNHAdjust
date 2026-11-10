@@ -42,3 +42,7 @@ gtnhadjust.nei.missing=缺失物品
 gtnhadjust.quest.ae_detect=检索AE网络/交付
 gtnhadjust.quest.ae_unavailable=无法连接有电且拥有提取权限的无线AE网络，已仅检查背包。
 gtnhadjust.quest.ae_error=AE任务检索中断，请检查服务端日志。
+
+gtnhadjust.quest.craft_unavailable=无法连接具备合成权限的无线AE网络。
+gtnhadjust.quest.craft_not_needed=背包和AE网络中的物料已足够，请点击检索/交付。
+gtnhadjust.quest.craft_no_pattern=没有找到可用的合成样板或无线终端。

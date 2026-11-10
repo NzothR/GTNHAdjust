@@ -14,6 +14,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.gtnhadjust.GTNHAdjust;
@@ -26,17 +27,25 @@ import appeng.api.config.FuzzyMode;
 import appeng.api.config.PowerMultiplier;
 import appeng.api.config.SecurityPermissions;
 import appeng.api.features.IWirelessTermHandler;
+import appeng.api.networking.crafting.ICraftingGrid;
 import appeng.api.networking.security.BaseActionSource;
 import appeng.api.networking.security.ISecurityGrid;
 import appeng.api.networking.security.PlayerSource;
 import appeng.api.storage.IMEMonitor;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
+import appeng.api.storage.data.IAEStack;
+import appeng.container.PrimaryGui;
+import appeng.container.implementations.ContainerCraftConfirm;
+import appeng.core.sync.GuiBridge;
 import appeng.helpers.WirelessTerminalGuiObject;
+import appeng.util.Platform;
 import appeng.util.item.AEFluidStack;
 import appeng.util.item.AEItemStack;
 import baubles.api.BaublesApi;
+import betterquesting.api.api.QuestingAPI;
 import betterquesting.api.utils.BigItemStack;
+import betterquesting.api.utils.ItemComparison;
 import betterquesting.api2.utils.ParticipantInfo;
 import betterquesting.api2.utils.Tuple2;
 import cpw.mods.fml.common.Loader;
@@ -190,6 +199,140 @@ public final class QuestAeDetector {
             }
             remaining.put(key, Math.max(0, available - used * fluid.amount));
         }
+    }
+
+    /** Open an ordinary AE confirmation screen; no task progress or inventory is changed here. */
+    public static void openCraft(EntityPlayerMP player, TaskRetrieval task, int index) {
+        if (index < 0 || index >= task.requiredItems.size() || task.isComplete(QuestingAPI.getQuestingUUID(player)))
+            return;
+        Access a = findAccess(player);
+        if (a == null) {
+            player
+                .addChatMessage(new net.minecraft.util.ChatComponentTranslation("gtnhadjust.quest.craft_unavailable"));
+            return;
+        }
+        try {
+            ISecurityGrid security = a.host.getGrid()
+                .getCache(ISecurityGrid.class);
+            if (security == null || !security.hasPermission(player, SecurityPermissions.CRAFT)) {
+                player.addChatMessage(
+                    new net.minecraft.util.ChatComponentTranslation("gtnhadjust.quest.craft_unavailable"));
+                return;
+            }
+            ICraftingGrid crafting = a.host.getGrid()
+                .getCache(ICraftingGrid.class);
+            if (crafting == null) return;
+            BigItemStack required = task.requiredItems.get(index);
+            int[] progress = task.getUsersProgress(QuestingAPI.getQuestingUUID(player));
+            long needed = Math.max(0L, (long) required.stackSize - (task.consume ? progress[index] : 0));
+            for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
+                ItemStack stack = player.inventory.getStackInSlot(i);
+                if (matches(task, required, stack)) needed -= stack.stackSize;
+            }
+            Set<IAEItemStack> seen = new HashSet<>();
+            List<ItemStack> candidates = new ArrayList<>();
+            candidates.add(required.getBaseStack());
+            if (required.hasOreDict()) Collections.addAll(
+                candidates,
+                required.getOreIngredient()
+                    .getMatchingStacks());
+            for (ItemStack candidate : candidates) {
+                IAEItemStack key = AEItemStack.create(candidate);
+                if (key == null) continue;
+                for (IAEItemStack stack : a.items.getStorageList()
+                    .findFuzzy(key, FuzzyMode.IGNORE_ALL)) {
+                    if (stack == null || !seen.add(stack.copy()) || !matches(task, required, stack.getItemStack()))
+                        continue;
+                    IAEItemStack stored = a.items.extractItems(
+                        stack.copy()
+                            .setStackSize(Long.MAX_VALUE),
+                        Actionable.SIMULATE,
+                        a.source);
+                    if (stored != null) needed -= stored.getStackSize();
+                }
+            }
+            ItemStack prototype = required.getBaseStack()
+                .copy();
+            prototype.stackSize = 1;
+            FluidStack fluid = GTUtility.getFluidForFilledItem(prototype, true);
+            IAEFluidStack fluidKey = fluid == null ? null : AEFluidStack.create(fluid);
+            if (fluidKey != null && fluid.amount > 0 && a.fluids != null) {
+                IAEFluidStack stored = a.fluids.extractItems(
+                    fluidKey.copy()
+                        .setStackSize(Long.MAX_VALUE),
+                    Actionable.SIMULATE,
+                    a.source);
+                if (stored != null) needed -= stored.getStackSize() / fluid.amount;
+            }
+            if (needed <= 0) {
+                player.addChatMessage(
+                    new net.minecraft.util.ChatComponentTranslation("gtnhadjust.quest.craft_not_needed"));
+                return;
+            }
+            IAEStack<?> target = null;
+            for (IAEStack<?> candidate : crafting.getCraftingMultiPatterns()
+                .keySet()) {
+                if (candidate instanceof IAEItemStack
+                    && matches(task, required, ((IAEItemStack) candidate).getItemStack())) {
+                    target = candidate.copy()
+                        .setStackSize(needed);
+                    break;
+                }
+            }
+            if (target == null && fluidKey != null
+                && fluid.amount > 0
+                && !crafting.getCraftingFor(fluidKey, null, -1, player.worldObj)
+                    .isEmpty()) {
+                target = fluidKey.copy()
+                    .setStackSize(needed * fluid.amount);
+            }
+            int slot = terminalSlot(player, a.host);
+            if (target == null || slot < 0) {
+                player.addChatMessage(
+                    new net.minecraft.util.ChatComponentTranslation("gtnhadjust.quest.craft_no_pattern"));
+                return;
+            }
+            java.util.concurrent.Future<appeng.api.networking.crafting.ICraftingJob> job = crafting
+                .beginCraftingJob(player.worldObj, a.host.getGrid(), a.source, target, null);
+            Platform.openGUI(player, null, null, GuiBridge.GUI_CRAFTING_CONFIRM, slot);
+            if (!(player.openContainer instanceof ContainerCraftConfirm)) {
+                job.cancel(true);
+                return;
+            }
+            ContainerCraftConfirm confirm = (ContainerCraftConfirm) player.openContainer;
+            ItemStack terminal = slot >= Platform.baublesSlotsOffset ? BaublesApi.getBaubles(player)
+                .getStackInSlot(slot - Platform.baublesSlotsOffset) : player.inventory.mainInventory[slot];
+            PrimaryGui primary = new PrimaryGui(GuiBridge.GUI_ME, terminal.copy(), null, ForgeDirection.UNKNOWN);
+            primary.setSlotIndex(slot);
+            confirm.setPrimaryGui(primary);
+            confirm.setItemToCraft(target);
+            confirm.setJob(job);
+        } catch (RuntimeException failure) {
+            GTNHAdjust.LOG.warn("Quest AE craft request failed for {}", player.getCommandSenderName(), failure);
+            player.addChatMessage(new net.minecraft.util.ChatComponentTranslation("gtnhadjust.quest.ae_error"));
+        }
+    }
+
+    private static boolean matches(TaskRetrieval task, BigItemStack required, ItemStack stack) {
+        return stack != null
+            && (ItemComparison.StackMatch(required.getBaseStack(), stack, !task.ignoreNBT, task.partialMatch)
+                || ItemComparison.OreDictionaryMatch(
+                    required.getOreIngredient(),
+                    required.GetTagCompound(),
+                    stack,
+                    !task.ignoreNBT,
+                    task.partialMatch));
+    }
+
+    private static int terminalSlot(EntityPlayerMP player, WirelessTerminalGuiObject host) {
+        for (int i = 0; i < player.inventory.mainInventory.length; i++)
+            if (player.inventory.mainInventory[i] == host.getItemStack()) return i;
+        if (Loader.isModLoaded("Baubles")) {
+            IInventory inv = BaublesApi.getBaubles(player);
+            if (inv != null) for (int i = 0; i < inv.getSizeInventory(); i++)
+                if (inv.getStackInSlot(i) == host.getItemStack()) return Platform.baublesSlotsOffset + i;
+        }
+        return -1;
     }
 
     private static Access findAccess(EntityPlayerMP player) {

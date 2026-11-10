@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.gtnhadjust.quest.QuestAeNetwork;
+import com.gtnhadjust.quest.QuestScreenAccess;
 
 import betterquesting.api.questing.IQuest;
 import betterquesting.api2.client.gui.controls.PanelButton;
@@ -22,7 +23,7 @@ import betterquesting.api2.client.gui.misc.GuiTransform;
 import betterquesting.api2.client.gui.panels.CanvasEmpty;
 
 @Mixin(targets = "betterquesting.client.gui2.GuiQuest", remap = false)
-public abstract class QuestScreenMixin {
+public abstract class QuestScreenMixin implements QuestScreenAccess {
 
     @Shadow
     private UUID questID;
@@ -32,6 +33,16 @@ public abstract class QuestScreenMixin {
     private CanvasEmpty cvInner;
     @Unique
     private PanelButton gtnhadjust$aeButton;
+
+    @Override
+    public UUID gtnhadjust$questId() {
+        return questID;
+    }
+
+    @Override
+    public IQuest gtnhadjust$quest() {
+        return quest;
+    }
 
     @Inject(method = "initPanel", at = @At("RETURN"))
     private void gtnhadjust$button(CallbackInfo ci) {
