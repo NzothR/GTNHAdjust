@@ -2,6 +2,7 @@ package com.gtnhadjust.machine.integrated;
 
 import java.util.List;
 
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -12,9 +13,6 @@ import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.gtnewhorizon.structurelib.structure.StructureUtility;
 import com.science.gtnl.utils.StructureUtils;
 
-import bartworks.common.loaders.ItemRegistry;
-import goodgenerator.loader.Loaders;
-import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.HatchElement;
 import gregtech.api.enums.Materials;
@@ -63,16 +61,16 @@ public final class IntegratedModule extends MTEExtendedPowerMultiBlockBase<Integ
                 "main",
                 StructureUtility
                     .transpose(StructureUtils.readStructureFromFile("gtnhadjust:multiblock/integrated_line/module")))
-            .addElement('A', StructureUtility.ofBlock(ItemRegistry.bw_realglas, 6))
-            .addElement('B', StructureUtility.ofBlock(Loaders.componentAssemblylineCasing, 12))
-            .addElement('C', Casings.DimensionalInjectionCasing.asElement())
-            .addElement('D', Casings.DimensionalBridge.asElement())
-            .addElement('E', Casings.ExtremeDensitySpaceBendingCasing.asElement())
-            .addElement('F', Casings.ParticleBeamGuidancePipeCasing.asElement())
-            .addElement('G', StructureUtility.ofBlock(GregTechAPI.sBlockCasingsSEMotor, 4))
-            .addElement('H', GTStructureUtility.ofFrame(Materials.NaquadahAlloy))
-            .addElement('I', Casings.SingularityReinforcedStellarShieldingCasing.asElement())
-            .addElement('J', Casings.CelestialMatterGuidanceCasing.asElement())
+            .addElement('A', StructureUtility.ofBlock(Blocks.glass, 0))
+            .addElement('B', Casings.AssemblyLineCasing.asElement())
+            .addElement('C', Casings.ProcessorMachineCasing.asElement())
+            .addElement('D', Casings.SteelGearBoxCasing.asElement())
+            .addElement('E', Casings.FusionMachineCasing.asElement())
+            .addElement('F', Casings.TungstensteelPipeCasing.asElement())
+            .addElement('G', Casings.MotorMachineCasing.asElement())
+            .addElement('H', GTStructureUtility.ofFrame(Materials.Steel))
+            .addElement('I', Casings.RobustTungstenSteelMachineCasing.asElement())
+            .addElement('J', Casings.CleanStainlessSteelMachineCasing.asElement())
             .addElement(
                 'K',
                 StructureUtility.ofChain(
@@ -83,9 +81,9 @@ public final class IntegratedModule extends MTEExtendedPowerMultiBlockBase<Integ
                             HatchElement.OutputBus,
                             HatchElement.InputHatch,
                             HatchElement.OutputHatch)
-                        .casingIndex(960)
+                        .casingIndex(Casings.RobustTungstenSteelMachineCasing.getTextureId())
                         .hint(1)
-                        .buildAndChain(Casings.SingularityReinforcedStellarShieldingCasing.asElement())))
+                        .buildAndChain(Casings.RobustTungstenSteelMachineCasing.asElement())))
             .build();
         return structure;
     }
@@ -118,7 +116,7 @@ public final class IntegratedModule extends MTEExtendedPowerMultiBlockBase<Integ
     @Override
     public ITexture[] getTexture(IGregTechTileEntity tile, ForgeDirection side, ForgeDirection facing, int color,
         boolean active, boolean redstone) {
-        ITexture casing = Textures.BlockIcons.getCasingTextureForId(960);
+        ITexture casing = Casings.RobustTungstenSteelMachineCasing.getCasingTexture();
         return side == facing ? new ITexture[] { casing, TextureFactory.builder()
             .addIcon(FACE)
             .extFacing()
@@ -130,7 +128,7 @@ public final class IntegratedModule extends MTEExtendedPowerMultiBlockBase<Integ
         return new MultiblockTooltipBuilder().addMachineType("联合模块")
             .addInfo("结构测试版：无配方功能")
             .addInfo("输入及输出舱室可选；不使用能源仓和维护仓")
-            .beginStructureBlock(9, 5, 7, true)
+            .beginStructureBlock(9, 7, 7, true)
             .addController("正面")
             .toolTipFinisher();
     }

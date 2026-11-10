@@ -5,7 +5,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
@@ -13,11 +15,7 @@ import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.gtnewhorizon.structurelib.structure.StructureUtility;
-import com.science.gtnl.utils.StructureUtils;
 
-import bartworks.common.loaders.ItemRegistry;
-import goodgenerator.loader.Loaders;
-import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.HatchElement;
 import gregtech.api.enums.Materials;
@@ -36,7 +34,7 @@ import gregtech.api.util.GTStructureUtility;
 import gregtech.api.util.HatchElementBuilder;
 import gregtech.api.util.IGTHatchAdder;
 import gregtech.api.util.MultiblockTooltipBuilder;
-import tectech.thing.casing.TTCasingsContainer;
+import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 
 public final class IntegratedLine extends MTEExtendedPowerMultiBlockBase<IntegratedLine>
     implements ISurvivalConstructable {
@@ -47,6 +45,7 @@ public final class IntegratedLine extends MTEExtendedPowerMultiBlockBase<Integra
         { 37, -28, 11 } };
     private final List<IntegratedModule> modules = new ArrayList<>();
     private IStructureDefinition<IntegratedLine> structure;
+    private boolean voltageEnabled;
 
     public IntegratedLine(int id, String name, String display) {
         super(id, name, display);
@@ -70,23 +69,20 @@ public final class IntegratedLine extends MTEExtendedPowerMultiBlockBase<Integra
     public IStructureDefinition<IntegratedLine> getStructureDefinition() {
         if (structure == null) {
             StructureDefinition.Builder<IntegratedLine> b = StructureDefinition.<IntegratedLine>builder();
-            for (String piece : PIECES) b.addShape(
-                piece,
-                StructureUtility
-                    .transpose(StructureUtils.readStructureFromFile("gtnhadjust:multiblock/integrated_line/" + piece)));
-            structure = b.addElement('A', Casings.SingularityReinforcedStellarShieldingCasing.asElement())
-                .addElement('B', StructureUtility.ofBlock(Loaders.componentAssemblylineCasing, 12))
-                .addElement('C', Casings.DimensionalInjectionCasing.asElement())
-                .addElement('D', StructureUtility.ofBlock(GregTechAPI.sBlockCasingsSEMotor, 4))
-                .addElement('E', Casings.ExtremeDensitySpaceBendingCasing.asElement())
-                .addElement('F', Casings.NaquadriaReinforcedWaterPlantCasing.asElement())
-                .addElement('G', Casings.CelestialMatterGuidanceCasing.asElement())
-                .addElement('H', Casings.DimensionalBridge.asElement())
-                .addElement('I', Casings.SpaceTimeBendingCore.asElement())
-                .addElement('J', Casings.ParticleBeamGuidancePipeCasing.asElement())
-                .addElement('K', GTStructureUtility.ofFrame(Materials.NaquadahAlloy))
-                .addElement('L', Casings.OmniPurposeInfinityFusedGlass.asElement())
-                .addElement('M', StructureUtility.ofBlock(ItemRegistry.bw_realglas, 6))
+            for (String piece : PIECES) b.addShape(piece, StructureUtility.transpose(IntegratedShapes.load(piece)));
+            structure = b.addElement('A', Casings.RobustTungstenSteelMachineCasing.asElement())
+                .addElement('B', Casings.AssemblyLineCasing.asElement())
+                .addElement('C', Casings.ProcessorMachineCasing.asElement())
+                .addElement('D', Casings.MotorMachineCasing.asElement())
+                .addElement('E', Casings.FusionMachineCasing.asElement())
+                .addElement('F', Casings.StableTitaniumMachineCasing.asElement())
+                .addElement('G', Casings.CleanStainlessSteelMachineCasing.asElement())
+                .addElement('H', Casings.SteelGearBoxCasing.asElement())
+                .addElement('I', Casings.FusionCoilBlock.asElement())
+                .addElement('J', Casings.TungstensteelPipeCasing.asElement())
+                .addElement('K', GTStructureUtility.ofFrame(Materials.Steel))
+                .addElement('L', StructureUtility.ofBlock(Blocks.glass, 0))
+                .addElement('M', StructureUtility.ofBlock(Blocks.glass, 0))
                 .addElement(
                     'N',
                     GTStructureUtility.buildHatchAdder(IntegratedLine.class)
@@ -95,27 +91,27 @@ public final class IntegratedLine extends MTEExtendedPowerMultiBlockBase<Integra
                             HatchElement.OutputBus,
                             HatchElement.InputHatch,
                             HatchElement.OutputHatch)
-                        .casingIndex(961)
+                        .casingIndex(Casings.CleanStainlessSteelMachineCasing.getTextureId())
                         .hint(1)
-                        .buildAndChain(Casings.CelestialMatterGuidanceCasing.asElement()))
-                .addElement('O', Casings.QuarkExclusionCasing.asElement())
-                .addElement('P', Casings.ReinforcedTemporalStructureCasing.asElement())
-                .addElement('Q', Casings.CentralGravitonFlowModulator.asElement())
-                .addElement('R', Casings.StellarEnergySiphonCasing.asElement())
-                .addElement('S', Casings.HarmonicPhononTransmissionConduit.asElement())
-                .addElement('T', StructureUtility.ofBlock(Loaders.gravityStabilizationCasing, 0))
-                .addElement('U', Casings.GallifreyanSpacetimeCompressionFieldGenerator.asElement())
-                .addElement('V', Casings.GallifreyanTimeDilationFieldGenerator.asElement())
-                .addElement('W', Casings.ReinforcedSpatialStructureCasing.asElement())
-                .addElement('X', Casings.GallifreyanStabilisationFieldGenerator.asElement())
+                        .buildAndChain(Casings.CleanStainlessSteelMachineCasing.asElement()))
+                .addElement('O', Casings.SolidSteelMachineCasing.asElement())
+                .addElement('P', Casings.StableTitaniumMachineCasing.asElement())
+                .addElement('Q', Casings.ProcessorMachineCasing.asElement())
+                .addElement('R', Casings.FusionMachineCasing.asElement())
+                .addElement('S', Casings.TitaniumPipeCasing.asElement())
+                .addElement('T', Casings.SolidSteelMachineCasing.asElement())
+                .addElement('U', Casings.FusionMachineCasing.asElement())
+                .addElement('V', Casings.FusionMachineCasingMKII.asElement())
+                .addElement('W', Casings.RobustTungstenSteelMachineCasing.asElement())
+                .addElement('X', Casings.AssemblyLineCasing.asElement())
                 .addElement(
                     'Y',
                     HatchElementBuilder.<IntegratedLine>builder()
                         .anyOf(ModuleElement.Module)
-                        .casingIndex(960)
+                        .casingIndex(Casings.RobustTungstenSteelMachineCasing.getTextureId())
                         .hint(1)
-                        .buildAndChain(TTCasingsContainer.GodforgeCasings, 0))
-                .addElement('Z', Casings.DimensionalBridge.asElement())
+                        .buildAndChain(Casings.RobustTungstenSteelMachineCasing.asElement()))
+                .addElement('Z', Casings.SteelGearBoxCasing.asElement())
                 .addElement('a', StructureUtility.isAir())
                 .build();
         }
@@ -188,7 +184,7 @@ public final class IntegratedLine extends MTEExtendedPowerMultiBlockBase<Integra
     @Override
     public ITexture[] getTexture(IGregTechTileEntity tile, ForgeDirection side, ForgeDirection facing, int color,
         boolean active, boolean redstone) {
-        ITexture casing = Textures.BlockIcons.getCasingTextureForId(961);
+        ITexture casing = Casings.CleanStainlessSteelMachineCasing.getCasingTexture();
         return side == facing ? new ITexture[] { casing, TextureFactory.builder()
             .addIcon(FACE)
             .extFacing()
@@ -199,7 +195,7 @@ public final class IntegratedLine extends MTEExtendedPowerMultiBlockBase<Integra
     public MultiblockTooltipBuilder createTooltip() {
         return new MultiblockTooltipBuilder().addMachineType("联合集成产线")
             .addInfo("结构测试版：无配方功能")
-            .addInfo("8 个联合模块接入点；输入及输出舱室可选")
+            .addInfo("16 个联合模块接入点；输入及输出舱室可选")
             .addInfo("不使用能源仓和维护仓")
             .beginStructureBlock(75, 96, 75, true)
             .addController("正面")
@@ -208,7 +204,40 @@ public final class IntegratedLine extends MTEExtendedPowerMultiBlockBase<Integra
 
     @Override
     public String[] getInfoData() {
-        return new String[] { "联合集成产线", "已检测模块：" + modules.size() + "/8", "结构测试版，无加工功能" };
+        return new String[] { "联合集成产线", "已检测模块：" + modules.size() + "/16", "结构测试版，无加工功能" };
+    }
+
+    @Override
+    protected MTEMultiBlockBaseGui<?> getGui() {
+        return new IntegratedLineGui(this);
+    }
+
+    public int connectedModules() {
+        return mMachine ? modules.size() : 0;
+    }
+
+    public boolean isVoltageEnabled() {
+        return voltageEnabled;
+    }
+
+    public void setVoltageEnabled(boolean enabled) {
+        voltageEnabled = enabled;
+    }
+
+    public void refreshModules() {
+        checkStructure(true, getBaseMetaTileEntity());
+    }
+
+    @Override
+    public void saveNBTData(NBTTagCompound tag) {
+        super.saveNBTData(tag);
+        tag.setBoolean("integratedVoltageEnabled", voltageEnabled);
+    }
+
+    @Override
+    public void loadNBTData(NBTTagCompound tag) {
+        super.loadNBTData(tag);
+        voltageEnabled = tag.getBoolean("integratedVoltageEnabled");
     }
 
     enum ModuleElement implements IHatchElement<IntegratedLine> {

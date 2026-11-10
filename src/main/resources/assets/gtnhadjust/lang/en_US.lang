@@ -45,3 +45,7 @@ gtnhadjust.quest.ae_error=AE quest retrieval was interrupted; check the server l
 
 gt.blockmachines.gtnhadjust.integrated_line.name=Integrated Joint Assembly Line
 gt.blockmachines.gtnhadjust.integrated_module.name=Joint Module
+
+gtnhadjust.integrated.modules=Connected modules: %s / 16
+gtnhadjust.integrated.refresh=Recheck structure and module connections
+gtnhadjust.integrated.voltage=Toggle voltage (no processing function yet)
