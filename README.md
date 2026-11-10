@@ -187,3 +187,7 @@ GTNR 快速编码终端配方池保留修复：修改并重新编码已有加工
 GTSteamReborn 诊断注入的编译还需要将 `gtsr-v2.1.9.jar` 复制为 `ref/libs/gtsr-instance.jar`。
 
 `gtnl.steamGreenhouseMaxSeeds` 是服务端配置，范围 1–64，默认 64，重启后生效。界面的容量使用服务端同步值。降低上限前请先取出超出新上限的种子；否则 GTNL 会阻止温室运行，直到取出多余种子。
+
+## 许可证
+
+本项目代码采用 GPL-3.0，见 [LICENSE](LICENSE)。第三方资源及其许可和版权说明分别保留；联合集成产线开发中预置的资源见 [素材来源](docs/integrated-line-assets.md)。
