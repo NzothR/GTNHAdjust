@@ -46,3 +46,6 @@ gtnhadjust.quest.ae_error=AE任务检索中断，请检查服务端日志。
 gtnhadjust.quest.craft_unavailable=无法连接具备合成权限的无线AE网络。
 gtnhadjust.quest.craft_not_needed=背包和AE网络中的物料已足够，请点击检索/交付。
 gtnhadjust.quest.craft_no_pattern=没有找到可用的合成样板或无线终端。
+
+gtnhadjust.quest.craft_hint=Alt+左键：依次确认任务所需的AE合成
+gtnhadjust.quest.craft_queue_done=已处理所有可尝试的任务合成。

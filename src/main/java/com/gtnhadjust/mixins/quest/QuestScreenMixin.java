@@ -5,6 +5,7 @@ import java.util.UUID;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.StatCollector;
 
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -14,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.gtnhadjust.quest.QuestAeNetwork;
+import com.gtnhadjust.quest.QuestCraftSlots;
 import com.gtnhadjust.quest.QuestScreenAccess;
 
 import betterquesting.api.questing.IQuest;
@@ -51,7 +53,14 @@ public abstract class QuestScreenMixin implements QuestScreenAccess {
             new GuiTransform(new Vector4f(0.5F, 1F, 1F, 1F), new GuiPadding(8, -34, 0, 18), 0),
             918215,
             StatCollector.translateToLocal("gtnhadjust.quest.ae_detect"));
-        gtnhadjust$aeButton.setClickAction(button -> QuestAeNetwork.request(questID));
+        gtnhadjust$aeButton.setClickAction(button -> {
+            if (Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU))
+                QuestAeNetwork.startCraftQueue(questID);
+            else QuestAeNetwork.request(questID);
+        });
+        QuestCraftSlots.open(questID);
+        gtnhadjust$aeButton.setTooltip(
+            java.util.Collections.singletonList(StatCollector.translateToLocal("gtnhadjust.quest.craft_hint")));
         cvInner.addPanel(gtnhadjust$aeButton);
         gtnhadjust$update(null);
     }
