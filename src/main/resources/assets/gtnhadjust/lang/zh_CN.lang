@@ -42,10 +42,3 @@ gtnhadjust.nei.missing=缺失物品
 gtnhadjust.quest.ae_detect=检索AE网络/交付
 gtnhadjust.quest.ae_unavailable=无法连接有电且拥有提取权限的无线AE网络，已仅检查背包。
 gtnhadjust.quest.ae_error=AE任务检索中断，请检查服务端日志。
-
-gt.blockmachines.gtnhadjust.integrated_line.name=联合集成产线
-gt.blockmachines.gtnhadjust.integrated_module.name=联合模块
-
-gtnhadjust.integrated.modules=已连接模块：%s / 22
-gtnhadjust.integrated.refresh=重新检查结构和模块连接
-gtnhadjust.integrated.voltage=切换电压开关（当前无加工功能）

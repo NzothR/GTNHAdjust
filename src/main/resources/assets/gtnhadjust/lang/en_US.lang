@@ -42,10 +42,3 @@ gtnhadjust.nei.missing=Missing items
 gtnhadjust.quest.ae_detect=Detect AE Network / Submit
 gtnhadjust.quest.ae_unavailable=No powered wireless AE network with extract permission is available; only inventories were checked.
 gtnhadjust.quest.ae_error=AE quest retrieval was interrupted; check the server log.
-
-gt.blockmachines.gtnhadjust.integrated_line.name=Integrated Joint Assembly Line
-gt.blockmachines.gtnhadjust.integrated_module.name=Joint Module
-
-gtnhadjust.integrated.modules=Connected modules: %s / 22
-gtnhadjust.integrated.refresh=Recheck structure and module connections
-gtnhadjust.integrated.voltage=Toggle voltage (no processing function yet)
