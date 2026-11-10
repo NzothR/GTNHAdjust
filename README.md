@@ -12,6 +12,10 @@ BetterQuesting 任务详情页新增“检索AE网络/交付”按钮；仅手�
 
 仓库另有独立的 [Future Resource Protocol 子项目](frp/README.md)，使用单独的模组和构建，不依赖 GTNH Adjust；目前提供首轮测试版便携终端及世界账本，使用范围和限制见子项目文档。
 
+## GTNL NEI 请求合成兼容
+
+在 GTNR 二合一无线终端中，通过 GTNL 的 NEI 收藏栏或物品栏 Alt+中键请求 AE 合成时，修复 GTNL 使用当前手持槽而非实际终端槽打开数量界面的问题。背包和 Baubles 中的终端槽沿用 AE 的槽位编码；样板检查、权限、数量及返回终端的流程仍由 GTNL 和 AE 处理。`config/gtnhadjust-features.properties` 的 `gtnlQuickTerminalCraftFix` 默认开启，关闭后不加载该 Mixin；客户端和服务端安装相同版本并保持配置一致，修改后重启。适配 GTNH 2.9.0、GTNL dev-290、GTNR 0.1.37 和 AE2 rv3-beta-1095；背包、饰品栏、合成确认及返回界面仍需游戏内验证。开启 `general.debug` 可记录使用的终端槽位。编译还需将实例中的 `gtnllib-1.1.5.jar` 复制到 `ref/libs/gtnllib-1.1.5.jar`（SHA-256：`62cffb20d50923cdeaac39e419e04f7526f2f5b12d6fd42986a5dda85d7973ff`），仅供编译，不打包进模组。
+
 ## YSMU 第一人称动画兼容
 
 安装 YSMU 1.9 和 GTNRLib 0.1.31 时，GTNRLib 第一人称持物动画使用 YSMU 当前模型的第一人称手臂，物品及手臂动作仍由 GTNRLib 控制。双手动作的左臂使用右臂模型镜像，模型未准备好、禁用自身模型或手臂时回退 GTNRLib 原手臂；模型的左右臂外观不对称时镜像无法还原左臂。兼容尚需在游戏内验证不同模型、手持物品和双手动作，不针对光影渲染适配。该功能只在客户端生效，`config/gtnhadjust-features.properties` 的 `ysmuAnimatedArms` 默认开启，修改后重启客户端；适配 GTNH 2.9.0、GTNR 0.1.34、GTNRLib 0.1.31 和 YSMU 1.9，其他版本需重新验证。
@@ -116,6 +120,7 @@ Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅�
 
 ```properties
 proxyFactory=true
+gtnlQuickTerminalCraftFix=true
 ysmuAnimatedArms=true
 cropBreeder=true
 steamGreenhouse=true

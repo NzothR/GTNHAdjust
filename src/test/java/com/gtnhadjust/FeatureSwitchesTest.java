@@ -24,6 +24,31 @@ public class FeatureSwitchesTest {
         Arrays.asList("gtneverreset", "sciencenotleisure", "cropsnh"));
 
     @Test
+    public void gtnlQuickTerminalCraftFixRequiresModsAndSwitch() throws Exception {
+        Path file = folder.newFile()
+            .toPath();
+        Set<String> mods = new HashSet<>(Arrays.asList("sciencenotleisure", "gtneverreset", "appliedenergistics2"));
+        String mixin = "gtnl.GtnlQuickTerminalCraftMixin";
+        FeatureSwitches enabled = FeatureSwitches.load(file);
+        assertTrue(
+            enabled.selectMixins(mods, false)
+                .contains(mixin));
+        assertTrue(
+            enabled.selectMixins(mods, true)
+                .contains(mixin));
+        mods.remove("gtneverreset");
+        assertFalse(
+            enabled.selectMixins(mods, false)
+                .contains(mixin));
+        mods.add("gtneverreset");
+        Files.write(file, Arrays.asList("gtnlQuickTerminalCraftFix=false"), StandardCharsets.ISO_8859_1);
+        assertFalse(
+            FeatureSwitches.load(file)
+                .selectMixins(mods, false)
+                .contains(mixin));
+    }
+
+    @Test
     public void questAeSwitchControlsBothSidesAndDependencies() throws Exception {
         Path file = folder.newFile()
             .toPath();
