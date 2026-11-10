@@ -20,6 +20,27 @@ public class ProxyFactoryUnlockRulesTest {
     }
 
     @Test
+    public void fuelRefiningPoolUnlocksOnceAndIsRetainedForSharedControllers() {
+        String pool = "gtnl.recipe.fuel_refining_complex";
+        List<String> base = Collections.singletonList("base");
+        List<String> offered = Collections.singletonList(pool);
+        assertTrue(ProxyFactoryUnlockRules.addsNew(base, offered));
+        assertFalse(ProxyFactoryUnlockRules.addsNew(Arrays.asList("base", pool), offered));
+        assertEquals(
+            offered,
+            ProxyFactoryUnlockRules
+                .orderedAdditional(base, ProxyFactoryRecipeWhitelist.ADDITIONAL, Arrays.asList(offered, offered)));
+        assertEquals(
+            offered,
+            ProxyFactoryUnlockRules
+                .orderedAdditional(base, ProxyFactoryRecipeWhitelist.ADDITIONAL, Collections.singletonList(offered)));
+        assertTrue(
+            ProxyFactoryUnlockRules
+                .orderedAdditional(base, ProxyFactoryRecipeWhitelist.ADDITIONAL, Collections.emptyList())
+                .isEmpty());
+    }
+
+    @Test
     public void outputRecalculatesSharedPoolsAndKeepsOriginals() {
         List<String> base = Arrays.asList("base");
         List<String> order = Arrays.asList("a", "b", "c");

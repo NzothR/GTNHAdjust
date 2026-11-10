@@ -31,6 +31,7 @@ public class ProxyFactoryRecipeWhitelistTest {
         names.addAll(ProxyFactoryRecipeWhitelist.ADDITIONAL);
         for (String included : Arrays.asList(
             "simplification.recipe.petrochemical_complex", // 石油化工综合体
+            "gtnl.recipe.fuel_refining_complex", // 燃料精炼复合体
             "gt.recipe.furnace", // 默认解锁的熔炉
             "tst.recipe.CrystallineInfinitierRecipeMap.name",
             "tst.recipe.IndustrialAlchemyTowerRecipeMap.name",

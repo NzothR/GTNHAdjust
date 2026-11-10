@@ -98,6 +98,7 @@ public final class ProxyFactoryRecipeWhitelist {
                 "gtnl.recipe.decay_hastener", // 衰变扭曲
                 "gtnl.recipe.electric_neutron_activator", // 电力中子活化器
                 "gtnl.recipe.falling_tower", // 模拟坠星标位
+                "gtnl.recipe.fuel_refining_complex", // 燃料精炼复合体、原子能激发厂
                 "gtnl.recipe.industrial_crucible", // 工业坩埚
                 "gtnl.recipe.industrial_infusion_crafting", // 工业注魔矩阵
                 "gtnl.recipe.industrial_shaped_arcane_crafting", // 工业奥术装配室
