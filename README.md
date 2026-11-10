@@ -18,6 +18,8 @@ BetterQuesting 任务详情页新增“检索AE网络/交付”按钮；仅手�
 
 ## 代理联合工厂（基础版）
 
+兼容 GTNR 0.1.37：代理工厂与上游通用联合工厂一样，要求样板中列出的物品和流体均能匹配配方输入，避免同产物配方漏消耗材料；源质展示物品仍按既有规则忽略。该行为随 `proxyFactory` 启停，更新后客户端和服务端需使用相同版本并重启；实际样板、工具及流体配方仍需游戏内验证。
+
 代理联合工厂可由一个 GTNR 通用联合工厂控制器在工作台无序合成。结构、仓室要求、参数模块、线程、供电、超频以及样板配方池和产物匹配沿用 GT-Never-Reset 0.1.34。控制器正面纹理右下角显示“依”。机器界面可打开已解锁配方池分页列表，名称随客户端语言显示，并随控制器的输入和退回更新；搜索框可按本地化名称或注册名筛选。
 
 初始可用 GTNR 原有 24 个配方池，以及默认解锁的熔炉配方池（共 25 个）。熔炉使用与工业熔炉相同的原版烧炼配方，基础 4 EU/t、128 tick，按代理联合工厂的并行、线程与超频规则处理。GTNR 二合一无线终端从 NEI 导入熔炉配方时会记录熔炉配方池；既有无配方池标记的样板可重新导入，或手动将机器切换至熔炉模式。界面右侧新增操作模式按钮，悬停可查看模式；也可潜行时用螺丝刀右键控制器，按运行、输入、输出的顺序切换。机器必须成型且已启用工作，输入模式每秒检查普通实体输入总线：只在控制器能增加尚未解锁的白名单配方池时收取 1 个，并保存其物品和 NBT；已全部解锁的控制器留在总线中。每台代理联合工厂最多保存 256 个控制器。ME 输入总线和 ME 合成输入总线不参与控制器输入，物品配方输入仍按 GTNR 原逻辑处理。
@@ -100,7 +102,7 @@ $env:TMP = $env:TEMP
 
 构建产物位于 `build/libs/`。NEI 提示及收藏配方编译还需将客户端的 `CodeChickenCore-1.4.22.jar` 和 `ae2fc-1.5.116-gtnh.jar` 分别保存为 `ref/libs/codechickencore-instance.jar` 和 `ref/libs/ae2fc-instance.jar`。YSMU 兼容编译还需将客户端的 `gtnrlib-0.1.31.jar` 和 `ysmu-1.9.jar` 复制到 `ref/libs/` 对应文件名；它们仅供编译，不打包进模组。开发约定和本机环境见 [AGENTS.md](AGENTS.md)；参考仓库位于不提交的 `ref/`。
 
-Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅助任务使用相应的旧版 Java 工具链，并可将其下载到上述项目内的 Gradle 缓存。当前模组使用示例的 Jabel 模式生成 Java 8 字节码。CropsNH 和 GregTech 依赖通过 GTNH 2.9.0 清单解析。构建还需要将 服务端使用的 GT-Never-Reset 0.1.34 包保存为不提交的 `ref/libs/gtneverreset-0.1.34.jar`；该文件的 SHA-256 为 `56b44a22b7acb767f74a04a5441aa6ac3a50afd57547688adb365526805e8d75`。
+Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅助任务使用相应的旧版 Java 工具链，并可将其下载到上述项目内的 Gradle 缓存。当前模组使用示例的 Jabel 模式生成 Java 8 字节码。CropsNH 和 GregTech 依赖通过 GTNH 2.9.0 清单解析。构建还需要将 GT-Never-Reset 0.1.37 正式包保存为不提交的 `ref/libs/gtneverreset-0.1.37.jar`；该文件的 SHA-256 为 `ce83a236d884f04edcc4df9ef854617f737394ac00653b19a9e63ab9766b7650`。
 
 同样将实例中的 `sciencenotleisure-dev-290-fde37b9871fd-f93edbe8c425.jar` 复制为 `ref/libs/gtnl-instance.jar`；已验证文件的 SHA-256 为 `977335c74149afdbf280f15506fb59bd1b97e126acb3807be770d0e0b3374840`。
 

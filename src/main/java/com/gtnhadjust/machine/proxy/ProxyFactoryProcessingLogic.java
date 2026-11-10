@@ -18,10 +18,12 @@ import appeng.api.networking.crafting.ICraftingPatternDetails;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.storage.data.IAEStack;
+import gregtech.api.objects.ItemData;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.RecipeMaps;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
+import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe;
 import gregtech.api.util.OverclockCalculator;
 import gregtech.common.tileentities.machines.IDualInputInventoryWithPattern;
@@ -94,7 +96,8 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
                         .fluids(inputFluids)
                         .findAll())
                 .peek(recipe -> controller.setProcessingRecipeMap(target))
-                .filter(this::matchesPatternOutputs);
+                .filter(this::matchesPatternOutputs)
+                .filter(recipe -> consumesPatternInputs(recipe, target));
         }
         return (target == null ? Stream.<RecipeMap<?>>empty() : Stream.of(target)).flatMap(
             map -> map.findRecipeQuery()
@@ -103,7 +106,8 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
                 .specialSlot(specialSlotItem)
                 .findAll()
                 .peek(recipe -> controller.setProcessingRecipeMap(map)))
-            .filter(this::matchesPatternOutputs);
+            .filter(this::matchesPatternOutputs)
+            .filter(recipe -> consumesPatternInputs(recipe, target));
     }
 
     @Override
@@ -132,7 +136,8 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
         RecipeMap<?> current = patternRecipeMap == null ? controller.getRecipeMap() : patternRecipeMap;
         if (ProxyFactoryEssentia.requiresEssentiaCell(current) && !controller.hasCreativeEssentiaCell())
             return CheckRecipeResultRegistry.NO_RECIPE;
-        return matchesPatternOutputs(recipe) ? super.validateRecipe(recipe) : CheckRecipeResultRegistry.NO_RECIPE;
+        return matchesPatternOutputs(recipe) && consumesPatternInputs(recipe, current) ? super.validateRecipe(recipe)
+            : CheckRecipeResultRegistry.NO_RECIPE;
     }
 
     /** Describes the exact copies that will be committed, before their source amounts change. */
@@ -163,6 +168,47 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
         }
         return result.append(']')
             .toString();
+    }
+
+    private boolean consumesPatternInputs(GTRecipe recipe, RecipeMap<?> map) {
+        if (pattern == null) return true;
+        IAEStack<?>[] inputs = pattern.getAEInputs();
+        if (inputs == null || inputs.length == 0) return true;
+        GTRecipe.RecipeItemInput[] itemInputs = recipe.getCachedCombinedItemInputs();
+        for (IAEStack<?> input : inputs) {
+            if (input == null || input.getStackSize() <= 0) continue;
+            if (input instanceof IAEItemStack item) {
+                ItemStack stack = item.getItemStack();
+                if (ProxyFactoryEssentia.requiresEssentiaCell(map) && ProxyFactoryEssentia.isAspectDisplay(stack))
+                    continue;
+                ItemData association = GTOreDictUnificator.getAssociation(stack);
+                boolean matched = false;
+                for (GTRecipe.RecipeItemInput candidate : itemInputs) {
+                    if (candidate.matchesRecipe(association, stack)) {
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched) return false;
+            } else if (input instanceof IAEFluidStack fluid && !consumesFluid(recipe, fluid.getFluidStack())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean consumesFluid(GTRecipe recipe, FluidStack fluid) {
+        if (recipe.mFluidInputs == null || fluid == null) return false;
+        for (int i = 0; i < recipe.mFluidInputs.length; i++) {
+            FluidStack[] alternatives = recipe.mAltFluidInputs != null && i < recipe.mAltFluidInputs.length
+                && recipe.mAltFluidInputs[i] != null ? recipe.mAltFluidInputs[i]
+                    : recipe.mFluidInputs[i] == null ? null : new FluidStack[] { recipe.mFluidInputs[i] };
+            if (alternatives == null) continue;
+            for (FluidStack candidate : alternatives) {
+                if (candidate != null && candidate.isFluidEqual(fluid)) return true;
+            }
+        }
+        return false;
     }
 
     private boolean matchesPatternOutputs(GTRecipe recipe) {
