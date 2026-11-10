@@ -13,6 +13,8 @@ import com.gtnewhorizon.structurelib.structure.StructureUtility;
 import com.science.gtnl.utils.StructureUtils;
 
 import bartworks.common.loaders.ItemRegistry;
+import goodgenerator.loader.Loaders;
+import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.HatchElement;
 import gregtech.api.enums.Materials;
@@ -61,16 +63,16 @@ public final class IntegratedModule extends MTEExtendedPowerMultiBlockBase<Integ
                 "main",
                 StructureUtility
                     .transpose(StructureUtils.readStructureFromFile("gtnhadjust:multiblock/integrated_line/module")))
-            .addElement('A', StructureUtility.ofBlock(ItemRegistry.bw_realglas2, 1))
-            .addElement('B', Casings.ZPMMachineCasing.asElement())
-            .addElement('C', Casings.UEVMachineCasing.asElement())
-            .addElement('D', Casings.UEVMachineCasing.asElement())
-            .addElement('E', Casings.UVMachineCasing.asElement())
-            .addElement('F', Casings.UVSolenoidSuperconductorCoil.asElement())
-            .addElement('G', Casings.UHVSolenoidSuperconductorCoil.asElement())
+            .addElement('A', StructureUtility.ofBlock(ItemRegistry.bw_realglas, 6))
+            .addElement('B', StructureUtility.ofBlock(Loaders.componentAssemblylineCasing, 12))
+            .addElement('C', Casings.DimensionalInjectionCasing.asElement())
+            .addElement('D', Casings.DimensionalBridge.asElement())
+            .addElement('E', Casings.ExtremeDensitySpaceBendingCasing.asElement())
+            .addElement('F', Casings.ParticleBeamGuidancePipeCasing.asElement())
+            .addElement('G', StructureUtility.ofBlock(GregTechAPI.sBlockCasingsSEMotor, 4))
             .addElement('H', GTStructureUtility.ofFrame(Materials.NaquadahAlloy))
-            .addElement('I', Casings.UHVMachineCasing.asElement())
-            .addElement('J', Casings.ZPMMachineCasing.asElement())
+            .addElement('I', Casings.SingularityReinforcedStellarShieldingCasing.asElement())
+            .addElement('J', Casings.CelestialMatterGuidanceCasing.asElement())
             .addElement(
                 'K',
                 StructureUtility.ofChain(
@@ -81,9 +83,9 @@ public final class IntegratedModule extends MTEExtendedPowerMultiBlockBase<Integ
                             HatchElement.OutputBus,
                             HatchElement.InputHatch,
                             HatchElement.OutputHatch)
-                        .casingIndex(Casings.UHVMachineCasing.getTextureId())
+                        .casingIndex(960)
                         .hint(1)
-                        .buildAndChain(Casings.UHVMachineCasing.asElement())))
+                        .buildAndChain(Casings.SingularityReinforcedStellarShieldingCasing.asElement())))
             .build();
         return structure;
     }
@@ -116,7 +118,7 @@ public final class IntegratedModule extends MTEExtendedPowerMultiBlockBase<Integ
     @Override
     public ITexture[] getTexture(IGregTechTileEntity tile, ForgeDirection side, ForgeDirection facing, int color,
         boolean active, boolean redstone) {
-        ITexture casing = Casings.UHVMachineCasing.getCasingTexture();
+        ITexture casing = Textures.BlockIcons.getCasingTextureForId(960);
         return side == facing ? new ITexture[] { casing, TextureFactory.builder()
             .addIcon(FACE)
             .extFacing()

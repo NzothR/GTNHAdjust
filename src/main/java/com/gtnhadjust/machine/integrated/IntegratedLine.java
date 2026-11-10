@@ -16,6 +16,8 @@ import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.gtnewhorizon.structurelib.structure.StructureUtility;
 
 import bartworks.common.loaders.ItemRegistry;
+import goodgenerator.loader.Loaders;
+import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.HatchElement;
 import gregtech.api.enums.Materials;
@@ -35,6 +37,7 @@ import gregtech.api.util.HatchElementBuilder;
 import gregtech.api.util.IGTHatchAdder;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
+import tectech.thing.casing.TTCasingsContainer;
 
 public final class IntegratedLine extends MTEExtendedPowerMultiBlockBase<IntegratedLine>
     implements ISurvivalConstructable {
@@ -70,19 +73,19 @@ public final class IntegratedLine extends MTEExtendedPowerMultiBlockBase<Integra
         if (structure == null) {
             StructureDefinition.Builder<IntegratedLine> b = StructureDefinition.<IntegratedLine>builder();
             for (String piece : PIECES) b.addShape(piece, StructureUtility.transpose(IntegratedShapes.load(piece)));
-            structure = b.addElement('A', Casings.UHVMachineCasing.asElement())
-                .addElement('B', Casings.ZPMMachineCasing.asElement())
-                .addElement('C', Casings.UEVMachineCasing.asElement())
-                .addElement('D', Casings.UHVSolenoidSuperconductorCoil.asElement())
-                .addElement('E', Casings.UVMachineCasing.asElement())
-                .addElement('F', Casings.LuVMachineCasing.asElement())
-                .addElement('G', Casings.ZPMMachineCasing.asElement())
-                .addElement('H', Casings.UEVMachineCasing.asElement())
-                .addElement('I', Casings.UEVSolenoidSuperconductorCoil.asElement())
-                .addElement('J', Casings.UVSolenoidSuperconductorCoil.asElement())
+            structure = b.addElement('A', Casings.SingularityReinforcedStellarShieldingCasing.asElement())
+                .addElement('B', StructureUtility.ofBlock(Loaders.componentAssemblylineCasing, 12))
+                .addElement('C', Casings.DimensionalInjectionCasing.asElement())
+                .addElement('D', StructureUtility.ofBlock(GregTechAPI.sBlockCasingsSEMotor, 4))
+                .addElement('E', Casings.ExtremeDensitySpaceBendingCasing.asElement())
+                .addElement('F', Casings.NaquadriaReinforcedWaterPlantCasing.asElement())
+                .addElement('G', Casings.CelestialMatterGuidanceCasing.asElement())
+                .addElement('H', Casings.DimensionalBridge.asElement())
+                .addElement('I', Casings.SpaceTimeBendingCore.asElement())
+                .addElement('J', Casings.ParticleBeamGuidancePipeCasing.asElement())
                 .addElement('K', GTStructureUtility.ofFrame(Materials.NaquadahAlloy))
-                .addElement('L', StructureUtility.ofBlock(ItemRegistry.bw_realglas2, 1))
-                .addElement('M', StructureUtility.ofBlock(ItemRegistry.bw_realglas2, 1))
+                .addElement('L', Casings.OmniPurposeInfinityFusedGlass.asElement())
+                .addElement('M', StructureUtility.ofBlock(ItemRegistry.bw_realglas, 6))
                 .addElement(
                     'N',
                     GTStructureUtility.buildHatchAdder(IntegratedLine.class)
@@ -91,27 +94,27 @@ public final class IntegratedLine extends MTEExtendedPowerMultiBlockBase<Integra
                             HatchElement.OutputBus,
                             HatchElement.InputHatch,
                             HatchElement.OutputHatch)
-                        .casingIndex(Casings.ZPMMachineCasing.getTextureId())
+                        .casingIndex(961)
                         .hint(1)
-                        .buildAndChain(Casings.ZPMMachineCasing.asElement()))
-                .addElement('O', Casings.LuVMachineCasing.asElement())
-                .addElement('P', Casings.LuVMachineCasing.asElement())
-                .addElement('Q', Casings.UEVMachineCasing.asElement())
-                .addElement('R', Casings.UVMachineCasing.asElement())
-                .addElement('S', Casings.UHVSolenoidSuperconductorCoil.asElement())
-                .addElement('T', Casings.LuVMachineCasing.asElement())
-                .addElement('U', Casings.UVMachineCasing.asElement())
-                .addElement('V', Casings.UIVMachineCasing.asElement())
-                .addElement('W', Casings.UHVMachineCasing.asElement())
-                .addElement('X', Casings.ZPMMachineCasing.asElement())
+                        .buildAndChain(Casings.CelestialMatterGuidanceCasing.asElement()))
+                .addElement('O', Casings.QuarkExclusionCasing.asElement())
+                .addElement('P', Casings.ReinforcedTemporalStructureCasing.asElement())
+                .addElement('Q', Casings.CentralGravitonFlowModulator.asElement())
+                .addElement('R', Casings.StellarEnergySiphonCasing.asElement())
+                .addElement('S', Casings.HarmonicPhononTransmissionConduit.asElement())
+                .addElement('T', StructureUtility.ofBlock(Loaders.gravityStabilizationCasing, 0))
+                .addElement('U', Casings.GallifreyanSpacetimeCompressionFieldGenerator.asElement())
+                .addElement('V', Casings.GallifreyanTimeDilationFieldGenerator.asElement())
+                .addElement('W', Casings.ReinforcedSpatialStructureCasing.asElement())
+                .addElement('X', Casings.GallifreyanStabilisationFieldGenerator.asElement())
                 .addElement(
                     'Y',
                     HatchElementBuilder.<IntegratedLine>builder()
                         .anyOf(ModuleElement.Module)
-                        .casingIndex(Casings.UHVMachineCasing.getTextureId())
+                        .casingIndex(960)
                         .hint(1)
-                        .buildAndChain(Casings.UHVMachineCasing.asElement()))
-                .addElement('Z', Casings.UEVMachineCasing.asElement())
+                        .buildAndChain(TTCasingsContainer.GodforgeCasings, 0))
+                .addElement('Z', Casings.DimensionalBridge.asElement())
                 .addElement('a', StructureUtility.isAir())
                 .build();
         }
@@ -184,7 +187,7 @@ public final class IntegratedLine extends MTEExtendedPowerMultiBlockBase<Integra
     @Override
     public ITexture[] getTexture(IGregTechTileEntity tile, ForgeDirection side, ForgeDirection facing, int color,
         boolean active, boolean redstone) {
-        ITexture casing = Casings.ZPMMachineCasing.getCasingTexture();
+        ITexture casing = Textures.BlockIcons.getCasingTextureForId(961);
         return side == facing ? new ITexture[] { casing, TextureFactory.builder()
             .addIcon(FACE)
             .extFacing()
