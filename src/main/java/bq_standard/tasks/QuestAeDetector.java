@@ -14,7 +14,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.gtnhadjust.GTNHAdjust;
@@ -27,25 +26,17 @@ import appeng.api.config.FuzzyMode;
 import appeng.api.config.PowerMultiplier;
 import appeng.api.config.SecurityPermissions;
 import appeng.api.features.IWirelessTermHandler;
-import appeng.api.networking.crafting.ICraftingGrid;
 import appeng.api.networking.security.BaseActionSource;
 import appeng.api.networking.security.ISecurityGrid;
 import appeng.api.networking.security.PlayerSource;
 import appeng.api.storage.IMEMonitor;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
-import appeng.api.storage.data.IAEStack;
-import appeng.container.PrimaryGui;
-import appeng.container.implementations.ContainerCraftConfirm;
-import appeng.core.sync.GuiBridge;
 import appeng.helpers.WirelessTerminalGuiObject;
-import appeng.util.Platform;
 import appeng.util.item.AEFluidStack;
 import appeng.util.item.AEItemStack;
 import baubles.api.BaublesApi;
-import betterquesting.api.api.QuestingAPI;
 import betterquesting.api.utils.BigItemStack;
-import betterquesting.api.utils.ItemComparison;
 import betterquesting.api2.utils.ParticipantInfo;
 import betterquesting.api2.utils.Tuple2;
 import cpw.mods.fml.common.Loader;
@@ -199,249 +190,6 @@ public final class QuestAeDetector {
             }
             remaining.put(key, Math.max(0, available - used * fluid.amount));
         }
-    }
-
-    public static net.minecraft.nbt.NBTTagCompound craftableSnapshot(EntityPlayerMP player,
-        betterquesting.api.questing.IQuest quest) {
-        net.minecraft.nbt.NBTTagCompound result = new net.minecraft.nbt.NBTTagCompound();
-        Access access = findAccess(player);
-        if (access == null) return result;
-        ISecurityGrid security = access.host.getGrid()
-            .getCache(ISecurityGrid.class);
-        if (security == null || !security.hasPermission(player, SecurityPermissions.CRAFT)) return result;
-        ICraftingGrid crafting = access.host.getGrid()
-            .getCache(ICraftingGrid.class);
-        if (crafting == null) return result;
-        for (betterquesting.api2.storage.DBEntry<betterquesting.api.questing.tasks.ITask> entry : quest.getTasks()
-            .getEntries()) {
-            betterquesting.api.questing.tasks.ITask task = entry.getValue();
-            if (task instanceof TaskRetrieval) {
-                TaskRetrieval retrieval = (TaskRetrieval) task;
-                int[] flags = new int[retrieval.requiredItems.size()];
-                for (int i = 0; i < flags.length; i++) {
-                    BigItemStack required = retrieval.requiredItems.get(i);
-                    ItemStack prototype = required.getBaseStack()
-                        .copy();
-                    prototype.stackSize = 1;
-                    FluidStack fluid = GTUtility.getFluidForFilledItem(prototype, true);
-                    if (fluid != null) {
-                        IAEFluidStack key = AEFluidStack.create(fluid);
-                        flags[i] = key != null && !crafting.getCraftingFor(key, null, -1, player.worldObj)
-                            .isEmpty() ? 1 : 0;
-                    } else {
-                        for (IAEStack<?> key : crafting.getCraftingMultiPatterns()
-                            .keySet()) {
-                            if (key instanceof IAEItemStack
-                                && matches(retrieval, required, ((IAEItemStack) key).getItemStack())) {
-                                flags[i] = 1;
-                                break;
-                            }
-                        }
-                    }
-                }
-                result.setIntArray(Integer.toString(entry.getID()), flags);
-            } else if (task instanceof TaskFluid) {
-                TaskFluid fluidTask = (TaskFluid) task;
-                int[] flags = new int[fluidTask.requiredFluids.size()];
-                for (int i = 0; i < flags.length; i++) {
-                    FluidStack fluid = fluidTask.requiredFluids.get(i);
-                    IAEFluidStack key = fluid == null ? null : AEFluidStack.create(fluid);
-                    flags[i] = key != null && !crafting.getCraftingFor(key, null, -1, player.worldObj)
-                        .isEmpty() ? 1 : 0;
-                }
-                result.setIntArray(Integer.toString(entry.getID()), flags);
-            }
-        }
-        return result;
-    }
-
-    /** Open an ordinary AE confirmation screen; no task progress or inventory is changed here. */
-    public static boolean openCraft(EntityPlayerMP player, TaskRetrieval task, int index) {
-        if (index < 0 || index >= task.requiredItems.size() || task.isComplete(QuestingAPI.getQuestingUUID(player)))
-            return false;
-        Access a = findAccess(player);
-        if (a == null) {
-            return false;
-        }
-        try {
-            ISecurityGrid security = a.host.getGrid()
-                .getCache(ISecurityGrid.class);
-            if (security == null || !security.hasPermission(player, SecurityPermissions.CRAFT)) {
-                return false;
-            }
-            ICraftingGrid crafting = a.host.getGrid()
-                .getCache(ICraftingGrid.class);
-            if (crafting == null) return false;
-            BigItemStack required = task.requiredItems.get(index);
-            int[] progress = task.getUsersProgress(QuestingAPI.getQuestingUUID(player));
-            long needed = Math.max(0L, (long) required.stackSize - (task.consume ? progress[index] : 0));
-            for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
-                ItemStack stack = player.inventory.getStackInSlot(i);
-                if (matches(task, required, stack)) needed -= stack.stackSize;
-            }
-            Set<IAEItemStack> seen = new HashSet<>();
-            List<ItemStack> candidates = new ArrayList<>();
-            candidates.add(required.getBaseStack());
-            if (required.hasOreDict()) Collections.addAll(
-                candidates,
-                required.getOreIngredient()
-                    .getMatchingStacks());
-            for (ItemStack candidate : candidates) {
-                IAEItemStack key = AEItemStack.create(candidate);
-                if (key == null) continue;
-                for (IAEItemStack stack : a.items.getStorageList()
-                    .findFuzzy(key, FuzzyMode.IGNORE_ALL)) {
-                    if (stack == null || !seen.add(stack.copy()) || !matches(task, required, stack.getItemStack()))
-                        continue;
-                    IAEItemStack stored = a.items.extractItems(
-                        stack.copy()
-                            .setStackSize(Long.MAX_VALUE),
-                        Actionable.SIMULATE,
-                        a.source);
-                    if (stored != null) needed -= stored.getStackSize();
-                }
-            }
-            ItemStack prototype = required.getBaseStack()
-                .copy();
-            prototype.stackSize = 1;
-            FluidStack fluid = GTUtility.getFluidForFilledItem(prototype, true);
-            IAEFluidStack fluidKey = fluid == null ? null : AEFluidStack.create(fluid);
-            if (fluidKey != null && fluid.amount > 0 && a.fluids != null) {
-                IAEFluidStack stored = a.fluids.extractItems(
-                    fluidKey.copy()
-                        .setStackSize(Long.MAX_VALUE),
-                    Actionable.SIMULATE,
-                    a.source);
-                if (stored != null) needed -= stored.getStackSize() / fluid.amount;
-            }
-            if (needed <= 0) {
-                return false;
-            }
-            IAEStack<?> target = null;
-            for (IAEStack<?> candidate : crafting.getCraftingMultiPatterns()
-                .keySet()) {
-                if (fluidKey == null && candidate instanceof IAEItemStack
-                    && matches(task, required, ((IAEItemStack) candidate).getItemStack())) {
-                    target = candidate.copy()
-                        .setStackSize(needed);
-                    break;
-                }
-            }
-            if (target == null && fluidKey != null
-                && fluid.amount > 0
-                && !crafting.getCraftingFor(fluidKey, null, -1, player.worldObj)
-                    .isEmpty()) {
-                target = fluidKey.copy()
-                    .setStackSize(needed * fluid.amount);
-            }
-            int slot = terminalSlot(player, a.host);
-            if (target == null || slot < 0) {
-                return false;
-            }
-            java.util.concurrent.Future<appeng.api.networking.crafting.ICraftingJob> job = crafting
-                .beginCraftingJob(player.worldObj, a.host.getGrid(), a.source, target, null);
-            Platform.openGUI(player, null, null, GuiBridge.GUI_CRAFTING_CONFIRM, slot);
-            if (!(player.openContainer instanceof ContainerCraftConfirm)) {
-                job.cancel(true);
-                return false;
-            }
-            ContainerCraftConfirm confirm = (ContainerCraftConfirm) player.openContainer;
-            ItemStack terminal = slot >= Platform.baublesSlotsOffset ? BaublesApi.getBaubles(player)
-                .getStackInSlot(slot - Platform.baublesSlotsOffset) : player.inventory.mainInventory[slot];
-            PrimaryGui primary = new PrimaryGui(GuiBridge.GUI_ME, terminal.copy(), null, ForgeDirection.UNKNOWN);
-            primary.setSlotIndex(slot);
-            confirm.setPrimaryGui(primary);
-            confirm.setItemToCraft(target);
-            confirm.setJob(job);
-            return true;
-        } catch (RuntimeException failure) {
-            GTNHAdjust.LOG.warn("Quest AE craft request failed for {}", player.getCommandSenderName(), failure);
-            player.addChatMessage(new net.minecraft.util.ChatComponentTranslation("gtnhadjust.quest.ae_error"));
-            return false;
-        }
-    }
-
-    public static boolean openFluidCraft(EntityPlayerMP player, TaskFluid task, int index) {
-        if (index < 0 || index >= task.requiredFluids.size() || task.isComplete(QuestingAPI.getQuestingUUID(player)))
-            return false;
-        Access a = findAccess(player);
-        if (a == null) return false;
-        try {
-            ISecurityGrid security = a.host.getGrid()
-                .getCache(ISecurityGrid.class);
-            if (security == null || !security.hasPermission(player, SecurityPermissions.CRAFT)) return false;
-            ICraftingGrid crafting = a.host.getGrid()
-                .getCache(ICraftingGrid.class);
-            FluidStack fluid = task.requiredFluids.get(index);
-            if (crafting == null || fluid == null || a.fluids == null) return false;
-            IAEFluidStack key = AEFluidStack.create(fluid);
-            if (key == null || crafting.getCraftingFor(key, null, -1, player.worldObj)
-                .isEmpty()) return false;
-            long needed = Math.max(
-                0L,
-                (long) fluid.amount
-                    - (task.consume ? task.getUsersProgress(QuestingAPI.getQuestingUUID(player))[index] : 0));
-            for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
-                ItemStack stack = player.inventory.getStackInSlot(i);
-                if (stack == null) continue;
-                FluidStack held = GTUtility.getFluidForFilledItem(stack, true);
-                if (held == null || held.getFluid() != fluid.getFluid()) continue;
-                if (!task.ignoreNbt && !java.util.Objects.equals(fluid.tag, held.tag)) continue;
-                needed -= (long) held.amount * stack.stackSize;
-            }
-            IAEFluidStack stored = a.fluids.extractItems(
-                key.copy()
-                    .setStackSize(Long.MAX_VALUE),
-                Actionable.SIMULATE,
-                a.source);
-            if (stored != null) needed -= stored.getStackSize();
-            if (needed <= 0) return false;
-            int slot = terminalSlot(player, a.host);
-            if (slot < 0) return false;
-            IAEStack<?> target = key.copy()
-                .setStackSize(needed);
-            java.util.concurrent.Future<appeng.api.networking.crafting.ICraftingJob> job = crafting
-                .beginCraftingJob(player.worldObj, a.host.getGrid(), a.source, target, null);
-            Platform.openGUI(player, null, null, GuiBridge.GUI_CRAFTING_CONFIRM, slot);
-            if (!(player.openContainer instanceof ContainerCraftConfirm)) {
-                job.cancel(true);
-                return false;
-            }
-            ContainerCraftConfirm confirm = (ContainerCraftConfirm) player.openContainer;
-            ItemStack terminal = slot >= Platform.baublesSlotsOffset ? BaublesApi.getBaubles(player)
-                .getStackInSlot(slot - Platform.baublesSlotsOffset) : player.inventory.mainInventory[slot];
-            PrimaryGui primary = new PrimaryGui(GuiBridge.GUI_ME, terminal.copy(), null, ForgeDirection.UNKNOWN);
-            primary.setSlotIndex(slot);
-            confirm.setPrimaryGui(primary);
-            confirm.setItemToCraft(target);
-            confirm.setJob(job);
-            return true;
-        } catch (RuntimeException failure) {
-            GTNHAdjust.LOG.warn("Quest AE fluid craft request failed for {}", player.getCommandSenderName(), failure);
-            return false;
-        }
-    }
-
-    private static boolean matches(TaskRetrieval task, BigItemStack required, ItemStack stack) {
-        return stack != null
-            && (ItemComparison.StackMatch(required.getBaseStack(), stack, !task.ignoreNBT, task.partialMatch)
-                || ItemComparison.OreDictionaryMatch(
-                    required.getOreIngredient(),
-                    required.GetTagCompound(),
-                    stack,
-                    !task.ignoreNBT,
-                    task.partialMatch));
-    }
-
-    private static int terminalSlot(EntityPlayerMP player, WirelessTerminalGuiObject host) {
-        for (int i = 0; i < player.inventory.mainInventory.length; i++)
-            if (player.inventory.mainInventory[i] == host.getItemStack()) return i;
-        if (Loader.isModLoaded("Baubles")) {
-            IInventory inv = BaublesApi.getBaubles(player);
-            if (inv != null) for (int i = 0; i < inv.getSizeInventory(); i++)
-                if (inv.getStackInSlot(i) == host.getItemStack()) return Platform.baublesSlotsOffset + i;
-        }
-        return -1;
     }
 
     private static Access findAccess(EntityPlayerMP player) {

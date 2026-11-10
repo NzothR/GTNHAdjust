@@ -42,10 +42,3 @@ gtnhadjust.nei.missing=Missing items
 gtnhadjust.quest.ae_detect=Detect AE Network / Submit
 gtnhadjust.quest.ae_unavailable=No powered wireless AE network with extract permission is available; only inventories were checked.
 gtnhadjust.quest.ae_error=AE quest retrieval was interrupted; check the server log.
-
-gtnhadjust.quest.craft_unavailable=No accessible wireless AE network with crafting permission.
-gtnhadjust.quest.craft_not_needed=Inventory and AE storage appear sufficient; use detect/deliver.
-gtnhadjust.quest.craft_no_pattern=No craftable pattern or supported wireless terminal found.
-
-gtnhadjust.quest.craft_hint=Alt+left click: review AE crafting for this quest
-gtnhadjust.quest.craft_queue_done=No more quest crafting requests to review.
