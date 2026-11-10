@@ -8,6 +8,8 @@ import org.apache.logging.log4j.Logger;
 import com.gtnhadjust.machine.collector.SuperFragmentRecipes;
 import com.gtnhadjust.machine.collector.SuperFragmentRegistration;
 import com.gtnhadjust.machine.collector.TierDimensionItem;
+import com.gtnhadjust.machine.integrated.IntegratedLine;
+import com.gtnhadjust.machine.integrated.IntegratedModule;
 import com.gtnhadjust.machine.loot.LootSimulatorRegistration;
 import com.gtnhadjust.machine.proxy.ProxyFactoryRegistration;
 import com.gtnhadjust.recipe.CarpenterRecipes;
@@ -20,13 +22,14 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
+import gregtech.api.GregTechAPI;
 
 @Mod(
     modid = GTNHAdjust.MOD_ID,
     name = "GTNH Adjust",
     version = Tags.VERSION,
     acceptedMinecraftVersions = "[1.7.10]",
-    dependencies = "after:Forestry;after:gregtech;after:gtneverreset")
+    dependencies = "after:Forestry;after:gregtech;after:gtneverreset;after:sciencenotleisure")
 public class GTNHAdjust {
 
     public static final String MOD_ID = "gtnhadjust";
@@ -47,6 +50,9 @@ public class GTNHAdjust {
     private int superFragmentMteId = 31990;
     private int lootSimulatorMteId = 31992;
     private int proxyFactoryMteId = 31993;
+    private boolean integratedLineEnabled;
+    private int integratedLineId;
+    private int integratedModuleId;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -138,6 +144,20 @@ public class GTNHAdjust {
             2048,
             32766,
             "Proxy joint factory controller ID. Restart required; clients and servers must match.");
+        integratedLineEnabled = config.getBoolean(
+            "enabled",
+            "integratedLine",
+            true,
+            "Enable the integrated line and module. Restart and match on client and server.");
+        integratedLineId = config.getInt(
+            "controllerId",
+            "integratedLine",
+            31994,
+            2048,
+            32766,
+            "Stable controller ID; never change after use.");
+        integratedModuleId = config
+            .getInt("moduleId", "integratedLine", 31995, 2048, 32766, "Stable module ID; never change after use.");
         if (config.hasChanged()) config.save();
         tierDimension = new TierDimensionItem();
         GameRegistry.registerItem(tierDimension, "tier_dimension");
@@ -147,6 +167,13 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
+        if (integratedLineEnabled && Loader.isModLoaded("sciencenotleisure") && Loader.isModLoaded("gregtech")) {
+            if (integratedLineId == integratedModuleId || GregTechAPI.METATILEENTITIES[integratedLineId] != null
+                || GregTechAPI.METATILEENTITIES[integratedModuleId] != null)
+                throw new IllegalStateException("Integrated line MTE IDs are already in use");
+            new IntegratedLine(integratedLineId, "gtnhadjust.integrated_line", "Integrated Joint Assembly Line");
+            new IntegratedModule(integratedModuleId, "gtnhadjust.integrated_module", "Joint Module");
+        }
         if (FeatureConfig.get().proxyFactory && Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech"))
             ProxyFactoryRegistration.registerMachine(proxyFactoryMteId);
         if (FeatureConfig.get().lootSimulator && Loader.isModLoaded("gregtech")
