@@ -18,6 +18,7 @@ final class FeatureSwitches {
     private static final Logger LOG = Logger.getLogger("GTNHAdjust");
     private static final String HOLOGRAM = "hologramImprovements";
     private static final String GTNL_CRAFT_FIX = "gtnlQuickTerminalCraftFix";
+    private static final String GRAND_MAINTENANCE = "grandAssemblyAutoMaintenance";
     private static final String QUEST_AE = "questAeRetrieval";
     private static final String YSMU_ARMS = "ysmuAnimatedArms";
     private static final String LOOT_SIMULATOR = "lootSimulator";
@@ -44,6 +45,7 @@ final class FeatureSwitches {
 
     final boolean hologramImprovements;
     final boolean gtnlQuickTerminalCraftFix;
+    final boolean grandAssemblyAutoMaintenance;
     final boolean questAeRetrieval;
     final boolean ysmuAnimatedArms;
     final boolean lootSimulator;
@@ -75,7 +77,8 @@ final class FeatureSwitches {
         boolean terminalNeiAlwaysShowPresence, boolean terminalSmartIngredients, boolean matrixPatternDiagnostics,
         boolean matrixPatternLoadFix, boolean soulVialExpandedCapture, boolean structureLibAeAutoPlace,
         boolean proxyDispatchDiagnostics, boolean ysmuAnimatedArms, boolean hologramImprovements,
-        boolean questAeRetrieval, boolean gtnlQuickTerminalCraftFix) {
+        boolean questAeRetrieval, boolean gtnlQuickTerminalCraftFix, boolean grandAssemblyAutoMaintenance) {
+        this.grandAssemblyAutoMaintenance = grandAssemblyAutoMaintenance;
         this.gtnlQuickTerminalCraftFix = gtnlQuickTerminalCraftFix;
         this.questAeRetrieval = questAeRetrieval;
         this.hologramImprovements = hologramImprovements;
@@ -112,6 +115,7 @@ final class FeatureSwitches {
         defaults.setProperty(PROXY_TRACE, "false");
         defaults.setProperty(CROP, "true");
         defaults.setProperty(QUEST_AE, "true");
+        defaults.setProperty(GRAND_MAINTENANCE, "true");
         defaults.setProperty(GTNL_CRAFT_FIX, "true");
         defaults.setProperty(GREENHOUSE, "true");
         defaults.setProperty(CARPENTER, "true");
@@ -170,7 +174,8 @@ final class FeatureSwitches {
                 read(values, YSMU_ARMS),
                 read(values, HOLOGRAM),
                 read(values, QUEST_AE),
-                read(values, GTNL_CRAFT_FIX));
+                read(values, GTNL_CRAFT_FIX),
+                read(values, GRAND_MAINTENANCE));
             LOG.info(
                 "Feature switches: lootSimulator=" + result.lootSimulator
                     + ", proxyFactory="
@@ -247,6 +252,7 @@ final class FeatureSwitches {
                 false,
                 false,
                 false,
+                false,
                 false);
         }
     }
@@ -266,6 +272,8 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (grandAssemblyAutoMaintenance && loadedMods.contains("sciencenotleisure"))
+            mixins.add("gtnl.GrandAssemblyMaintenanceMixin");
         if (gtnlQuickTerminalCraftFix && loadedMods.contains("sciencenotleisure")
             && loadedMods.contains("gtneverreset")
             && loadedMods.contains("appliedenergistics2")) {

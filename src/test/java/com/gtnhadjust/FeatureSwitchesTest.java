@@ -235,11 +235,11 @@ public class FeatureSwitchesTest {
         assertTrue(Files.isRegularFile(file));
         assertTrue(switches.carpenterRecipes);
         assertEquals(
-            20,
+            21,
             switches.selectMixins(MODS, true)
                 .size());
         assertEquals(
-            10,
+            11,
             switches.selectMixins(MODS, false)
                 .size());
     }
@@ -251,8 +251,10 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
+                "grandAssemblyAutoMaintenance=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
+                "grandAssemblyAutoMaintenance=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "steamGreenhouse=false",
@@ -279,8 +281,10 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
+                "grandAssemblyAutoMaintenance=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
+                "grandAssemblyAutoMaintenance=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "steamGreenhouse=unexpected",
@@ -298,6 +302,7 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
+                "grandAssemblyAutoMaintenance=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
                 "cropBreeder=true",
@@ -330,8 +335,10 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
+                "grandAssemblyAutoMaintenance=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
+                "grandAssemblyAutoMaintenance=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "steamGreenhouse=false",
@@ -361,8 +368,10 @@ public class FeatureSwitchesTest {
         Files.write(
             file,
             Arrays.asList(
+                "grandAssemblyAutoMaintenance=false",
                 "matrixPatternLoadFix=false",
                 "patternRecipeMapPreservation=false",
+                "grandAssemblyAutoMaintenance=false",
                 "matrixPatternLoadFix=false",
                 "cropBreeder=false",
                 "steamGreenhouse=false",
