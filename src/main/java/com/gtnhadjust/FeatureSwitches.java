@@ -23,6 +23,7 @@ final class FeatureSwitches {
     private static final String YSMU_ARMS = "ysmuAnimatedArms";
     private static final String LOOT_SIMULATOR = "lootSimulator";
     private static final String PROXY_FACTORY = "proxyFactory";
+    private static final String THREADED_PROXY = "threadedJointProxy";
     private static final String PROXY_TRACE = "proxyDispatchDiagnostics";
     private static final String CROP = "cropBreeder";
     private static final String GREENHOUSE = "steamGreenhouse";
@@ -50,6 +51,7 @@ final class FeatureSwitches {
     final boolean ysmuAnimatedArms;
     final boolean lootSimulator;
     final boolean proxyFactory;
+    final boolean threadedJointProxy;
     final boolean proxyDispatchDiagnostics;
     final boolean cropBreeder;
     final boolean steamGreenhouse;
@@ -77,7 +79,9 @@ final class FeatureSwitches {
         boolean terminalNeiAlwaysShowPresence, boolean terminalSmartIngredients, boolean matrixPatternDiagnostics,
         boolean matrixPatternLoadFix, boolean soulVialExpandedCapture, boolean structureLibAeAutoPlace,
         boolean proxyDispatchDiagnostics, boolean ysmuAnimatedArms, boolean hologramImprovements,
-        boolean questAeRetrieval, boolean gtnlQuickTerminalCraftFix, boolean grandAssemblyAutoMaintenance) {
+        boolean questAeRetrieval, boolean gtnlQuickTerminalCraftFix, boolean grandAssemblyAutoMaintenance,
+        boolean threadedJointProxy) {
+        this.threadedJointProxy = threadedJointProxy;
         this.grandAssemblyAutoMaintenance = grandAssemblyAutoMaintenance;
         this.gtnlQuickTerminalCraftFix = gtnlQuickTerminalCraftFix;
         this.questAeRetrieval = questAeRetrieval;
@@ -112,6 +116,7 @@ final class FeatureSwitches {
         defaults.setProperty(YSMU_ARMS, "true");
         defaults.setProperty(LOOT_SIMULATOR, "true");
         defaults.setProperty(PROXY_FACTORY, "true");
+        defaults.setProperty(THREADED_PROXY, "true");
         defaults.setProperty(PROXY_TRACE, "false");
         defaults.setProperty(CROP, "true");
         defaults.setProperty(QUEST_AE, "true");
@@ -175,7 +180,8 @@ final class FeatureSwitches {
                 read(values, HOLOGRAM),
                 read(values, QUEST_AE),
                 read(values, GTNL_CRAFT_FIX),
-                read(values, GRAND_MAINTENANCE));
+                read(values, GRAND_MAINTENANCE),
+                read(values, THREADED_PROXY));
             LOG.info(
                 "Feature switches: lootSimulator=" + result.lootSimulator
                     + ", proxyFactory="
@@ -223,11 +229,14 @@ final class FeatureSwitches {
                     + ", hologramImprovements="
                     + result.hologramImprovements
                     + ", gtnlQuickTerminalCraftFix="
-                    + result.gtnlQuickTerminalCraftFix);
+                    + result.gtnlQuickTerminalCraftFix
+                    + ", threadedJointProxy="
+                    + result.threadedJointProxy);
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
             return new FeatureSwitches(
+                false,
                 false,
                 false,
                 false,

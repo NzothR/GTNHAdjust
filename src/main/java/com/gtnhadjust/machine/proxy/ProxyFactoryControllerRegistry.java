@@ -17,7 +17,7 @@ import gregtech.api.recipe.RecipeMap;
 import gregtech.common.blocks.ItemMachines;
 
 /** Resolves only registered GT controllers and intersects their live maps with our whitelist. */
-final class ProxyFactoryControllerRegistry {
+public final class ProxyFactoryControllerRegistry {
 
     private static final Set<String> ALLOWED = new HashSet<>();
     static {
@@ -28,7 +28,7 @@ final class ProxyFactoryControllerRegistry {
 
     private ProxyFactoryControllerRegistry() {}
 
-    static List<String> maps(ItemStack stack) {
+    public static List<String> maps(ItemStack stack) {
         if (stack == null || stack.stackSize <= 0 || !(stack.getItem() instanceof ItemMachines))
             return Collections.emptyList();
         IMetaTileEntity target = ItemMachines.getMetaTileEntity(stack);

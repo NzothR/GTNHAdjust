@@ -10,6 +10,7 @@ import com.gtnhadjust.machine.collector.SuperFragmentRegistration;
 import com.gtnhadjust.machine.collector.TierDimensionItem;
 import com.gtnhadjust.machine.loot.LootSimulatorRegistration;
 import com.gtnhadjust.machine.proxy.ProxyFactoryRegistration;
+import com.gtnhadjust.machine.threadedproxy.ThreadedProxyRegistration;
 import com.gtnhadjust.recipe.CarpenterRecipes;
 import com.gtnhadjust.soul.SoulVialMultipartHandler;
 import com.gtnhadjust.terminal.TerminalNotifications;
@@ -26,7 +27,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
     name = "GTNH Adjust",
     version = Tags.VERSION,
     acceptedMinecraftVersions = "[1.7.10]",
-    dependencies = "after:Forestry;after:gregtech;after:gtneverreset")
+    dependencies = "after:Forestry;after:gregtech;after:gtneverreset;after:sciencenotleisure")
 public class GTNHAdjust {
 
     public static final String MOD_ID = "gtnhadjust";
@@ -48,6 +49,7 @@ public class GTNHAdjust {
     private int superFragmentMteId = 31990;
     private int lootSimulatorMteId = 31992;
     private int proxyFactoryMteId = 31993;
+    private int threadedProxyMteId = 31994;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -140,6 +142,13 @@ public class GTNHAdjust {
             2048,
             32766,
             "Proxy joint factory controller ID. Restart required; clients and servers must match.");
+        threadedProxyMteId = config.getInt(
+            "mteId",
+            "threadedJointProxy",
+            31994,
+            2048,
+            32766,
+            "Stable threaded joint proxy controller ID. Restart required; clients and servers must match.");
         if (config.hasChanged()) config.save();
         tierDimension = new TierDimensionItem();
         GameRegistry.registerItem(tierDimension, "tier_dimension");
@@ -149,6 +158,9 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
+        if (FeatureConfig.get().threadedJointProxy && Loader.isModLoaded("gtneverreset")
+            && Loader.isModLoaded("sciencenotleisure")
+            && Loader.isModLoaded("gregtech")) ThreadedProxyRegistration.registerMachine(threadedProxyMteId);
         if (FeatureConfig.get().proxyFactory && Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech"))
             ProxyFactoryRegistration.registerMachine(proxyFactoryMteId);
         if (FeatureConfig.get().lootSimulator && Loader.isModLoaded("gregtech")
@@ -164,6 +176,9 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void loadComplete(FMLLoadCompleteEvent event) {
+        if (FeatureConfig.get().threadedJointProxy && Loader.isModLoaded("gtneverreset")
+            && Loader.isModLoaded("sciencenotleisure")
+            && Loader.isModLoaded("gregtech")) ThreadedProxyRegistration.registerCrafting();
         if (FeatureConfig.get().proxyFactory && Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech"))
             ProxyFactoryRegistration.registerCrafting();
         if (FeatureConfig.get().lootSimulator && Loader.isModLoaded("gregtech")
