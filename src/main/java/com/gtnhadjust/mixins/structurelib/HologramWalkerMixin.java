@@ -10,6 +10,7 @@ import com.gtnewhorizon.structurelib.structure.AutoPlaceEnvironment;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.IStructureElement.PlaceResult;
 import com.gtnhadjust.GTNHAdjust;
+import com.gtnhadjust.structurelib.HologramFluidPlacement;
 import com.gtnhadjust.structurelib.HologramReplacement;
 import com.gtnhadjust.structurelib.HologramReplacementContext;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -27,12 +28,20 @@ public abstract class HologramWalkerMixin<T> {
         ItemStack stack, AutoPlaceEnvironment env, Operation<PlaceResult> original) {
         PlaceResult result;
         try {
-            result = HologramReplacement.tryReplace(element, context, world, x, y, z, stack, env);
+            result = HologramFluidPlacement.tryPlace(element, context, world, x, y, z, stack, env);
+            if (result == null) result = HologramReplacement.tryReplace(element, context, world, x, y, z, stack, env);
         } catch (RuntimeException failure) {
             GTNHAdjust.LOG.warn("[hologram] replacement failed at {},{},{}", x, y, z, failure);
             return PlaceResult.REJECT;
         }
-        if (result != null) return result;
+        if (result != null) {
+            HologramReplacementContext scope = HologramReplacementContext.current();
+            if (scope != null && (result == PlaceResult.ACCEPT || result == PlaceResult.ACCEPT_STOP)) {
+                scope.attempted = true;
+                scope.changed = true;
+            }
+            return result;
+        }
         PlaceResult placed = original.call(element, context, world, x, y, z, stack, env);
         HologramReplacementContext scope = HologramReplacementContext.current();
         if (scope != null && (placed == PlaceResult.ACCEPT || placed == PlaceResult.ACCEPT_STOP)) {

@@ -43,6 +43,7 @@ public class GTNHAdjust {
     public static boolean terminalDebug;
     public static boolean patternDeduplication;
     public static boolean proxyFactoryEnabled;
+    public static boolean hologramAeMaterials;
     public static int steamGreenhouseMaxSeeds = 64;
     private int superFragmentMteId = 31990;
     private int lootSimulatorMteId = 31992;
@@ -54,6 +55,7 @@ public class GTNHAdjust {
             net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new SoulVialMultipartHandler());
         patternDeduplication = FeatureConfig.get().patternDeduplication;
         proxyFactoryEnabled = FeatureConfig.get().proxyFactory;
+        hologramAeMaterials = FeatureConfig.get().structureLibAeAutoPlace;
         if (FeatureConfig.get().questAeRetrieval && Loader.isModLoaded("betterquesting")
             && Loader.isModLoaded("appliedenergistics2")) com.gtnhadjust.quest.QuestAeNetwork.init();
         if (FeatureConfig.get().quickTerminal || patternDeduplication) TerminalNotifications.init();

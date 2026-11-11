@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
 
 import com.gtnewhorizon.structurelib.structure.IItemSource;
 import com.gtnhadjust.GTNHAdjust;
@@ -22,9 +23,11 @@ import appeng.api.networking.security.BaseActionSource;
 import appeng.api.networking.security.ISecurityGrid;
 import appeng.api.networking.security.PlayerSource;
 import appeng.api.storage.IMEMonitor;
+import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.helpers.WirelessTerminalGuiObject;
 import appeng.util.PlayerInventoryUtil;
+import appeng.util.item.AEFluidStack;
 
 /** Adds the player's linked AE network as a fallback material source for StructureLib survival placement. */
 public final class AeAutoPlaceItemSource implements IItemSource {
@@ -144,6 +147,30 @@ public final class AeAutoPlaceItemSource implements IItemSource {
             return new Access(host, monitor, actionSource);
         }
         return null;
+    }
+
+    /** Extract one source block worth of fluid through the player's wireless terminal. */
+    public static boolean takeFluid(EntityPlayerMP player, FluidStack fluid, boolean simulate) {
+        Access access = new AeAutoPlaceItemSource(null, player).findAccess(SecurityPermissions.EXTRACT);
+        if (access == null || access.host.getFluidInventory() == null) return false;
+        IMEMonitor<IAEFluidStack> monitor = access.host.getFluidInventory();
+        IAEFluidStack request = AEFluidStack.create(fluid);
+        IAEFluidStack available = monitor.extractItems(request.copy(), Actionable.SIMULATE, access.actionSource);
+        if (available == null || available.getStackSize() < fluid.amount) return false;
+        if (simulate) return true;
+        if (access.host.extractAEPower(ACCESS_POWER, Actionable.MODULATE, PowerMultiplier.CONFIG) < ACCESS_POWER * 0.99)
+            return false;
+        IAEFluidStack extracted = monitor.extractItems(request, Actionable.MODULATE, access.actionSource);
+        if (extracted != null && extracted.getStackSize() == fluid.amount) return true;
+        if (extracted != null) {
+            IAEFluidStack remaining = monitor.injectItems(extracted, Actionable.MODULATE, access.actionSource);
+            if (remaining != null) GTNHAdjust.LOG.error(
+                "[hologram] could not return {} mB of {}",
+                remaining.getStackSize(),
+                fluid.getFluid()
+                    .getName());
+        }
+        return false;
     }
 
     /** Return as much of a dismantled stack as the player's wireless AE network can accept. */
