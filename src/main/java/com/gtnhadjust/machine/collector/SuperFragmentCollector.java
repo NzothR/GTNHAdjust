@@ -663,7 +663,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             .addInfo("多个能源仓升压最多达到最高仓的上一电压等级")
             .addInfo("LV 电压与 HV 玻璃提供 " + GTNHAdjust.collectorBaseThreads + " 线程")
             .addInfo("电压每升一级增加 " + GTNHAdjust.collectorVoltageThreads + " 线程，玻璃每升一级增加 4 线程")
-            .addInfo("HV 玻璃耗能及耗时为 100%，每升一级减少 10%，最低 10%")
+            .addInfo("HV 玻璃耗能及耗时为 100%，每升一级减少 10%，最低 1%")
             .beginStructureBlock(28, 25, 28, true)
             .addController("正面控制台中，离地一格")
             .addCasing("主体及装饰", "坚固钢制、防霜与钢制管道机械方块", false)

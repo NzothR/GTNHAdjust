@@ -29,7 +29,7 @@ final class CollectorThreadPolicy {
     }
 
     static int glassEnergyPercent(int glassTier) {
-        return (int) Math.max(10, 100L - Math.max(0L, (long) glassTier - HV_GLASS) * 10);
+        return (int) Math.max(1, 100L - Math.max(0L, (long) glassTier - HV_GLASS) * 10);
     }
 
     static long minimumEnergy(long recipeEUt, int percent) {
