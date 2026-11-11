@@ -1,5 +1,6 @@
 # 开发约定
 
+- 优先读取skill文件夹里的各个SKILL文件，按其要求输出
 - 以 GTNH 2.9.0 稳定版为当前开发基线；新增模组依赖时参照该版本清单及 `ref/GT-Never-Reset`，避免混用版本。
 - 开发和构建使用 Java 25，本机 JDK 位于 `D:\CustomLib\zulu25.28.85-ca-jdk25.0.0-win_x64`；系统 `JAVA_HOME` 不代表开发版本。IDEA 可用，但必要时需自行查找其安装位置。
 - 本机游戏实例为 `D:\Game\PrismLauncher-Windows-MinGW-w64-Portable-11.1.1\instances\GT_New_Horizons_2.9.0_Java_17-26\.minecraft`。未经用户事先同意，不修改项目目录以外的文件或文件夹；申请时说明范围和作用。
