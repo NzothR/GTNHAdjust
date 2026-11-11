@@ -1,0 +1,171 @@
+﻿配方池名称,配方池注册名,来源模组,代表主机方块,备注
+部件装配线,gg.recipe.componentassemblyline,GTNH,MTEComponentAssemblyLine（源码类名）,主机游戏内名称及控制器解锁待核验
+精密组装机,gg.recipe.precise_assembler,GTNH,MTEPreciseAssembler（源码类名）,主机游戏内名称及控制器解锁待核验
+合金冶炼炉,gt.recipe.alloyblastsmelter,GTNH,MTEAlloyBlastSmelter（源码类名）,主机游戏内名称及控制器解锁待核验
+合金炉,gt.recipe.alloysmelter,GTNH,MTEIndustrialAlloySmelter（源码类名）,主机游戏内名称及控制器解锁待核验
+电弧炉,gt.recipe.arcfurnace,GTNH,MTEIndustrialArcFurnace（源码类名）,主机游戏内名称及控制器解锁待核验
+组装机,gt.recipe.assembler,GTNH,MTEAutoCrafter（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+高压釜,gt.recipe.autoclave,GTNH,MTEMultiAutoclave（源码类名）,主机游戏内名称及控制器解锁待核验
+装罐机,gt.recipe.canner,GTNH,MTEMultiCanner（源码类名）,主机游戏内名称及控制器解锁待核验
+化学浸洗机,gt.recipe.chemicalbath,GTNH,MTEIndustrialChemicalBath（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+电路组装机,gt.recipe.circuitassembler,GTNH,MTECircuitAssemblyLine（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+焦炉,gt.recipe.cokeoven,GTNH,MTECokeOven（源码类名）,主机游戏内名称及控制器解锁待核验
+冷阱,gt.recipe.coldtrap,GTNH,VacuumDryingFurnace（源码类名）,主机游戏内名称及控制器解锁待核验
+压缩机,gt.recipe.compressor,GTNH,MTESteamCompressorBronze（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+板材切割机,gt.recipe.cuttingsaw,GTNH,MTEIndustrialCuttingMachine（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+蒸馏塔,gt.recipe.distillationtower,GTNH,MTEAdvDistillationTower（源码类名）,主机游戏内名称及控制器解锁待核验
+蒸馏室,gt.recipe.distillery,GTNH,MTEAdvDistillationTower（源码类名）,主机游戏内名称及控制器解锁待核验
+待核验,gt.recipe.efrblasting,GTNH,MTESteamFurnaceMulti（源码类名）,主机游戏内名称及控制器解锁待核验；本地化名待核验
+待核验,gt.recipe.efrsmelting,GTNH,MTESteamFurnaceMulti（源码类名）,主机游戏内名称及控制器解锁待核验；本地化名待核验
+电动聚爆压缩机,gt.recipe.electricimplosioncompressor,GTNH,MTEElectricImplosionCompressor（源码类名）,主机游戏内名称及控制器解锁待核验
+电磁离析机,gt.recipe.electromagneticseparator,GTNH,MTEIndustrialElectromagneticSeparator（源码类名）,主机游戏内名称及控制器解锁待核验
+混沌过程,gt.recipe.entropic-processing,GTNH,MTEEntropicProcessor（源码类名）,主机游戏内名称及控制器解锁待核验
+提取机,gt.recipe.extractor,GTNH,MTEIndustrialExtractor（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+压模机,gt.recipe.extruder,GTNH,MTEIndustrialExtruder（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+化工厂,gt.recipe.fluidchemicaleactor,GTNH,MTEChemicalPlant（源码类名）,主机游戏内名称及控制器解锁待核验
+流体提取机,gt.recipe.fluidextractor,GTNH,MTELargeFluidExtractor（源码类名）,主机游戏内名称及控制器解锁待核验
+流体加热器,gt.recipe.fluidheater,GTNH,MTEIndustrialFluidHeater（源码类名）,主机游戏内名称及控制器解锁待核验
+流体固化器,gt.recipe.fluidsolidifier,GTNH,MTEFluidShaper（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+熔炉,gt.recipe.furnace,GTNH,MTESmeltingModule（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+核聚变反应堆,gt.recipe.fusionreactor,GTNH,MTEFusionComputer（源码类名）,主机游戏内名称及控制器解锁待核验
+锻造锤,gt.recipe.hammer,GTNH,MTEIndustrialForgeHammer（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+聚爆压缩机,gt.recipe.implosioncompressor,GTNH,MTEAdvImplosionCompressor（源码类名）,主机游戏内名称及控制器解锁待核验
+工业凿子,gt.recipe.industrialchisel,GTNH,MTEIndustrialChisel（源码类名）,主机游戏内名称及控制器解锁待核验
+工业焦炉,gt.recipe.industrialcokeoven,GTNH,MTEIndustrialCokeOven（源码类名）,主机游戏内名称及控制器解锁待核验
+大型化学反应釜,gt.recipe.largechemicalreactor,GTNH,MTELargeChemicalReactor（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+激光蚀刻机,gt.recipe.laserengraver,GTNH,MTEIndustrialLaserEngraver（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+车床,gt.recipe.lathe,GTNH,MTEMultiLathe（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+研磨机,gt.recipe.macerator,GTNH,MTEIndustrialMacerator（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+卷板机,gt.recipe.metalbender,GTNH,MTEIndustrialBendingMachine（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+分子重组仪,gt.recipe.moleculartransformer,GTNH,MTEIndustrialMolecularTransformer（源码类名）,主机游戏内名称及控制器解锁待核验
+工业离心机,gt.recipe.multicentrifuge,GTNH,MTEIndustrialCentrifuge（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+工业脱水机,gt.recipe.multidehydrator,GTNH,MTEIndustrialDehydrator（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+工业电解机,gt.recipe.multielectro,GTNH,MTEIndustrialElectrolyzer（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+工业搅拌机,gt.recipe.multimixer,GTNH,MTEIndustrialMixer（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+中子态素压缩机,gt.recipe.neutroniumcompressor,GTNH,MTEBlackHoleCompressor（源码类名）,主机游戏内名称及控制器解锁待核验
+反应堆熔盐加工厂,gt.recipe.nuclearsaltprocessingplant,GTNH,MTENuclearSaltProcessingPlant（源码类名）,主机游戏内名称及控制器解锁待核验
+研磨,gt.recipe.oremill,GTNH,MTEIsaMill（源码类名）,主机游戏内名称及控制器解锁待核验
+洗矿机,gt.recipe.orewasher,GTNH,MTEOreWashingPlant（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+打包机,gt.recipe.packager,GTNH,MTEBoxinator（源码类名）,主机游戏内名称及控制器解锁待核验
+超维度等离子锻炉,gt.recipe.plasmaforge,GTNH,MTEPlasmaForge（源码类名）,主机游戏内名称及控制器解锁待核验
+两极磁化机,gt.recipe.polarizer,GTNH,MTEIndustrialElectromagneticSeparator（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+冲压机床,gt.recipe.press,GTNH,MTEIndustrialFormingPress（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+砖高炉,gt.recipe.primitiveblastfurnace,GTNH,MTEBrickedBlastFurnace（源码类名）,主机游戏内名称及控制器解锁待核验
+热解炉,gt.recipe.pyro,GTNH,MTEPyrolyseOven（源码类名）,主机游戏内名称及控制器解锁待核验
+量子操纵者,gt.recipe.quantumforcesmelter,GTNH,MTEQuantumForceTransformer（源码类名）,主机游戏内名称及控制器解锁待核验
+复制机,gt.recipe.replicator,GTNH,MTEElementalDuplicator（源码类名）,主机游戏内名称及控制器解锁待核验
+筛选机,gt.recipe.sifter,GTNH,MTEIndustrialSifter（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+简易洗矿池,gt.recipe.simplewasher,GTNH,MTEOreWashingPlant（源码类名）,主机游戏内名称及控制器解锁待核验
+太阳能板制造厂,gt.recipe.solarfactory,GTNH,MTESolarFactory（源码类名）,主机游戏内名称及控制器解锁待核验
+热力离心机,gt.recipe.thermalcentrifuge,GTNH,MTEIndustrialThermalCentrifuge（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+超维度等离子搅拌机,gt.recipe.transcendentplasmamixerrecipes,GTNH,MTETranscendentPlasmaMixer（源码类名）,主机游戏内名称及控制器解锁待核验
+解包机,gt.recipe.unpackager,GTNH,MTEIndustrialPackager（源码类名）,主机游戏内名称及控制器解锁待核验
+真空干燥炉,gt.recipe.vacfurnace,GTNH,MTEIndustrialDehydrator（源码类名）,主机游戏内名称及控制器解锁待核验
+真空冷冻机,gt.recipe.vacuumfreezer,GTNH,MTECryogenicFreezer（源码类名）,主机游戏内名称及控制器解锁待核验
+线材轧机,gt.recipe.wiremill,GTNH,MTEIndustrialWireMill（源码类名）,默认解锁；无需输入控制器；主机游戏内名称及控制器解锁待核验
+龙研聚合装置,kubatech.defusioncrafter,GTNH,MTEDEFusionCrafter（源码类名）,主机游戏内名称及控制器解锁待核验
+秘法炼金,gtnl.recipe.alchemic_chemistry_set,GT: New and Leisure,BloodSoulSacrificialArray（源码类名）,主机游戏内名称及控制器解锁待核验
+血魔注入,gtnl.recipe.blood_demon_injection,GT: New and Leisure,BloodSoulSacrificialArray（源码类名）,主机游戏内名称及控制器解锁待核验
+衰变扭曲,gtnl.recipe.decay_hastener,GT: New and Leisure,DecayHastener（源码类名）,主机游戏内名称及控制器解锁待核验
+电力中子活化器,gtnl.recipe.electric_neutron_activator,GT: New and Leisure,FastNeutronBreederReactor（源码类名）,主机游戏内名称及控制器解锁待核验
+模拟坠星标位,gtnl.recipe.falling_tower,GT: New and Leisure,BloodSoulSacrificialArray（源码类名）,主机游戏内名称及控制器解锁待核验
+燃料精炼复合体,gtnl.recipe.fuel_refining_complex,GT: New and Leisure,燃料精炼复合体,原子能激发厂也使用此配方池
+工业坩埚,gtnl.recipe.industrial_crucible,GT: New and Leisure,IndustrialCrucible（源码类名）,主机游戏内名称及控制器解锁待核验
+工业注魔矩阵,gtnl.recipe.industrial_infusion_crafting,GT: New and Leisure,IndustrialArcaneAssembler（源码类名）,主机游戏内名称及控制器解锁待核验
+工业奥术装配室,gtnl.recipe.industrial_shaped_arcane_crafting,GT: New and Leisure,IndustrialArcaneAssembler（源码类名）,主机游戏内名称及控制器解锁待核验
+焦炉但是超模,gtnl.recipe.infernal_coke_oven,GT: New and Leisure,SteamInfernalCokeOven（源码类名）,主机游戏内名称及控制器解锁待核验
+湿法碾磨,gtnl.recipe.isa_mill,GT: New and Leisure,IsaMill（源码类名）,主机游戏内名称及控制器解锁待核验
+蒸汽蒸融,gtnl.recipe.lava_maker,GT: New and Leisure,SteamLavaMaker（源码类名）,主机游戏内名称及控制器解锁待核验
+魔力灌注,gtnl.recipe.mana_infusion,GT: New and Leisure,TeleportationArrayToAlfheim（源码类名）,主机游戏内名称及控制器解锁待核验
+微生物之主,gtnl.recipe.microorganism_master,GT: New and Leisure,MicroorganismMaster（源码类名）,主机游戏内名称及控制器解锁待核验
+物质重组,gtnl.recipe.molecular_transformer,GT: New and Leisure,MolecularTransformer（源码类名）,主机游戏内名称及控制器解锁待核验
+自然灵阵,gtnl.recipe.nature_spirit_array,GT: New and Leisure,TeleportationArrayToAlfheim（源码类名）,主机游戏内名称及控制器解锁待核验
+等离子冷凝,gtnl.recipe.plasma_condensation,GT: New and Leisure,CompoundExtremeCoolingUnit（源码类名）,主机游戏内名称及控制器解锁待核验
+精灵传送门,gtnl.recipe.portal_to_alfheim,GT: New and Leisure,TeleportationArrayToAlfheim（源码类名）,主机游戏内名称及控制器解锁待核验
+精密激光蚀刻,gtnl.recipe.precision_laser_engraver,GT: New and Leisure,EngravingLaserPlant（源码类名）,主机游戏内名称及控制器解锁待核验
+原始土窑,gtnl.recipe.primitive_brick_kiln,GT: New and Leisure,PrimitiveBrickKiln（源码类名）,主机游戏内名称及控制器解锁待核验
+火箭组装厂,gtnl.recipe.rocket_assembler,GT: New and Leisure,RocketAssembler（源码类名）,主机游戏内名称及控制器解锁待核验
+符文祭坛,gtnl.recipe.rune_altar,GT: New and Leisure,TeleportationArrayToAlfheim（源码类名）,主机游戏内名称及控制器解锁待核验
+浅层化学耦合,gtnl.recipe.shallow_chemical_coupling,GT: New and Leisure,ShallowChemicalCoupling（源码类名）,主机游戏内名称及控制器解锁待核验
+合金搅拌,gtnl.recipe.smelting_mixing_furnace,GT: New and Leisure,SmeltingMixingFurnace（源码类名）,主机游戏内名称及控制器解锁待核验
+蒸汽工艺,gtnl.recipe.steam_carpenter,GT: New and Leisure,SteamCarpenter（源码类名）,主机游戏内名称及控制器解锁待核验
+高压反应堆,gtnl.recipe.steam_fusion_reactor,GT: New and Leisure,HighPressureSteamFusionReactor（源码类名）,主机游戏内名称及控制器解锁待核验
+液压动力精密制造,gtnl.recipe.steam_gate_assembler,GT: New and Leisure,SteamGateAssembler（源码类名）,主机游戏内名称及控制器解锁待核验
+液压制造,gtnl.recipe.steam_manufacturer,GT: New and Leisure,SteamManufacturer（源码类名）,主机游戏内名称及控制器解锁待核验
+平炉,gtsr.recipe.siemens_martin_furnace,GT Steam Reborn,MTESiemensMartinFurnace（源码类名）,主机游戏内名称及控制器解锁待核验
+现代产业园,simplification.recipe.modern_industrial_park,GT Simplification,现代产业园,
+石油化工综合体,simplification.recipe.petrochemical_complex,GT Simplification,石油化工综合体,
+超泥土锻炉: 冶金模式,mt.recipe.steel_brick,MessTech,MTDBBFurnace（源码类名）,主机游戏内名称及控制器解锁待核验
+异星计算机可用部件配方,ote.computer.recipe,123Technology,OTEComputer（源码类名）,主机游戏内名称及控制器解锁待核验
+奇点制造机,otht.recipe.AE2,123Technology,OTELargeBin（源码类名）,主机游戏内名称及控制器解锁待核验
+奈隆圣地 - 制作,otht.recipe.AbstractSanctumCraft,123Technology,OTEAbstractSanctum（源码类名）,主机游戏内名称及控制器解锁待核验
+奈隆圣地 - 复制,otht.recipe.AbstractSanctumDuplicate,123Technology,OTEAbstractSanctum（源码类名）,主机游戏内名称及控制器解锁待核验
+垃圾桶,otht.recipe.BIN,123Technology,OTELargeBin（源码类名）,主机游戏内名称及控制器解锁待核验
+大肥鱼装配,otht.recipe.DeepSeikoAL,123Technology,,未定位代表主机；待核验
+大肥鱼凝聚,otht.recipe.DeepSeikoBEC,123Technology,,未定位代表主机；待核验
+末影接口综合体,otht.recipe.EIO,123Technology,OTEEIO（源码类名）,主机游戏内名称及控制器解锁待核验
+吊炸天热交换,otht.recipe.EXH,123Technology,OTEHeatExchanger（源码类名）,主机游戏内名称及控制器解锁待核验
+进阶高能电路装配线,otht.recipe.MCA,123Technology,OTEMegaCircuitAssLine（源码类名）,主机游戏内名称及控制器解锁待核验
+艾萨集成工厂,otht.recipe.MISA,123Technology,OTEMegaIsaFactory（源码类名）,主机游戏内名称及控制器解锁待核验
+艾萨锻炉-老登制造者,otht.recipe.MegaIsaForge,123Technology,OTEMegaIsaForge（源码类名）,主机游戏内名称及控制器解锁待核验
+巨型PCB工厂,otht.recipe.MegaPCB,123Technology,OTESunFactory（源码类名）,主机游戏内名称及控制器解锁待核验
+贴片工坊,otht.recipe.MegaPCB_A,123Technology,OTESunFactory（源码类名）,主机游戏内名称及控制器解锁待核验
+NMD晶圆厂,otht.recipe.MegaPCB_B,123Technology,OTESunFactory（源码类名）,主机游戏内名称及控制器解锁待核验
+元件聚合者,otht.recipe.MegaPCB_C,123Technology,OTESunFactory（源码类名）,主机游戏内名称及控制器解锁待核验
+压缩硅岩燃料精炼厂,otht.recipe.NQF,123Technology,OTEMegaNQFuelFactory（源码类名）,主机游戏内名称及控制器解锁待核验
+狄拉克逆变,otht.recipe.OTEMegaQFT,123Technology,OTEMegaQFT（源码类名）,主机游戏内名称及控制器解锁待核验
+中国石化,otht.recipe.SINOPEC,123Technology,OTESINOPEC（源码类名）,主机游戏内名称及控制器解锁待核验
+唐山炼钢厂,otht.recipe.TSSF,123Technology,OTETangShanSteelFactory（源码类名）,主机游戏内名称及控制器解锁待核验
+压缩原木聚变反应堆Mk 0,otht.recipe.WoodenFusionReactor,123Technology,OTEWoodenFusionReactor（源码类名）,主机游戏内名称及控制器解锁待核验
+CNSA - 装配式,otht.recipe.nasa,123Technology,OTEFireRocketAssembler（源码类名）,主机游戏内名称及控制器解锁待核验
+蒸汽九合一-水泵,otht.recipe.steam.pump,123Technology,OTEMiniSteamNineInOne（源码类名）,主机游戏内名称及控制器解锁待核验
+血狱祭坛,tst.common.recipe.BloodyHellRecipeMap.name,Twist Space Technology,TST_BloodyHell（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+工业炼焦,tst.common.recipe.CokingFactoryRecipeMap.name,Twist Space Technology,TST_LargeIndustrialCokingFactory（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+晶胞铸造器,tst.common.recipe.CrystallineInfinitierRecipeMap.name,Twist Space Technology,GTCM_CrystallineInfinitier（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+纳米核心,tst.common.recipe.DeployedNanoCoreRecipeMap.name,Twist Space Technology,TST_DeployedNanoCore（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+魔力灌注,tst.common.recipe.ElvenWorkshopRecipeMap.name,Twist Space Technology,精灵工坊,兼容旧版注册名；实际注册情况取决于模组版本；多配方主机
+极限时空转换仪,tst.common.recipe.HyperSpacetimeTransformerRecipeMap.name,Twist Space Technology,TST_HyperSpacetimeTransformer（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+工业炼金塔,tst.common.recipe.IndustrialAlchemyTowerRecipeMap.name,Twist Space Technology,TST_IndustrialAlchemyTower（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+工业注魔矩阵配方,tst.common.recipe.IndustrialMagicMatrixRecipeMap.name,Twist Space Technology,GT_TileEntity_IndustrialMagicMatrix（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+深度化学扭曲,tst.common.recipe.IntensifyChemicalDistorterRecipeMap.name,Twist Space Technology,GT_TileEntity_IntensifyChemicalDistorter（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+质量发生器: 创世纪,tst.common.recipe.MassFabricatorGenesisRecipeMap.name,Twist Space Technology,MM_MassFabricatorGenesis（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+巨型太阳能板工厂,tst.common.recipe.MegaSolarPanelFactoryRecipeMap.name,Twist Space Technology,TST_MegaSolarPanelFactory（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+巨型碎石机,tst.common.recipe.MegaStoneBreakerRecipeMap.name,Twist Space Technology,TST_MegaStoneBreaker（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+微型时空发生器,tst.common.recipe.MicroSpaceTimeFabricatorioRecipeMap.name,Twist Space Technology,TST_MicroSpaceTimeFabricatorio（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+奇迹顶点,tst.common.recipe.MiracleTopRecipeMap.name,Twist Space Technology,GT_TileEntity_MiracleTop（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+中子振荡器 - 电力版中子活化器,tst.common.recipe.NeutronActivatorWithEURecipeMap.name,Twist Space Technology,MM_LargeNeutronOscillator（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+光子掌控者,tst.common.recipe.PreciseHighEnergyPhotonicQuantumMasterRecipeMap.name,Twist Space Technology,GT_TileEntity_PreciseHighEnergyPhotonicQuantumMaster（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+量子逆变,tst.common.recipe.QuantumInversionRecipeMap.name,Twist Space Technology,GT_TileEntity_MiracleTop（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+快速冷却,tst.common.recipe.RapidCoolingDownRecipeMap.name,Twist Space Technology,热能对流机,兼容旧版注册名；实际注册情况取决于模组版本；多配方主机
+快速热交换,tst.common.recipe.RapidHeatExchangeRecipeMap.name,Twist Space Technology,热能对流机,兼容旧版注册名；实际注册情况取决于模组版本；多配方主机
+符文雕刻,tst.common.recipe.RuneEngraverRecipeMap.name,Twist Space Technology,精灵工坊,兼容旧版注册名；实际注册情况取决于模组版本；多配方主机
+穿云尖塔,tst.common.recipe.SkypiercerTowerRecipeMap.name,Twist Space Technology,TST_SkypiercerTower（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+星核发生器,tst.common.recipe.StarKernelGeneratorRecipeMap.name,Twist Space Technology,TST_BallLightning（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+恒星锻炉: 合金冶炼,tst.common.recipe.StellarForgeAlloySmelterRecipeMap.name,Twist Space Technology,TST_MiracleDoor（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+恒星锻炉,tst.common.recipe.StellarForgeRecipeMap.name,Twist Space Technology,TST_MiracleDoor（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+梦魇工作台配方转换,tst.common.recipe.VisualExtremeCraftRecipeMap.name,Twist Space Technology,TST_MegaCraftingCenter（源码类名）,主机游戏内名称及控制器解锁待核验；兼容旧版注册名；实际注册情况取决于模组版本
+血狱祭坛,tst.recipe.BloodyHellRecipeMap.name,Twist Space Technology,TST_BloodyHell（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+工业炼焦,tst.recipe.CokingFactoryRecipeMap.name,Twist Space Technology,TST_LargeIndustrialCokingFactory（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+晶胞铸造器,tst.recipe.CrystallineInfinitierRecipeMap.name,Twist Space Technology,GTCM_CrystallineInfinitier（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+纳米核心,tst.recipe.DeployedNanoCoreRecipeMap.name,Twist Space Technology,TST_DeployedNanoCore（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+魔力灌注,tst.recipe.ElvenWorkshopRecipeMap.name,Twist Space Technology,精灵工坊,多配方主机；新版注册名；实际注册情况取决于模组版本
+极限时空转换仪,tst.recipe.HyperSpacetimeTransformerRecipeMap.name,Twist Space Technology,TST_HyperSpacetimeTransformer（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+工业炼金塔,tst.recipe.IndustrialAlchemyTowerRecipeMap.name,Twist Space Technology,TST_IndustrialAlchemyTower（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+工业注魔矩阵配方,tst.recipe.IndustrialMagicMatrixRecipeMap.name,Twist Space Technology,GT_TileEntity_IndustrialMagicMatrix（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+深度化学扭曲,tst.recipe.IntensifyChemicalDistorterRecipeMap.name,Twist Space Technology,GT_TileEntity_IntensifyChemicalDistorter（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+质量发生器: 创世纪,tst.recipe.MassFabricatorGenesisRecipeMap.name,Twist Space Technology,MM_MassFabricatorGenesis（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+巨型太阳能板工厂,tst.recipe.MegaSolarPanelFactoryRecipeMap.name,Twist Space Technology,TST_MegaSolarPanelFactory（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+巨型碎石机,tst.recipe.MegaStoneBreakerRecipeMap.name,Twist Space Technology,TST_MegaStoneBreaker（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+微型时空发生器,tst.recipe.MicroSpaceTimeFabricatorioRecipeMap.name,Twist Space Technology,TST_MicroSpaceTimeFabricatorio（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+奇迹顶点,tst.recipe.MiracleTopRecipeMap.name,Twist Space Technology,GT_TileEntity_MiracleTop（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+中子振荡器 - 电力版中子活化器,tst.recipe.NeutronActivatorWithEURecipeMap.name,Twist Space Technology,MM_LargeNeutronOscillator（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+光子掌控者,tst.recipe.PreciseHighEnergyPhotonicQuantumMasterRecipeMap.name,Twist Space Technology,GT_TileEntity_PreciseHighEnergyPhotonicQuantumMaster（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+量子逆变,tst.recipe.QuantumInversionRecipeMap.name,Twist Space Technology,GT_TileEntity_MiracleTop（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+快速冷却,tst.recipe.RapidCoolingDownRecipeMap.name,Twist Space Technology,热能对流机,多配方主机；新版注册名；实际注册情况取决于模组版本
+快速热交换,tst.recipe.RapidHeatExchangeRecipeMap.name,Twist Space Technology,热能对流机,多配方主机；新版注册名；实际注册情况取决于模组版本
+符文雕刻,tst.recipe.RuneEngraverRecipeMap.name,Twist Space Technology,精灵工坊,多配方主机；新版注册名；实际注册情况取决于模组版本
+穿云尖塔,tst.recipe.SkypiercerTowerRecipeMap.name,Twist Space Technology,TST_SkypiercerTower（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+星核发生器,tst.recipe.StarKernelGeneratorRecipeMap.name,Twist Space Technology,TST_BallLightning（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+恒星锻炉: 合金冶炼,tst.recipe.StellarForgeAlloySmelterRecipeMap.name,Twist Space Technology,TST_MiracleDoor（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+恒星锻炉,tst.recipe.StellarForgeRecipeMap.name,Twist Space Technology,TST_MiracleDoor（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
+梦魇工作台配方转换,tst.recipe.VisualExtremeCraftRecipeMap.name,Twist Space Technology,TST_MegaCraftingCenter（源码类名）,主机游戏内名称及控制器解锁待核验；新版注册名；实际注册情况取决于模组版本
