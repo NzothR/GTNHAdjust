@@ -147,6 +147,7 @@ public final class ProxyFactoryRecipeWhitelist {
                 "otht.recipe.WoodenFusionReactor", // 压缩原木聚变反应堆Mk 0
                 "otht.recipe.nasa", // CNSA - 装配式
                 "otht.recipe.steam.pump", // 蒸汽九合一-水泵
+                "simplification.recipe.modern_industrial_park", // 现代产业园
                 "simplification.recipe.petrochemical_complex", // 石油化工综合体
                 "tst.common.recipe.BloodyHellRecipeMap.name", // 血狱祭坛
                 "tst.common.recipe.CokingFactoryRecipeMap.name", // 工业炼焦
