@@ -7,6 +7,7 @@ import java.util.List;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.gtnhadjust.GTNHAdjust;
 import com.xyp.gtneverreset.common.me.CircuitPatternCodec;
 import com.xyp.gtneverreset.common.me.CircuitRecipeInputs;
 import com.xyp.gtneverreset.common.me.MoldDataManager;
@@ -41,10 +42,22 @@ final class ProxyPatternRecipe {
 
     /** Scans only when the controller or encoded patterns change; partial output lists are accepted. */
     static ProxyPatternRecipe find(RecipeMap<?> map, ICraftingPatternDetails details) {
-        if (details == null || details.isCraftable() || details.isInputOnly()) return null;
+        if (details == null || details.isCraftable() || details.isInputOnly()) {
+            if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
+                "[threaded-proxy] invalid processing definition in {}: details={}, craftable={}, inputOnly={}",
+                map.unlocalizedName,
+                details != null,
+                details != null && details.isCraftable(),
+                details != null && details.isInputOnly());
+            return null;
+        }
         int circuit = CircuitPatternCodec.circuit(details);
         ItemStack[] molds = CircuitPatternCodec.molds(details);
-        if (circuit == -2 || CircuitPatternCodec.storedMolds(details.getPattern()) == null) return null;
+        if (circuit == -2 || CircuitPatternCodec.storedMolds(details.getPattern()) == null) {
+            if (GTNHAdjust.debug) GTNHAdjust.LOG
+                .info("[threaded-proxy] invalid tool metadata in {}: circuit={}", map.unlocalizedName, circuit);
+            return null;
+        }
         List<ItemStack> items = new ArrayList<>();
         List<FluidStack> fluids = new ArrayList<>();
         for (IAEStack<?> input : details.getAEInputs()) {
@@ -69,12 +82,21 @@ final class ProxyPatternRecipe {
             candidates = dynamic;
         }
         ProxyPatternRecipe relaxed = null;
+        int inspected = 0;
         for (GTRecipe recipe : candidates) {
+            inspected++;
             ProxyPatternRecipe match = match(recipe, inputs, liquid, details);
             if (match == null) continue;
             if (match.exact) return match;
             if (relaxed == null) relaxed = match;
         }
+        if (relaxed == null && GTNHAdjust.debug) GTNHAdjust.LOG.info(
+            "[threaded-proxy] no match in {}: inspected={}, encodedItems={}, encodedFluids={}, outputs={}",
+            map.unlocalizedName,
+            inspected,
+            Arrays.toString(inputs),
+            Arrays.toString(liquid),
+            Arrays.toString(details.getCondensedAEOutputs()));
         return relaxed;
     }
 
@@ -129,7 +151,7 @@ final class ProxyPatternRecipe {
         ItemStack[] consumedItems = consumed.toArray(new ItemStack[0]);
         FluidStack[] consumedFluids = consumedLiquid.toArray(new FluidStack[0]);
         long batches = CircuitRecipeInputs.quantityBatches(recipe, consumedItems, consumedFluids);
-        if (batches <= 0 || batches > Integer.MAX_VALUE || !outputsMatch(recipe, details, batches)) return null;
+        if (batches <= 0 || batches > Integer.MAX_VALUE) return null;
         ItemStack[] copiedItems = simulation.stream()
             .map(ItemStack::copy)
             .toArray(ItemStack[]::new);
@@ -144,6 +166,17 @@ final class ProxyPatternRecipe {
         if (!check.isRecipeInputEqual(true, false, (int) batches, copiedFluids, copiedItems)) return null;
         for (int i = 0; i < consumed.size(); i++) if (copiedItems[i].stackSize > 0) return null;
         for (int i = 0; i < consumedLiquid.size(); i++) if (copiedFluids[i].amount > 0) return null;
+        if (!outputsMatch(recipe, details, batches)) {
+            if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
+                "[threaded-proxy] complete inputs but output mismatch: batches={}, encoded={}, recipeItems={}, itemChances={}, recipeFluids={}, fluidChances={}",
+                batches,
+                Arrays.toString(details.getCondensedAEOutputs()),
+                Arrays.toString(recipe.mOutputs),
+                Arrays.toString(recipe.mOutputChances),
+                Arrays.toString(recipe.mFluidOutputs),
+                Arrays.toString(recipe.mFluidOutputChances));
+            return null;
+        }
         return new ProxyPatternRecipe(recipe, consumedItems, consumedFluids, virtual.toArray(new ItemStack[0]), exact);
     }
 
@@ -158,23 +191,39 @@ final class ProxyPatternRecipe {
         return input.matchesRecipe(GTOreDictUnificator.getAssociation(item), item);
     }
 
-    /** Every advertised output must exist, but recipes may produce additional outputs. */
+    /**
+     * Keeps guaranteed yield separate from optional same-type chance outputs; complete or single-slot yields also
+     * match.
+     */
     private static boolean outputsMatch(GTRecipe recipe, ICraftingPatternDetails pattern, long batches) {
         boolean any = false;
         for (IAEStack<?> output : pattern.getCondensedAEOutputs()) {
             if (output == null || output.getStackSize() <= 0) continue;
             any = true;
-            long amount = 0;
+            if (output.getStackSize() % batches != 0) return false;
+            long requested = output.getStackSize() / batches;
+            long amount = 0, guaranteed = 0;
+            boolean singleSlot = false;
             if (output instanceof IAEItemStack item) {
-                for (ItemStack product : recipe.mOutputs)
-                    if (product != null && GTUtility.areStacksEqual(product, item.getItemStack(), false))
+                for (int i = 0; i < recipe.mOutputs.length; i++) {
+                    ItemStack product = recipe.mOutputs[i];
+                    if (product != null && GTUtility.areStacksEqual(product, item.getItemStack(), false)) {
                         amount += product.stackSize;
+                        if (recipe.getOutputChance(i) == 10000) guaranteed += product.stackSize;
+                        if (requested == product.stackSize) singleSlot = true;
+                    }
+                }
             } else if (output instanceof IAEFluidStack fluid) {
-                for (FluidStack product : recipe.mFluidOutputs)
-                    if (product != null && product.isFluidEqual(fluid.getFluidStack())) amount += product.amount;
+                for (int i = 0; i < recipe.mFluidOutputs.length; i++) {
+                    FluidStack product = recipe.mFluidOutputs[i];
+                    if (product != null && product.isFluidEqual(fluid.getFluidStack())) {
+                        amount += product.amount;
+                        if (recipe.getFluidOutputChance(i) == 10000) guaranteed += product.amount;
+                        if (requested == product.amount) singleSlot = true;
+                    }
+                }
             }
-            if (amount == 0 || output.getStackSize() % batches != 0 || amount != output.getStackSize() / batches)
-                return false;
+            if (amount == 0 || requested != amount && requested != guaranteed && !singleSlot) return false;
         }
         return any;
     }

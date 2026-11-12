@@ -221,6 +221,8 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     /** Existing tasks keep their inputs, progress and yields when definitions change or conflict. */
     @Override
     protected void runMachine(IGregTechTileEntity tile, long tick) {
+        // Definition visibility is independent of the work switch; paused machines still show installed patterns.
+        if (tick % 5 == 0 || tile.hasInventoryBeenModified() || tile.hasWorkJustBeenEnabled()) refreshDefinitions();
         if (!tile.isAllowedToWork()) {
             updateDisplay();
             return;
@@ -444,14 +446,28 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             ICraftingPatternDetails details = CircuitPatternCodec
                 .decode(slot.pattern.copy(), getBaseMetaTileEntity().getWorld());
             ProxyPatternRecipe recipe = ProxyPatternRecipe.find(map, details);
-            if (recipe != null) resolved.add(new Definition(slot.key, slot.label, map, recipe));
-            else if (GTNHAdjust.debug) GTNHAdjust.LOG
+            if (recipe != null) {
+                resolved.add(new Definition(slot.key, slot.label, map, recipe));
+                if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
+                    "[threaded-proxy] matched {}: map={}, exact={}, recipeItems={}, recipeFluids={}, virtualTools={}",
+                    slot.label,
+                    name,
+                    recipe.exact,
+                    Arrays.toString(recipe.recipe.mInputs),
+                    Arrays.toString(recipe.recipe.mFluidInputs),
+                    Arrays.toString(recipe.virtualTools));
+            } else if (GTNHAdjust.debug) GTNHAdjust.LOG
                 .info("[threaded-proxy] ignored {}: no complete input/output match in {}", slot.label, name);
         }
         definitions = resolved;
         conflict = PatternInputConflicts.find(resolved);
-        if (GTNHAdjust.debug)
-            GTNHAdjust.LOG.info("[threaded-proxy] rebuilt {} definitions, conflict={}", resolved.size(), conflict);
+        if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
+            "[threaded-proxy] pattern slots={}, valid={}, controller={}, allowedMaps={}, conflict={}",
+            current.size(),
+            resolved.size(),
+            controller,
+            allowed,
+            conflict);
     }
 
     private long runningPower() {
@@ -554,6 +570,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         String text = StatCollector.translateToLocalFormatted(
             "gtnhadjust.threaded_proxy.status",
             tasks.size(),
+            snapshot.size(),
             definitions.size(),
             maxOverclocks);
         return conflict.isEmpty() ? text
@@ -589,7 +606,6 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             .addInfo("线程和单线程并行上限均为 2,147,483,647；受材料和供电限制")
             .addInfo("默认不超频，在电力设置面板调整超频次数上限；到达 1 tick 后停止超频")
             .addInfo("默认启用 GT 批处理；输出受阻时保留线程产物等待输出")
-            .addInfo("使用 GTNL 合金搅拌炉结构，仅强制要求超级跨配方类型样板输入总成 ME")
             .toolTipFinisher();
     }
 
