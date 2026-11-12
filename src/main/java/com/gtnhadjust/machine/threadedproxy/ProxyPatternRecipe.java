@@ -30,14 +30,21 @@ final class ProxyPatternRecipe {
     final FluidStack[] consumedFluids;
     final ItemStack[] virtualTools;
     final boolean exact;
+    final IAEStack<?> displayOutput;
 
     private ProxyPatternRecipe(GTRecipe recipe, ItemStack[] items, FluidStack[] fluids, ItemStack[] tools,
-        boolean exact) {
+        boolean exact, ICraftingPatternDetails details) {
         this.recipe = recipe;
         consumedItems = items;
         consumedFluids = fluids;
         virtualTools = tools;
         this.exact = exact;
+        // The uncondensed array retains the player's encoded output order.
+        displayOutput = Arrays.stream(details.getAEOutputs())
+            .filter(output -> output != null && output.getStackSize() > 0)
+            .findFirst()
+            .get()
+            .copy();
     }
 
     /** Scans only when the controller or encoded patterns change; partial output lists are accepted. */
@@ -177,7 +184,13 @@ final class ProxyPatternRecipe {
                 Arrays.toString(recipe.mFluidOutputChances));
             return null;
         }
-        return new ProxyPatternRecipe(recipe, consumedItems, consumedFluids, virtual.toArray(new ItemStack[0]), exact);
+        return new ProxyPatternRecipe(
+            recipe,
+            consumedItems,
+            consumedFluids,
+            virtual.toArray(new ItemStack[0]),
+            exact,
+            details);
     }
 
     /** Virtual support is the GTNR catalog, and only zero-quantity recipe requirements reach this method. */

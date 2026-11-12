@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,6 +23,8 @@ import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructa
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizons.modularui.api.screen.ModularWindow;
+import com.gtnewhorizons.modularui.api.widget.Widget;
+import com.gtnewhorizons.modularui.common.widget.ChangeableWidget;
 import com.gtnewhorizons.modularui.common.widget.DynamicPositionedColumn;
 import com.gtnewhorizons.modularui.common.widget.FakeSyncWidget;
 import com.gtnewhorizons.modularui.common.widget.SlotWidget;
@@ -56,6 +59,7 @@ import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe.RecipeItemInput;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.api.util.OverclockCalculator;
 import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.common.tileentities.machines.IDualInputHatch;
 
@@ -67,6 +71,10 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     private IStructureDefinition<ThreadedJointProxy> structure;
     private final List<CrossRecipeMEPatternBuffer> patternHatches = new ArrayList<>();
     private final Map<String, RecipeThreadTask> tasks = new LinkedHashMap<>();
+    private final Map<String, ThreadedProxyDisplay.RunInfo> runInfo = new LinkedHashMap<>();
+    private final Map<String, Failure> failures = new LinkedHashMap<>();
+    private final Map<String, Definition> definitionIndex = new LinkedHashMap<>();
+    private List<ThreadedProxyDisplay.Row> clientRows = Collections.emptyList();
     private List<Definition> definitions = Collections.emptyList();
     private List<PatternSlot> snapshot = Collections.emptyList();
     private ItemStack previousController;
@@ -74,7 +82,6 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     private String conflict = "";
     private String clientStatus = "";
     private int maxOverclocks;
-    private int scheduleCursor;
 
     public ThreadedJointProxy(int id, String name, String localizedName) {
         super(id, name, localizedName);
@@ -249,36 +256,71 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 completed = true;
             }
         }
+        runInfo.keySet()
+            .retainAll(tasks.keySet());
         if (!tasks.isEmpty() || completed) markDirty();
         if (completed || tick % 5 == 0 || tile.hasInventoryBeenModified() || tile.hasWorkJustBeenEnabled())
             startThreads();
         updateDisplay();
     }
 
-    /** Fairly shares remaining EU/t among ready definitions, rotating priority when power cannot cover all. */
+    /** Admit more ready threads, apply their OC limits, then give the admitted group a common concurrent parallel. */
     private void startThreads() {
         refreshDefinitions();
-        if (!conflict.isEmpty() || definitions.isEmpty()) return;
+        if (!conflict.isEmpty()) {
+            for (Definition definition : definitions) failures.put(definition.key, new Failure("conflict"));
+            return;
+        }
+        if (definitions.isEmpty()) return;
         startRecipeProcessing();
         try {
             List<ItemStack> ordinaryItems = getStoredInputs();
             List<FluidStack> ordinaryFluids = getStoredFluids();
-            List<ThreadInputs> pending = definitions.stream()
-                .filter(def -> !tasks.containsKey(def.key))
-                .map(def -> selectInputs(def, ordinaryItems, ordinaryFluids))
-                .filter(this::hasReadyInputs)
-                .collect(Collectors.toCollection(ArrayList::new));
+            List<ThreadInputs> pending = new ArrayList<>();
+            long voltage = getMaxInputVoltage();
+            for (Definition definition : definitions) {
+                if (tasks.containsKey(definition.key)) continue;
+                ThreadInputs input = selectInputs(definition, ordinaryItems, ordinaryFluids);
+                if (!hasReadyInputs(input)) continue;
+                if (definition.recipe.recipe.mEUt > OverclockCalculator.getMaxAllowedRecipeEUt(voltage, 1)) {
+                    failures.put(
+                        definition.key,
+                        new Failure(CheckRecipeResultRegistry.insufficientVoltage(definition.recipe.recipe.mEUt)));
+                    continue;
+                }
+                pending.add(input);
+            }
             if (pending.isEmpty()) return;
-            Collections.rotate(pending, -(scheduleCursor % pending.size()));
-            scheduleCursor = (scheduleCursor + 1) & Integer.MAX_VALUE;
             long remaining = Math.max(0, getMaxInputEu() - runningPower());
+            long[] eut = new long[pending.size()];
+            int[] durations = new int[pending.size()], limits = new int[pending.size()];
+            boolean started = false;
             for (int i = 0; i < pending.size(); i++) {
                 ThreadInputs input = pending.get(i);
-                long budget = remaining / (pending.size() - i);
-                if (budget < input.definition.recipe.recipe.mEUt) budget = remaining;
-                long used = startThread(input, budget);
-                remaining -= used;
+                eut[i] = input.definition.recipe.recipe.mEUt;
+                durations[i] = input.definition.recipe.recipe.mDuration;
+                limits[i] = (int) input.definition.recipe.recipe
+                    .maxParallelCalculatedByInputs(Integer.MAX_VALUE, input.fluids, input.items);
             }
+            ThreadedProxyAllocation allocation = ThreadedProxyAllocation
+                .allocate(remaining, voltage, eut, durations, limits, maxOverclocks);
+            for (int i = 0; i < pending.size(); i++) {
+                ThreadInputs input = pending.get(i);
+                ThreadedProxyAllocation.Plan plan = allocation.plans[i];
+                if (plan == null) {
+                    failures
+                        .put(input.definition.key, new Failure(CheckRecipeResultRegistry.insufficientPower(eut[i])));
+                    continue;
+                }
+                startThread(input, plan.eut * allocation.parallel, allocation.parallel, plan);
+                started |= tasks.containsKey(input.definition.key);
+            }
+            if (GTNHAdjust.debug && (started || mTotalRunTime % 200 < 5)) GTNHAdjust.LOG.info(
+                "[threaded-proxy] allocation: ready={}, common parallel={}, free EU/t={}, OC limit={}",
+                pending.size(),
+                allocation.parallel,
+                remaining,
+                maxOverclocks);
             updateSlots();
         } finally {
             endRecipeProcessing();
@@ -311,13 +353,13 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     }
 
     /** Commits ordinary material consumption only after power, duration and the output ledger have been accepted. */
-    private long startThread(ThreadInputs input, long budget) {
+    private long startThread(ThreadInputs input, long budget, int parallel, ThreadedProxyAllocation.Plan plan) {
         Definition definition = input.definition;
         ProxyPatternRecipe match = definition.recipe;
         if (budget < match.recipe.mEUt) return 0;
         ThreadedProxyProcessingLogic logic = (ThreadedProxyProcessingLogic) processingLogic;
         setupProcessingLogic(logic);
-        logic.configure(match.recipe, budget, getMaxInputVoltage(), maxOverclocks);
+        logic.configure(match.recipe, budget, getMaxInputVoltage(), parallel, plan);
         logic.setRecipeMap(definition.map)
             .setMachine(this)
             .setRecipeLocking(this, false)
@@ -329,6 +371,9 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             CheckRecipeResult result = logic.process();
             long eut = logic.getCalculatedEut();
             if (!result.wasSuccessful() || eut < 0 || eut > budget || !logic.canCommitInputs()) {
+                failures.put(
+                    definition.key,
+                    new Failure(!result.wasSuccessful() ? result : CheckRecipeResultRegistry.INTERNAL_ERROR));
                 if (GTNHAdjust.debug && mTotalRunTime % 200 < 5) GTNHAdjust.LOG.info(
                     "[threaded-proxy] cannot start {}: result={}, EU/t={}, budget={}, voltage={}",
                     definition.label,
@@ -344,16 +389,25 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 Math.max(1, logic.getDuration()),
                 logic.getCurrentParallels(),
                 logic.pendingOutputs());
-            if (!logic.commitInputs()) return 0;
+            if (!logic.commitInputs()) {
+                failures.put(definition.key, new Failure("inputs_changed"));
+                return 0;
+            }
             tasks.put(definition.key, task);
+            runInfo.put(
+                definition.key,
+                ThreadedProxyDisplay.RunInfo.create(match, task, logic.concurrentParallel(), plan.overclocks));
+            failures.remove(definition.key);
             markDirty();
             if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
-                "[threaded-proxy] start {}: map={}, parallel={}, duration={}, EU/t={}, OC limit={}, exact={}",
+                "[threaded-proxy] start {}: map={}, operations={}, duration={}, EU/t={}, concurrent={}, OC={}/{}, exact={}",
                 definition.label,
                 definition.map.unlocalizedName,
                 task.getParallels(),
                 task.getDuration(),
                 eut,
+                logic.concurrentParallel(),
+                plan.overclocks,
                 maxOverclocks,
                 match.exact);
             return eut;
@@ -386,8 +440,16 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
 
     /** Excludes material-starved definitions before distributing power, including their required real tools. */
     private boolean hasReadyInputs(ThreadInputs input) {
-        boolean ready = hasNonConsumedFluids(input)
+        boolean tools = hasNonConsumedFluids(input);
+        for (RecipeItemInput required : input.definition.recipe.recipe.getCachedCombinedItemInputs())
+            if (required.inputAmount == 0 && Arrays.stream(input.items)
+                .noneMatch(
+                    item -> item.stackSize > 0
+                        && required.matchesRecipe(GTOreDictUnificator.getAssociation(item), item)))
+                tools = false;
+        boolean ready = tools
             && input.definition.recipe.recipe.maxParallelCalculatedByInputs(1, input.fluids, input.items) >= 1;
+        if (!ready) failures.put(input.definition.key, new Failure(tools ? "materials" : "catalyst"));
         if (!ready && GTNHAdjust.debug && mTotalRunTime % 200 < 5) GTNHAdjust.LOG.info(
             "[threaded-proxy] waiting for materials/tools {}: items={}, fluids={}",
             input.definition.label,
@@ -401,7 +463,21 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
      */
     private void refreshDefinitions() {
         List<PatternSlot> current = new ArrayList<>();
-        for (CrossRecipeMEPatternBuffer hatch : patternHatches) {
+        List<CrossRecipeMEPatternBuffer> ordered = new ArrayList<>(patternHatches);
+        ordered.sort(
+            Comparator.comparingInt(
+                (CrossRecipeMEPatternBuffer hatch) -> hatch.getBaseMetaTileEntity()
+                    .getWorld().provider.dimensionId)
+                .thenComparingInt(
+                    hatch -> hatch.getBaseMetaTileEntity()
+                        .getXCoord())
+                .thenComparingInt(
+                    hatch -> hatch.getBaseMetaTileEntity()
+                        .getYCoord())
+                .thenComparingInt(
+                    hatch -> hatch.getBaseMetaTileEntity()
+                        .getZCoord()));
+        for (CrossRecipeMEPatternBuffer hatch : ordered) {
             IGregTechTileEntity tile = hatch.getBaseMetaTileEntity();
             String location = tile.getWorld().provider.dimensionId + ":"
                 + tile.getXCoord()
@@ -433,9 +509,17 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         definitionsDirty = false;
         List<String> allowed = ProxyFactoryControllerRegistry.maps(controller);
         List<Definition> resolved = new ArrayList<>();
+        failures.clear();
+        definitionIndex.clear();
         for (PatternSlot slot : current) {
             String name = PatternRecipeMap.name(slot.pattern);
             if (name == null || !allowed.contains(name)) {
+                failures.put(
+                    slot.key,
+                    new Failure(
+                        controller == null ? "no_controller"
+                            : allowed.isEmpty() ? "unsupported_controller"
+                                : name == null ? "missing_map" : "wrong_map"));
                 if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
                     "[threaded-proxy] ignored {}: pattern map={} not provided by inserted controller",
                     slot.label,
@@ -447,7 +531,13 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 .decode(slot.pattern.copy(), getBaseMetaTileEntity().getWorld());
             ProxyPatternRecipe recipe = ProxyPatternRecipe.find(map, details);
             if (recipe != null) {
-                resolved.add(new Definition(slot.key, slot.label, map, recipe));
+                Definition definition = new Definition(slot.key, slot.label, map, recipe);
+                resolved.add(definition);
+                definitionIndex.put(slot.key, definition);
+                if (tasks.containsKey(slot.key) && !runInfo.containsKey(slot.key)) {
+                    runInfo.put(slot.key, ThreadedProxyDisplay.RunInfo.recover(recipe, tasks.get(slot.key)));
+                    markDirty();
+                }
                 if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
                     "[threaded-proxy] matched {}: map={}, exact={}, recipeItems={}, recipeFluids={}, virtualTools={}",
                     slot.label,
@@ -456,8 +546,15 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                     Arrays.toString(recipe.recipe.mInputs),
                     Arrays.toString(recipe.recipe.mFluidInputs),
                     Arrays.toString(recipe.virtualTools));
-            } else if (GTNHAdjust.debug) GTNHAdjust.LOG
-                .info("[threaded-proxy] ignored {}: no complete input/output match in {}", slot.label, name);
+            } else {
+                failures.put(
+                    slot.key,
+                    new Failure(
+                        details == null || details.isCraftable() || details.isInputOnly() ? "invalid_pattern"
+                            : "no_recipe"));
+                if (GTNHAdjust.debug) GTNHAdjust.LOG
+                    .info("[threaded-proxy] ignored {}: no complete input/output match in {}", slot.label, name);
+            }
         }
         definitions = resolved;
         conflict = PatternInputConflicts.find(resolved);
@@ -501,6 +598,10 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         tasks.forEach((key, task) -> {
             NBTTagCompound entry = task.save();
             entry.setString("patternSlot", key);
+            if (runInfo.containsKey(key)) entry.setTag(
+                "view",
+                runInfo.get(key)
+                    .save());
             saved.appendTag(entry);
         });
         tag.setTag(THREADS, saved);
@@ -511,10 +612,13 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         super.loadNBTData(tag);
         maxOverclocks = Math.max(0, tag.getInteger("threadedProxyMaxOverclocks"));
         tasks.clear();
+        runInfo.clear();
         NBTTagList saved = tag.getTagList(THREADS, 10);
         for (int i = 0; i < saved.tagCount(); i++) {
             NBTTagCompound entry = saved.getCompoundTagAt(i);
             tasks.put(entry.getString("patternSlot"), RecipeThreadTask.load(entry));
+            if (entry.hasKey("view")) runInfo
+                .put(entry.getString("patternSlot"), ThreadedProxyDisplay.RunInfo.load(entry.getCompoundTag("view")));
         }
         definitionsDirty = true;
     }
@@ -564,6 +668,70 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 .setSynced(false)
                 .setDefaultColor(0xFFFFFF));
         column.widget(new FakeSyncWidget.StringSyncer(this::status, value -> clientStatus = value));
+        ChangeableWidget rows = new ChangeableWidget(this::createThreadRows);
+        column.widget(new FakeSyncWidget.ListSyncer<>(this::threadRows, values -> {
+            boolean sizeChanged = clientRows.size() != values.size();
+            clientRows = values;
+            if (sizeChanged) rows.notifyChangeNoSync();
+        }, ThreadedProxyDisplay.Row::write, ThreadedProxyDisplay.Row::read));
+        column.widget(rows);
+    }
+
+    /** Rebuild widget structure only when row count changes; progress updates use existing dynamic text widgets. */
+    private Widget createThreadRows() {
+        DynamicPositionedColumn rows = new DynamicPositionedColumn();
+        rows.setSynced(false)
+            .setSpace(0);
+        for (int i = 0; i < clientRows.size(); i++) {
+            final int index = i;
+            rows.widget(
+                TextWidget.dynamicString(
+                    () -> clientRows.get(index)
+                        .text())
+                    .setSynced(false)
+                    .setDefaultColor(0xFFFFFF)
+                    .setScale(0.75f)
+                    .setMaxWidth(182));
+        }
+        return rows;
+    }
+
+    /**
+     * Every installed slot gets a row, including invalid or idle definitions; removed but unfinished tasks follow them.
+     */
+    private List<ThreadedProxyDisplay.Row> threadRows() {
+        List<ThreadedProxyDisplay.Row> rows = new ArrayList<>();
+        java.util.Set<String> shown = new java.util.HashSet<>();
+        boolean paused = !getBaseMetaTileEntity().isAllowedToWork();
+        for (int i = 0; i < snapshot.size(); i++) {
+            PatternSlot slot = snapshot.get(i);
+            shown.add(slot.key);
+            RecipeThreadTask task = tasks.get(slot.key);
+            if (task != null) {
+                rows.add(ThreadedProxyDisplay.Row.running(i + 1, task, runInfo.get(slot.key), paused));
+                continue;
+            }
+            Failure failure = failures.get(slot.key);
+            if (definitionIndex.containsKey(slot.key)) {
+                if (!conflict.isEmpty()) failure = new Failure("conflict");
+                else if (paused) failure = new Failure("paused");
+            }
+            rows.add(
+                ThreadedProxyDisplay.Row
+                    .idle(i + 1, failure == null ? "queued" : failure.reason, failure == null ? null : failure.result));
+        }
+        tasks.forEach((key, task) -> {
+            if (!shown.contains(key)) rows.add(
+                new ThreadedProxyDisplay.Row(
+                    rows.size() + 1,
+                    "removed",
+                    null,
+                    runInfo.get(key),
+                    task.getProgress(),
+                    task.getDuration(),
+                    task.getEUt()));
+        });
+        return rows;
     }
 
     private String status() {
@@ -606,7 +774,24 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             .addInfo("线程和单线程并行上限均为 2,147,483,647；受材料和供电限制")
             .addInfo("默认不超频，在电力设置面板调整超频次数上限；到达 1 tick 后停止超频")
             .addInfo("默认启用 GT 批处理；输出受阻时保留线程产物等待输出")
+            .addInfo("调度顺序：更多线程 → 超频 → 共同并行 → 批处理")
             .toolTipFinisher();
+    }
+
+    private static final class Failure {
+
+        final String reason;
+        final CheckRecipeResult result;
+
+        Failure(String reason) {
+            this.reason = reason;
+            result = null;
+        }
+
+        Failure(CheckRecipeResult result) {
+            reason = "";
+            this.result = result;
+        }
     }
 
     static final class Definition {

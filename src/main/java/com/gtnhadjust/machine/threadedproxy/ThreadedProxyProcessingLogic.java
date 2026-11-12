@@ -26,28 +26,22 @@ final class ThreadedProxyProcessingLogic extends RecipeThreadProcessingLogic {
     private GTRecipe selected;
     private int overclockDuration;
     private RecipeThreadOutputs pendingOutputs;
+    private int concurrentParallel;
 
-    /** Chooses each thread's OC first; a 1-tick recipe receives no additional overclocks. */
-    void configure(GTRecipe recipe, long budget, long voltage, int maxOverclocks) {
+    /** Applies the group allocation unchanged; native batching runs after this fixed OC and concurrent parallel. */
+    void configure(GTRecipe recipe, long budget, long voltage, int parallel, ThreadedProxyAllocation.Plan plan) {
         clear();
         selected = recipe;
         pendingOutputs = null;
-        int untilOneTick = 31 - Integer.numberOfLeadingZeros(recipe.mDuration);
-        OverclockCalculator plan = new OverclockCalculator().setRecipeEUt(recipe.mEUt)
-            .setDuration(recipe.mDuration)
-            .setEUt(Math.min(budget, voltage))
-            .setAmperage(1)
-            .setAmperageOC(false)
-            .setMaxOverclocks(Math.min(maxOverclocks, untilOneTick))
-            .calculate();
-        overclockDuration = plan.getDuration();
-        long unitPower = plan.getConsumption();
+        concurrentParallel = 0;
+        overclockDuration = plan.duration;
+        long unitPower = plan.eut;
         double multiplier = recipe.mEUt == 0 ? 1 : (double) unitPower / recipe.mEUt;
         setEuModifier(multiplier);
         setAvailableVoltage(voltage);
         setAvailableAmperage(1);
         setAmperageOC(false);
-        setMaxParallel(unitPower == 0 ? Integer.MAX_VALUE : (int) Math.min(Integer.MAX_VALUE, budget / unitPower));
+        setMaxParallel(parallel);
         prepareRecipe(budget);
     }
 
@@ -61,7 +55,19 @@ final class ThreadedProxyProcessingLogic extends RecipeThreadProcessingLogic {
     @Nonnull
     protected OverclockCalculator createOverclockCalculator(@Nonnull GTRecipe recipe) {
         // OC has already been budgeted. GT's batch helper runs after this fixed duration/power calculation.
-        return super.createOverclockCalculator(recipe).setDuration(overclockDuration)
+        return new OverclockCalculator() {
+
+            @Override
+            public OverclockCalculator setCurrentParallel(int parallel) {
+                concurrentParallel = parallel;
+                return super.setCurrentParallel(parallel);
+            }
+        }.setRecipeEUt(recipe.mEUt)
+            .setEUt(availableVoltage)
+            .setAmperage(availableAmperage)
+            .setEUtDiscount(euModifier)
+            .setDuration(overclockDuration)
+            .setAmperageOC(false)
             .setNoOverclock(true);
     }
 
@@ -83,6 +89,11 @@ final class ThreadedProxyProcessingLogic extends RecipeThreadProcessingLogic {
 
     RecipeThreadOutputs pendingOutputs() {
         return pendingOutputs;
+    }
+
+    /** GT's total operation count also includes batches; this is the simultaneous count before batching. */
+    int concurrentParallel() {
+        return concurrentParallel;
     }
 
     /** Stores large yields compactly, avoiding an array entry for each int-sized slice of a 2.1G-parallel yield. */
