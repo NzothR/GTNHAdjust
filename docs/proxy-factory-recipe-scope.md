@@ -12,6 +12,8 @@ GTNL 燃料精炼复合体配方池 `gtnl.recipe.fuel_refining_complex` 已纳�
 
 输入、运行和输出三种模式的操作、保存和退回规则见 README。输入模式仅接收普通实体输入总线中的控制器，客户端和服务端需使用相同配置及模组版本并重启。
 
+Simplification 2.9.0 的稀土综合处理新增两个白名单池：`simplification.recipe.rare_earth_dust`（粉末）与 `simplification.recipe.rare_earth_ore`（矿石）。已静态核对实例正式 JAR 的 `ModRecipeMaps` 注册名与 `MTERareEarthComplex.getAvailableRecipeMaps()`。基础代理联合工厂可输入该控制器解锁，多线程联合代理可在主机槽放入该控制器后按样板池选择；沿用各代理自身的并行、超频和供电规则，不继承原机器的专属折扣与模式加成。修改后客户端和服务端使用相同版本并重启。
+
 ## 已定位的排除池
 
 以下是从被排除机器的源码直接定位到的注册名，以及单独确认的排除项。这里只记录本轮静态核对到的池；动态引用、源码版本差异或服务端配置仍需在后续运行时核查。原有 24 池和用户特别保留的部件装配线、精密组装机不在此表中。

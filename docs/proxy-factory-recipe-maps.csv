@@ -95,6 +95,8 @@
 平炉,gtsr.recipe.siemens_martin_furnace,GT Steam Reborn,MTESiemensMartinFurnace（源码类名）,主机游戏内名称及控制器解锁待核验
 现代产业园,simplification.recipe.modern_industrial_park,GT Simplification,现代产业园,
 石油化工综合体,simplification.recipe.petrochemical_complex,GT Simplification,石油化工综合体,
+稀土综合处理（粉末）,simplification.recipe.rare_earth_dust,GT Simplification,稀土综合处理,已核对 Simplification 2.9.0 注册名和主机暴露配方池
+稀土综合处理（矿石）,simplification.recipe.rare_earth_ore,GT Simplification,稀土综合处理,已核对 Simplification 2.9.0 注册名和主机暴露配方池
 超泥土锻炉: 冶金模式,mt.recipe.steel_brick,MessTech,MTDBBFurnace（源码类名）,主机游戏内名称及控制器解锁待核验
 异星计算机可用部件配方,ote.computer.recipe,123Technology,OTEComputer（源码类名）,主机游戏内名称及控制器解锁待核验
 奇点制造机,otht.recipe.AE2,123Technology,OTELargeBin（源码类名）,主机游戏内名称及控制器解锁待核验

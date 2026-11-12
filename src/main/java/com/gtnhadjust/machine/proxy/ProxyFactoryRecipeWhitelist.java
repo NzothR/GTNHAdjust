@@ -149,6 +149,8 @@ public final class ProxyFactoryRecipeWhitelist {
                 "otht.recipe.steam.pump", // 蒸汽九合一-水泵
                 "simplification.recipe.modern_industrial_park", // 现代产业园
                 "simplification.recipe.petrochemical_complex", // 石油化工综合体
+                "simplification.recipe.rare_earth_dust", // 稀土综合处理：粉末模式
+                "simplification.recipe.rare_earth_ore", // 稀土综合处理：矿石模式
                 "tst.common.recipe.BloodyHellRecipeMap.name", // 血狱祭坛
                 "tst.common.recipe.CokingFactoryRecipeMap.name", // 工业炼焦
                 "tst.common.recipe.CrystallineInfinitierRecipeMap.name", // 晶胞铸造器

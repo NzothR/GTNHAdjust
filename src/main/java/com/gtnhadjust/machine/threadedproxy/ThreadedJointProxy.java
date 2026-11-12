@@ -17,6 +17,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
@@ -61,12 +62,14 @@ import gregtech.api.render.TextureFactory;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.GTOreDictUnificator;
+import gregtech.api.util.GTRecipe;
 import gregtech.api.util.GTRecipe.RecipeItemInput;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.OverclockCalculator;
 import gregtech.api.util.shutdown.ShutDownReason;
 import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.common.tileentities.machines.IDualInputHatch;
+import gtPlusPlus.xmod.gregtech.api.metatileentity.implementations.MTEHatchReservoir;
 
 /** One physical pattern slot defines one thread; crafting-buffer deliveries are never machine ingredients. */
 public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<ThreadedJointProxy>
@@ -85,7 +88,8 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     private ItemStack previousController;
     private boolean definitionsDirty = true;
     private boolean refreshRequested;
-    private String conflict = "";
+    private boolean hasWaterReservoir;
+    private boolean previousWaterReservoir;
     private String clientStatus = "";
     private int maxOverclocks;
 
@@ -133,7 +137,11 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         if (meta instanceof IDualInputHatch) return false;
         if (meta instanceof MTEHatchInput || meta instanceof MTEHatchInputBus
             || meta instanceof MTEHatchOutput
-            || meta instanceof MTEHatchOutputBus) return addToMachineList(tile, texture);
+            || meta instanceof MTEHatchOutputBus) {
+            boolean added = addToMachineList(tile, texture);
+            if (added && meta instanceof MTEHatchReservoir) hasWaterReservoir = true;
+            return added;
+        }
         return addEnergyInputToMachineList(tile, texture) || addExoticEnergyInputToMachineList(tile, texture);
     }
 
@@ -141,6 +149,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     public void clearHatches() {
         super.clearHatches();
         patternHatches.clear();
+        hasWaterReservoir = false;
     }
 
     /** The native GUI button schedules a structure check for the next server tick. Extend that exact request. */
@@ -264,7 +273,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         return CheckRecipeResultRegistry.NO_RECIPE;
     }
 
-    /** Existing tasks keep their inputs, progress and yields when definitions change or conflict. */
+    /** Existing tasks keep their inputs, progress and yields when definitions change. */
     @Override
     protected void runMachine(IGregTechTileEntity tile, long tick) {
         // Definition visibility is independent of the work switch; paused machines still show installed patterns.
@@ -306,10 +315,6 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     /** Admit more ready threads, apply their OC limits, then give the admitted group a common concurrent parallel. */
     private void startThreads() {
         refreshDefinitions();
-        if (!conflict.isEmpty()) {
-            for (Definition definition : definitions) failures.put(definition.key, new Failure("conflict"));
-            return;
-        }
         if (definitions.isEmpty()) return;
         startRecipeProcessing();
         try {
@@ -321,34 +326,45 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 if (tasks.containsKey(definition.key)) continue;
                 ThreadInputs input = selectInputs(definition, ordinaryItems, ordinaryFluids);
                 if (!hasReadyInputs(input)) continue;
-                if (definition.recipe.recipe.mEUt > OverclockCalculator.getMaxAllowedRecipeEUt(voltage, 1)) {
+                if (definition.execution.mEUt > OverclockCalculator.getMaxAllowedRecipeEUt(voltage, 1)) {
                     failures.put(
                         definition.key,
-                        new Failure(CheckRecipeResultRegistry.insufficientVoltage(definition.recipe.recipe.mEUt)));
+                        new Failure(CheckRecipeResultRegistry.insufficientVoltage(definition.execution.mEUt)));
                     continue;
                 }
                 pending.add(input);
             }
             if (pending.isEmpty()) return;
             long remaining = Math.max(0, getMaxInputEu() - runningPower());
-            long[] eut = new long[pending.size()];
-            int[] durations = new int[pending.size()], limits = new int[pending.size()];
-            boolean started = false;
-            for (int i = 0; i < pending.size(); i++) {
-                ThreadInputs input = pending.get(i);
-                eut[i] = input.definition.recipe.recipe.mEUt;
-                durations[i] = input.definition.recipe.recipe.mDuration;
-                limits[i] = (int) input.definition.recipe.recipe
-                    .maxParallelCalculatedByInputs(Integer.MAX_VALUE, input.fluids, input.items);
+            // Threads rejected for lack of power must not reserve a share of another thread's materials.
+            ThreadedProxyAllocation admission = allocateInputs(pending, remaining, voltage, 0);
+            List<ThreadInputs> admitted = new ArrayList<>();
+            for (int i = 0; i < pending.size(); i++) if (admission.plans[i] != null) admitted.add(pending.get(i));
+            else failures.put(
+                pending.get(i).definition.key,
+                new Failure(CheckRecipeResultRegistry.insufficientPower(pending.get(i).definition.execution.mEUt)));
+            ThreadedProxyMaterials.divide(admitted);
+            pending = new ArrayList<>();
+            for (ThreadInputs input : admitted) {
+                if (GTNHAdjust.debug && mTotalRunTime % 200 < 5) GTNHAdjust.LOG.info(
+                    "[threaded-proxy] material quota {}: items={}, fluids={}, reservoir={}",
+                    input.definition.label,
+                    Arrays.toString(input.items),
+                    Arrays.toString(input.fluids),
+                    hasWaterReservoir);
+                if (hasReadyInputs(input)) pending.add(input);
+                else failures.put(input.definition.key, new Failure("shared_materials"));
             }
-            ThreadedProxyAllocation allocation = ThreadedProxyAllocation
-                .allocate(remaining, voltage, eut, durations, limits, maxOverclocks);
+            if (pending.isEmpty()) return;
+            ThreadedProxyAllocation allocation = allocateInputs(pending, remaining, voltage, maxOverclocks);
+            boolean started = false;
             for (int i = 0; i < pending.size(); i++) {
                 ThreadInputs input = pending.get(i);
                 ThreadedProxyAllocation.Plan plan = allocation.plans[i];
                 if (plan == null) {
-                    failures
-                        .put(input.definition.key, new Failure(CheckRecipeResultRegistry.insufficientPower(eut[i])));
+                    failures.put(
+                        input.definition.key,
+                        new Failure(CheckRecipeResultRegistry.insufficientPower(input.definition.execution.mEUt)));
                     continue;
                 }
                 startThread(input, plan.eut * allocation.parallel, allocation.parallel, plan);
@@ -366,7 +382,22 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         }
     }
 
-    /** Restricts consumed inputs to this pattern's exact identities; shared slots can only provide zero-count tools. */
+    /** Both admission and final OC/parallel planning see the exact inputs available to that planning stage. */
+    private static ThreadedProxyAllocation allocateInputs(List<ThreadInputs> pending, long power, long voltage,
+        int ocLimit) {
+        long[] eut = new long[pending.size()];
+        int[] durations = new int[pending.size()], limits = new int[pending.size()];
+        for (int i = 0; i < pending.size(); i++) {
+            ThreadInputs input = pending.get(i);
+            eut[i] = input.definition.execution.mEUt;
+            durations[i] = input.definition.execution.mDuration;
+            limits[i] = (int) input.definition.execution
+                .maxParallelCalculatedByInputs(Integer.MAX_VALUE, input.fluids, input.items);
+        }
+        return ThreadedProxyAllocation.allocate(power, voltage, eut, durations, limits, ocLimit);
+    }
+
+    /** Select physical inputs for this pattern; reservoir water never enters allocation or consumption views. */
     private ThreadInputs selectInputs(Definition definition, List<ItemStack> ordinaryItems,
         List<FluidStack> ordinaryFluids) {
         ProxyPatternRecipe match = definition.recipe;
@@ -382,10 +413,11 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         Collections.addAll(inputs, match.virtualTools);
         FluidStack[] fluids = ordinaryFluids.stream()
             .filter(fluid -> fluid != null && fluid.amount > 0)
+            .filter(fluid -> !hasWaterReservoir || fluid.getFluid() != FluidRegistry.WATER)
             .filter(
                 fluid -> Arrays.stream(match.consumedFluids)
                     .anyMatch(fluid::isFluidEqual)
-                    || Arrays.stream(match.recipe.mFluidInputs)
+                    || Arrays.stream(definition.execution.mFluidInputs)
                         .anyMatch(required -> required != null && required.amount == 0 && required.isFluidEqual(fluid)))
             .toArray(FluidStack[]::new);
         return new ThreadInputs(definition, inputs.toArray(new ItemStack[0]), fluids);
@@ -395,10 +427,12 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     private long startThread(ThreadInputs input, long budget, int parallel, ThreadedProxyAllocation.Plan plan) {
         Definition definition = input.definition;
         ProxyPatternRecipe match = definition.recipe;
-        if (budget < match.recipe.mEUt) return 0;
+        // Another admitted recipe may consume an item that this recipe uses as a non-consumed catalyst.
+        if (!hasReadyInputs(input)) return 0;
+        if (budget < definition.execution.mEUt) return 0;
         ThreadedProxyProcessingLogic logic = (ThreadedProxyProcessingLogic) processingLogic;
         setupProcessingLogic(logic);
-        logic.configure(match.recipe, budget, getMaxInputVoltage(), parallel, plan);
+        logic.configure(definition.execution, budget, getMaxInputVoltage(), parallel, plan);
         logic.setRecipeMap(definition.map)
             .setMachine(this)
             .setRecipeLocking(this, false)
@@ -432,6 +466,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 failures.put(definition.key, new Failure("inputs_changed"));
                 return 0;
             }
+            input.share.commit();
             tasks.put(definition.key, task);
             runInfo.put(
                 definition.key,
@@ -469,25 +504,24 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
 
     /** GT's parallel helper skips NC fluid checks; this proxy requires real fluid for unsupported virtual inputs. */
     private static boolean hasNonConsumedFluids(ThreadInputs input) {
-        for (FluidStack required : input.definition.recipe.recipe.mFluidInputs)
-            if (required != null && required.amount == 0
-                && Arrays.stream(input.fluids)
-                    .noneMatch(fluid -> fluid.amount > 0 && required.isFluidEqual(fluid)))
-                return false;
+        for (FluidStack required : input.definition.execution.mFluidInputs) if (required != null && required.amount == 0
+            && Arrays.stream(input.fluids)
+                .noneMatch(fluid -> fluid.amount > 0 && required.isFluidEqual(fluid)))
+            return false;
         return true;
     }
 
     /** Excludes material-starved definitions before distributing power, including their required real tools. */
     private boolean hasReadyInputs(ThreadInputs input) {
         boolean tools = hasNonConsumedFluids(input);
-        for (RecipeItemInput required : input.definition.recipe.recipe.getCachedCombinedItemInputs())
+        for (RecipeItemInput required : input.definition.execution.getCachedCombinedItemInputs())
             if (required.inputAmount == 0 && Arrays.stream(input.items)
                 .noneMatch(
                     item -> item.stackSize > 0
                         && required.matchesRecipe(GTOreDictUnificator.getAssociation(item), item)))
                 tools = false;
         boolean ready = tools
-            && input.definition.recipe.recipe.maxParallelCalculatedByInputs(1, input.fluids, input.items) >= 1;
+            && input.definition.execution.maxParallelCalculatedByInputs(1, input.fluids, input.items) >= 1;
         if (!ready) failures.put(input.definition.key, new Failure(tools ? "materials" : "catalyst"));
         if (!ready && GTNHAdjust.debug && mTotalRunTime % 200 < 5) GTNHAdjust.LOG.info(
             "[threaded-proxy] waiting for materials/tools {}: items={}, fluids={}",
@@ -536,7 +570,8 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             }
         }
         ItemStack controller = getControllerSlot();
-        boolean changed = definitionsDirty || !ItemStack.areItemStacksEqual(controller, previousController)
+        boolean changed = definitionsDirty || previousWaterReservoir != hasWaterReservoir
+            || !ItemStack.areItemStacksEqual(controller, previousController)
             || current.size() != snapshot.size();
         for (int i = 0; !changed && i < current.size(); i++) {
             PatternSlot left = current.get(i), right = snapshot.get(i);
@@ -544,6 +579,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         }
         if (!changed) return;
         previousController = controller == null ? null : controller.copy();
+        previousWaterReservoir = hasWaterReservoir;
         snapshot = current;
         definitionsDirty = false;
         List<String> allowed = ProxyFactoryControllerRegistry.maps(controller);
@@ -570,7 +606,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 .decode(slot.pattern.copy(), getBaseMetaTileEntity().getWorld());
             ProxyPatternRecipe recipe = ProxyPatternRecipe.find(map, details);
             if (recipe != null) {
-                Definition definition = new Definition(slot.key, slot.label, map, recipe);
+                Definition definition = new Definition(slot.key, slot.label, map, recipe, hasWaterReservoir);
                 resolved.add(definition);
                 definitionIndex.put(slot.key, definition);
                 if (tasks.containsKey(slot.key) && !runInfo.containsKey(slot.key)) {
@@ -596,14 +632,13 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             }
         }
         definitions = resolved;
-        conflict = PatternInputConflicts.find(resolved);
         if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
-            "[threaded-proxy] pattern slots={}, valid={}, controller={}, allowedMaps={}, conflict={}",
+            "[threaded-proxy] pattern slots={}, valid={}, controller={}, allowedMaps={}, reservoir={}",
             current.size(),
             resolved.size(),
             controller,
             allowed,
-            conflict);
+            hasWaterReservoir);
     }
 
     private long runningPower() {
@@ -787,8 +822,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             }
             Failure failure = failures.get(slot.key);
             if (definitionIndex.containsKey(slot.key)) {
-                if (!conflict.isEmpty()) failure = new Failure("conflict");
-                else if (paused) failure = new Failure("paused");
+                if (paused) failure = new Failure("paused");
             }
             rows.add(
                 ThreadedProxyDisplay.Row
@@ -815,8 +849,8 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             snapshot.size(),
             definitions.size(),
             maxOverclocks);
-        return conflict.isEmpty() ? text
-            : text + "\n" + StatCollector.translateToLocal("gtnhadjust.threaded_proxy.conflict") + " " + conflict;
+        return hasWaterReservoir ? text + "\n" + StatCollector.translateToLocal("gtnhadjust.threaded_proxy.reservoir")
+            : text;
     }
 
     @Override
@@ -843,7 +877,8 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         return new MultiblockTooltipBuilder().addMachineType("多线程联合代理")
             .addInfo("主机槽放入被代理控制器，按样板记录的白名单配方池工作")
             .addInfo("一个样板一个线程，从输入总线和输入仓取料，产物送入输出舱室")
-            .addInfo("消耗输入不得重叠；冲突时只禁止启动新线程")
+            .addInfo("允许共享输入，同种原料按待启动线程平均分配")
+            .addInfo("安装蓄水仓后，配方用水免消耗；其他流体照常消耗")
             .addInfo("GTNR 支持的不消耗工具虚拟提供，其他工具需放入共享槽或输入舱室")
             .addInfo("线程和单线程并行上限均为 2,147,483,647；受材料和供电限制")
             .addInfo("默认不超频，在电力设置面板调整超频次数上限；到达 1 tick 后停止超频")
@@ -873,21 +908,24 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         final String key, label;
         final RecipeMap<?> map;
         final ProxyPatternRecipe recipe;
+        final GTRecipe execution;
 
-        Definition(String key, String label, RecipeMap<?> map, ProxyPatternRecipe recipe) {
+        Definition(String key, String label, RecipeMap<?> map, ProxyPatternRecipe recipe, boolean reservoir) {
             this.key = key;
             this.label = label;
             this.map = map;
             this.recipe = recipe;
+            execution = recipe.executionRecipe(reservoir);
         }
     }
 
     /** References real hatch resources plus private virtual tools; planning consumes only transactional copies. */
-    private static final class ThreadInputs {
+    static final class ThreadInputs {
 
         final Definition definition;
-        final ItemStack[] items;
-        final FluidStack[] fluids;
+        ItemStack[] items;
+        FluidStack[] fluids;
+        ThreadedProxyMaterials.Share share;
 
         ThreadInputs(Definition definition, ItemStack[] items, FluidStack[] fluids) {
             this.definition = definition;

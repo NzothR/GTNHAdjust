@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.gtnhadjust.GTNHAdjust;
@@ -202,6 +203,35 @@ final class ProxyPatternRecipe {
 
     private static boolean matches(RecipeItemInput input, ItemStack item) {
         return input.matchesRecipe(GTOreDictUnificator.getAssociation(item), item);
+    }
+
+    /** Remove only executable ordinary-water requirements; keep the original recipe for encoded-pattern matching. */
+    GTRecipe executionRecipe(boolean reservoir) {
+        if (!reservoir) return recipe;
+        List<Integer> kept = new ArrayList<>();
+        for (int i = 0; i < recipe.mFluidInputs.length; i++) {
+            FluidStack input = recipe.mFluidInputs[i];
+            boolean water = input != null && input.getFluid() == FluidRegistry.WATER;
+            if (recipe.mAltFluidInputs != null && i < recipe.mAltFluidInputs.length
+                && recipe.mAltFluidInputs[i] != null)
+                water |= Arrays.stream(recipe.mAltFluidInputs[i])
+                    .anyMatch(alternative -> alternative != null && alternative.getFluid() == FluidRegistry.WATER);
+            if (!water) kept.add(i);
+        }
+        if (kept.size() == recipe.mFluidInputs.length) return recipe;
+        GTRecipe executable = recipe.copy();
+        executable.mFluidInputs = kept.stream()
+            .map(i -> recipe.mFluidInputs[i])
+            .toArray(FluidStack[]::new);
+        executable.mFluidInputChances = recipe.mFluidInputChances == null ? null
+            : kept.stream()
+                .mapToInt(recipe::getFluidInputChance)
+                .toArray();
+        executable.mAltFluidInputs = recipe.mAltFluidInputs == null ? null
+            : kept.stream()
+                .map(i -> i < recipe.mAltFluidInputs.length ? recipe.mAltFluidInputs[i] : null)
+                .toArray(FluidStack[][]::new);
+        return executable;
     }
 
     /**
