@@ -22,8 +22,12 @@ import net.minecraftforge.fluids.FluidStack;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
+import com.gtnewhorizons.modularui.api.math.Alignment;
+import com.gtnewhorizons.modularui.api.math.CrossAxisAlignment;
 import com.gtnewhorizons.modularui.api.screen.ModularWindow;
+import com.gtnewhorizons.modularui.api.widget.IWidgetBuilder;
 import com.gtnewhorizons.modularui.api.widget.Widget;
+import com.gtnewhorizons.modularui.common.widget.ButtonWidget;
 import com.gtnewhorizons.modularui.common.widget.ChangeableWidget;
 import com.gtnewhorizons.modularui.common.widget.DynamicPositionedColumn;
 import com.gtnewhorizons.modularui.common.widget.FakeSyncWidget;
@@ -60,6 +64,7 @@ import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe.RecipeItemInput;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.OverclockCalculator;
+import gregtech.api.util.shutdown.ShutDownReason;
 import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.common.tileentities.machines.IDualInputHatch;
 
@@ -79,6 +84,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     private List<PatternSlot> snapshot = Collections.emptyList();
     private ItemStack previousController;
     private boolean definitionsDirty = true;
+    private boolean refreshRequested;
     private String conflict = "";
     private String clientStatus = "";
     private int maxOverclocks;
@@ -135,6 +141,39 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     public void clearHatches() {
         super.clearHatches();
         patternHatches.clear();
+    }
+
+    /** The native GUI button schedules a structure check for the next server tick. Extend that exact request. */
+    @Override
+    public void setStructureUpdateTime(int time) {
+        super.setStructureUpdateTime(time);
+        if (time == 1 && getBaseMetaTileEntity().isServerSide()) refreshRequested = true;
+    }
+
+    /**
+     * Re-read the controller and all patterns after the new hatch lists are known, even while the machine is paused.
+     */
+    @Override
+    protected void onStructureCheckFinished(IGregTechTileEntity tile) {
+        super.onStructureCheckFinished(tile);
+        if (!refreshRequested) return;
+        refreshRequested = false;
+        definitionsDirty = true;
+        ((ThreadedProxyProcessingLogic) processingLogic).discardPreparedRecipe();
+        refreshDefinitions();
+        if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
+            "[threaded-proxy] manual refresh: formed={}, controller={}, installed={}, valid={}",
+            mMachine,
+            getControllerSlot(),
+            snapshot.size(),
+            definitions.size());
+    }
+
+    @Override
+    public ButtonWidget createStructureUpdateButton(IWidgetBuilder<?> builder) {
+        ButtonWidget button = super.createStructureUpdateButton(builder);
+        button.addTooltip(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.refresh"));
+        return button;
     }
 
     @Override
@@ -576,6 +615,25 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         return power;
     }
 
+    /**
+     * A native power trip discards every task, including completed tasks still waiting to output. Manual pause retains
+     * them.
+     */
+    @Override
+    public void stopMachine(ShutDownReason reason) {
+        super.stopMachine(reason);
+        if (reason != ShutDownReasonRegistry.POWER_LOSS) return;
+        int discarded = tasks.size();
+        tasks.clear();
+        runInfo.clear();
+        failures.clear();
+        ((ThreadedProxyProcessingLogic) processingLogic).discardPreparedRecipe();
+        markDirty();
+        if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
+            "[threaded-proxy] power trip: discarded {} tasks and all their buffered products; consumed inputs are not refunded",
+            discarded);
+    }
+
     private void updateDisplay() {
         mEUt = 0;
         lEUt = 0;
@@ -614,6 +672,19 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         tasks.clear();
         runInfo.clear();
         NBTTagList saved = tag.getTagList(THREADS, 10);
+        // Old versions saved tasks after power failure. Use GT's persisted shutdown state, not the work toggle alone.
+        if (tag.getBoolean("mWasShutdown") && ShutDownReasonRegistry.POWER_LOSS.getID()
+            .equals(tag.getString("shutDownReasonID"))
+            && ShutDownReasonRegistry.POWER_LOSS.writeToNBT(new NBTTagCompound())
+                .equals(tag.getCompoundTag("shutDownReason"))) {
+            definitionsDirty = true;
+            if (saved.tagCount() > 0) {
+                markDirty();
+                if (GTNHAdjust.debug) GTNHAdjust.LOG
+                    .info("[threaded-proxy] discarded {} saved tasks from a previous power trip", saved.tagCount());
+            }
+            return;
+        }
         for (int i = 0; i < saved.tagCount(); i++) {
             NBTTagCompound entry = saved.getCompoundTagAt(i);
             tasks.put(entry.getString("patternSlot"), RecipeThreadTask.load(entry));
@@ -666,6 +737,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         column.widget(
             TextWidget.dynamicString(() -> clientStatus)
                 .setSynced(false)
+                .setTextAlignment(Alignment.CenterLeft)
                 .setDefaultColor(0xFFFFFF));
         column.widget(new FakeSyncWidget.StringSyncer(this::status, value -> clientStatus = value));
         ChangeableWidget rows = new ChangeableWidget(this::createThreadRows);
@@ -682,6 +754,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         DynamicPositionedColumn rows = new DynamicPositionedColumn();
         rows.setSynced(false)
             .setSpace(0);
+        rows.setAlignment(CrossAxisAlignment.START);
         for (int i = 0; i < clientRows.size(); i++) {
             final int index = i;
             rows.widget(
@@ -690,6 +763,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                         .text())
                     .setSynced(false)
                     .setDefaultColor(0xFFFFFF)
+                    .setTextAlignment(Alignment.CenterLeft)
                     .setScale(0.75f)
                     .setMaxWidth(182));
         }

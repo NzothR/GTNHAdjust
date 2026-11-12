@@ -5,6 +5,7 @@ gt.blockmachines.gtnhadjust.proxy_factory.name=代理联合工厂
 gt.blockmachines.gtnhadjust.threaded_joint_proxy.name=多线程联合代理
 hatch_type_gtnhadjust_threaded_proxy_patterns=超级跨配方类型样板输入总成 (ME)
 gtnhadjust.threaded_proxy.oc_limit=超频次数上限
+gtnhadjust.threaded_proxy.refresh=同时重新读取主机槽和样板，刷新配方池及线程定义缓存
 gtnhadjust.threaded_proxy.oc_default=0：不超频；到达 1 tick 停止
 gtnhadjust.threaded_proxy.status=线程 %s；已装样板 %s / 有效 %s；超频上限 %s
 gtnhadjust.threaded_proxy.conflict=输入冲突，禁止新线程：

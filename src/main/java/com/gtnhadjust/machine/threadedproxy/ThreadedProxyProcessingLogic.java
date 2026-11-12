@@ -96,6 +96,16 @@ final class ThreadedProxyProcessingLogic extends RecipeThreadProcessingLogic {
         return concurrentParallel;
     }
 
+    /** Drop all prepared references when power trips or a manual controller/pattern refresh invalidates the cache. */
+    void discardPreparedRecipe() {
+        finishRecipe();
+        clear();
+        resetPatternInventory();
+        selected = null;
+        pendingOutputs = null;
+        concurrentParallel = 0;
+    }
+
     /** Stores large yields compactly, avoiding an array entry for each int-sized slice of a 2.1G-parallel yield. */
     private static RecipeThreadOutputs outputs(GTRecipe recipe, int parallels) {
         NBTTagCompound saved = new NBTTagCompound();
