@@ -191,8 +191,10 @@ final class SingularityResources {
             GTNHAdjust.LOG.info("Registered {} GT-Not-Hard dimension resource pools", registered);
             GTNHAdjust.LOG.info("Registered {} black hole dimension marker compression recipes", compressedMarkers);
             registerSpaceMining(data);
-            registerSpaceDrilling(tierFluids);
+            T10MaterialForms forms = loadT10MaterialForms();
+            registerSpaceDrilling(tierFluids, forms);
             registerT10OreProducts(tierItems);
+            registerT10Ingots(tierItems, forms);
             if (unresolved && GTNHAdjust.debug) exportRegistry();
         } catch (Exception error) {
             throw new IllegalStateException("Cannot register GT-Not-Hard resource pools", error);
@@ -379,7 +381,7 @@ final class SingularityResources {
     }
 
     /** Merge the fixed drilling snapshot with all registered T0–T9 fluid pools. */
-    private static void registerSpaceDrilling(List<Map<String, List<FluidStack>>> tierFluids) {
+    private static void registerSpaceDrilling(List<Map<String, List<FluidStack>>> tierFluids, T10MaterialForms forms) {
         Item marker = GameRegistry.findItem("gtneioreplugin", "blockDimensionDisplay_DD");
         if (marker == null) {
             GTNHAdjust.LOG.warn("Singularity: missing T10 dimension marker DD for fluid recipe");
@@ -412,6 +414,18 @@ final class SingularityResources {
             }
         } catch (Exception error) {
             throw new IllegalStateException("Cannot load T10 space drilling snapshot", error);
+        }
+        for (T10MaterialForm entry : forms.materials) {
+            if (entry.fluid == null) continue;
+            FluidStack stack = FluidRegistry.getFluidStack(entry.fluid, 1);
+            if (stack == null) {
+                GTNHAdjust.LOG.warn("Singularity: missing T10 material fluid {} ({})", entry.material, entry.fluid);
+                continue;
+            }
+            outputs.putIfAbsent(
+                stack.getFluid()
+                    .getName(),
+                stack);
         }
         if (outputs.isEmpty()) {
             GTNHAdjust.LOG.warn("Singularity: T10 fluid pool has no available outputs");
@@ -460,6 +474,64 @@ final class SingularityResources {
     private static final class SpaceDrillingData {
 
         Resource[] outputs;
+    }
+
+    /** Load the fixed ingot and fluid forms recorded for the new ore-processing dusts. */
+    private static T10MaterialForms loadT10MaterialForms() {
+        String path = "/assets/gtnhadjust/recipes/t10_material_forms.json";
+        try (InputStream stream = SingularityResources.class.getResourceAsStream(path)) {
+            return new Gson().fromJson(new InputStreamReader(stream, StandardCharsets.UTF_8), T10MaterialForms.class);
+        } catch (Exception error) {
+            throw new IllegalStateException("Cannot load T10 material form snapshot", error);
+        }
+    }
+
+    /** Merge all T0–T9 ingots with the fixed forms of T10 ore-processing dusts. */
+    private static void registerT10Ingots(List<Map<String, List<ItemStack>>> tierItems, T10MaterialForms forms) {
+        Item marker = GameRegistry.findItem("gtneioreplugin", "blockDimensionDisplay_DD");
+        if (marker == null) {
+            GTNHAdjust.LOG.warn("Singularity: missing T10 dimension marker DD for ingot recipe");
+            return;
+        }
+        Map<GTUtility.ItemId, ItemStack> outputs = new LinkedHashMap<>();
+        for (Map<String, List<ItemStack>> tier : tierItems) {
+            for (ItemStack stack : tier.getOrDefault("ingot", Collections.emptyList())) {
+                ItemStack copy = stack.copy();
+                copy.stackSize = 1;
+                outputs.putIfAbsent(GTUtility.ItemId.create(copy), copy);
+            }
+        }
+        for (T10MaterialForm entry : forms.materials) {
+            if (entry.ingot == null) continue;
+            ItemStack stack = item(entry.ingot);
+            if (stack == null) {
+                GTNHAdjust.LOG.warn("Singularity: missing T10 material ingot {} ({})", entry.material, entry.ingot.id);
+                continue;
+            }
+            outputs.putIfAbsent(GTUtility.ItemId.create(stack), stack);
+        }
+        if (outputs.isEmpty()) {
+            GTNHAdjust.LOG.warn("Singularity: T10 ingot pool has no available outputs");
+            return;
+        }
+        Pool pool = new Pool(
+            outputs.values()
+                .toArray(new ItemStack[0]),
+            new FluidStack[0]);
+        if (registerPool(new ItemStack(marker, 0, 0), 23, pool, 8 << 20, 128, true))
+            GTNHAdjust.LOG.info("Registered T10 ingot pool with {} distinct outputs", outputs.size());
+    }
+
+    private static final class T10MaterialForms {
+
+        T10MaterialForm[] materials;
+    }
+
+    private static final class T10MaterialForm {
+
+        String material;
+        Resource ingot;
+        String fluid;
     }
 
     /** Resolve material identity through the ore dictionary and registered material fluids. */

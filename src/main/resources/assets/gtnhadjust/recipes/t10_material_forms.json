@@ -1,0 +1,292 @@
+{
+  "source": "GTNH 2.9.0 instance ore-dictionary and fluid registry snapshot",
+  "materials": [
+    {
+      "material": "Indium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11056
+      },
+      "fluid": "molten.indium"
+    },
+    {
+      "material": "ElectrumFlux",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11320
+      },
+      "fluid": "molten.electrumflux"
+    },
+    {
+      "material": "Tellurium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11059
+      },
+      "fluid": "molten.tellurium"
+    },
+    {
+      "material": "Manyullyn",
+      "ingot": {
+        "id": "TConstruct:materials",
+        "meta": 5
+      },
+      "fluid": "molten.manyullyn"
+    },
+    {
+      "material": "Shadow",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11368
+      },
+      "fluid": "molten.shadow"
+    },
+    {
+      "material": "Ytterbium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11077
+      },
+      "fluid": "molten.ytterbium"
+    },
+    {
+      "material": "SiliconSG",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11856
+      },
+      "fluid": "molten.siliconsolargrade"
+    },
+    {
+      "material": "Phosphate",
+      "ingot": null,
+      "fluid": null
+    },
+    {
+      "material": "Magnesium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11018
+      },
+      "fluid": "molten.magnesium"
+    },
+    {
+      "material": "Europium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11070
+      },
+      "fluid": "molten.europium"
+    },
+    {
+      "material": "Strontium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11044
+      },
+      "fluid": "molten.strontium"
+    },
+    {
+      "material": "Endium",
+      "ingot": {
+        "id": "HardcoreEnderExpansion:endium_ingot",
+        "meta": 0
+      },
+      "fluid": "molten.heeendium"
+    },
+    {
+      "material": "Cheese",
+      "ingot": null,
+      "fluid": "molten.cheese"
+    },
+    {
+      "material": "Barium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11063
+      },
+      "fluid": "molten.barium"
+    },
+    {
+      "material": "Rubidium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11043
+      },
+      "fluid": "molten.rubidium"
+    },
+    {
+      "material": "Americium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11103
+      },
+      "fluid": "molten.americium"
+    },
+    {
+      "material": "Thulium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11076
+      },
+      "fluid": "molten.thulium"
+    },
+    {
+      "material": "Tantalum",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11080
+      },
+      "fluid": "molten.tantalum"
+    },
+    {
+      "material": "Lutetium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11078
+      },
+      "fluid": "molten.lutetium"
+    },
+    {
+      "material": "Holmium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11074
+      },
+      "fluid": "molten.holmium"
+    },
+    {
+      "material": "Ichorium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11978
+      },
+      "fluid": "molten.ichorium"
+    },
+    {
+      "material": "Promethium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11068
+      },
+      "fluid": "molten.promethium"
+    },
+    {
+      "material": "Praseodymium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11066
+      },
+      "fluid": "molten.praseodymium"
+    },
+    {
+      "material": "Scandium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11027
+      },
+      "fluid": "molten.scandium"
+    },
+    {
+      "material": "Dysprosium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11073
+      },
+      "fluid": "molten.dysprosium"
+    },
+    {
+      "material": "Tritanium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11329
+      },
+      "fluid": "molten.tritanium"
+    },
+    {
+      "material": "DarkIron",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11342
+      },
+      "fluid": "molten.darkiron"
+    },
+    {
+      "material": "Iron",
+      "ingot": {
+        "id": "minecraft:iron_ingot",
+        "meta": 0
+      },
+      "fluid": "molten.iron"
+    },
+    {
+      "material": "Duralumin",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11392
+      },
+      "fluid": "molten.duralumin"
+    },
+    {
+      "material": "Thorium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11096
+      },
+      "fluid": "molten.thorium"
+    },
+    {
+      "material": "Neodymium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11067
+      },
+      "fluid": "molten.neodymium"
+    },
+    {
+      "material": "Electrum",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11303
+      },
+      "fluid": "molten.electrum"
+    },
+    {
+      "material": "Gold",
+      "ingot": {
+        "id": "minecraft:gold_ingot",
+        "meta": 0
+      },
+      "fluid": "molten.gold"
+    },
+    {
+      "material": "Silver",
+      "ingot": {
+        "id": "IC2:itemIngot",
+        "meta": 6
+      },
+      "fluid": "molten.silver"
+    },
+    {
+      "material": "Flerovium",
+      "ingot": {
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11984
+      },
+      "fluid": "molten.flerovium_gt5u"
+    },
+    {
+      "material": "orundum",
+      "ingot": null,
+      "fluid": "molten.orundum"
+    },
+    {
+      "material": "KOBOLDITE",
+      "ingot": {
+        "id": "witchery:ingredient",
+        "meta": 150
+      },
+      "fluid": "molten.koboldite"
+    }
+  ]
+}
