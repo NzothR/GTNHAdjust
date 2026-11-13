@@ -28,8 +28,8 @@
     {
       "material": "Manyullyn",
       "ingot": {
-        "id": "TConstruct:materials",
-        "meta": 5
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11386
       },
       "fluid": "molten.manyullyn"
     },

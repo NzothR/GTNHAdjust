@@ -42,9 +42,11 @@
       "kind": "gt",
       "dust": [
         {
-          "kind": "gt",
+          "kind": "item",
           "material": "Manyullyn",
-          "prefix": "dust"
+          "prefix": "dust",
+          "id": "gregtech:gt.metaitem.01",
+          "meta": 2386
         }
       ],
       "gem": []
@@ -525,9 +527,11 @@
       "kind": "MaterialsAlloy",
       "dust": [
         {
-          "kind": "MaterialsAlloy",
+          "kind": "item",
           "material": "KOBOLDITE",
-          "prefix": "dust"
+          "prefix": "dust",
+          "id": "witchery:ingredient",
+          "meta": 148
         }
       ],
       "gem": []

@@ -17,7 +17,7 @@ rows = []
 for (kind, material), _ in entries.items():
     if material in excluded:
         continue
-    if kind == "gt":
+    if material in assignments:
         method = assignments[material]
         match = re.search(r"private static Materials\s+" + method + r"\(\)\s*\{(.*?)\n    \}", source, re.S)
         if not match:
@@ -26,6 +26,12 @@ for (kind, material), _ in entries.items():
     else:
         key = other_names[material]
     ingots = registry["solidMaterials"].get("ingot" + key, [])
+    # The 2.9.0 wiremill recipe shown in NEI uses the GT Manyullyn ingot.
+    if material == "Manyullyn":
+        selected = "gregtech:gt.metaitem.01:11386"
+        if selected not in ingots:
+            raise ValueError("The verified GT Manyullyn ingot is not registered")
+        ingots = [selected]
     item = None
     if ingots:
         item_id, meta = ingots[0].rsplit(":", 1)

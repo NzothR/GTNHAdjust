@@ -37,6 +37,15 @@ def material_info(name):
     return key.group(1), byproducts
 
 def stack(kind, material, prefix):
+    # Keep the dust in the verified ingot's mod when that dust exists in the instance.
+    canonical_dust = {"Manyullyn": ("Manyullyn", "gregtech:gt.metaitem.01:2386"),
+                      "KOBOLDITE": ("Koboldite", "witchery:ingredient:148")}
+    if prefix == "dust" and material in canonical_dust:
+        key, item = canonical_dust[material]
+        if item not in registry.get("dust" + key, []):
+            raise ValueError(f"Verified dust is not registered: {item}")
+        item_id, meta = item.rsplit(":", 1)
+        return {"kind": "item", "material": material, "prefix": prefix, "id": item_id, "meta": int(meta)}
     return {"kind": kind, "material": material, "prefix": prefix}
 
 def exists(prefix, key):
