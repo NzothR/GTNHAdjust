@@ -38,13 +38,16 @@ import goodgenerator.items.GGMaterial;
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.recipe.RecipeMaps;
+import gregtech.api.util.GTModHandler;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe;
 import gregtech.api.util.GTRecipeBuilder;
 import gregtech.api.util.GTUtility;
+import gtPlusPlus.core.fluids.GTPPFluids;
 import gtPlusPlus.core.material.Material;
 import gtPlusPlus.core.material.MaterialMisc;
 import gtPlusPlus.core.material.MaterialsAlloy;
+import gtPlusPlus.core.material.MaterialsElements;
 import gtPlusPlus.core.material.MaterialsOres;
 
 /** Fixed, deduplicated resource lists derived from GT-Not-Hard. */
@@ -188,6 +191,7 @@ final class SingularityResources {
             GTNHAdjust.LOG.info("Registered {} GT-Not-Hard dimension resource pools", registered);
             GTNHAdjust.LOG.info("Registered {} black hole dimension marker compression recipes", compressedMarkers);
             registerSpaceMining(data);
+            registerSpaceDrilling(tierFluids);
             if (unresolved && GTNHAdjust.debug) exportRegistry();
         } catch (Exception error) {
             throw new IllegalStateException("Cannot register GT-Not-Hard resource pools", error);
@@ -276,6 +280,90 @@ final class SingularityResources {
         String material;
         String id;
         int meta;
+    }
+
+    /** Merge the fixed drilling snapshot with all registered T0–T9 fluid pools. */
+    private static void registerSpaceDrilling(List<Map<String, List<FluidStack>>> tierFluids) {
+        Item marker = GameRegistry.findItem("gtneioreplugin", "blockDimensionDisplay_DD");
+        if (marker == null) {
+            GTNHAdjust.LOG.warn("Singularity: missing T10 dimension marker DD for fluid recipe");
+            return;
+        }
+        Map<String, FluidStack> outputs = new LinkedHashMap<>();
+        for (Map<String, List<FluidStack>> tier : tierFluids) {
+            for (FluidStack stack : tier.getOrDefault("fluid", Collections.emptyList())) outputs.putIfAbsent(
+                stack.getFluid()
+                    .getName(),
+                stack);
+        }
+        String path = "/assets/gtnhadjust/recipes/t10_space_drilling.json";
+        try (InputStream stream = SingularityResources.class.getResourceAsStream(path)) {
+            SpaceDrillingData data = new Gson()
+                .fromJson(new InputStreamReader(stream, StandardCharsets.UTF_8), SpaceDrillingData.class);
+            for (Resource entry : data.outputs) {
+                FluidStack stack = spaceDrillingFluid(entry);
+                if (stack == null) {
+                    GTNHAdjust.LOG.warn(
+                        "Singularity: missing T10 space drilling output {} {}",
+                        entry.kind,
+                        entry.material == null ? entry.id == null ? entry.method : entry.id : entry.material);
+                    continue;
+                }
+                outputs.putIfAbsent(
+                    stack.getFluid()
+                        .getName(),
+                    stack);
+            }
+        } catch (Exception error) {
+            throw new IllegalStateException("Cannot load T10 space drilling snapshot", error);
+        }
+        if (outputs.isEmpty()) {
+            GTNHAdjust.LOG.warn("Singularity: T10 fluid pool has no available outputs");
+            return;
+        }
+        Pool pool = new Pool(
+            new ItemStack[0],
+            outputs.values()
+                .toArray(new FluidStack[0]));
+        if (registerPool(new ItemStack(marker, 0, 0), 24, pool, 8 << 20, 128, false))
+            GTNHAdjust.LOG.info("Registered T10 fluid pool with {} distinct outputs", outputs.size());
+    }
+
+    /** Resolve the material or registry entry used by the GTNL drilling snapshot. */
+    private static FluidStack spaceDrillingFluid(Resource entry) throws ReflectiveOperationException {
+        if ("fluid".equals(entry.kind)) return FluidRegistry.getFluidStack(entry.id, 1);
+        if ("handler".equals(entry.kind))
+            return "getDistilledWater".equals(entry.method) ? GTModHandler.getDistilledWater(1)
+                : GTModHandler.getLiquidDNA(1);
+        if ("werkstoff".equals(entry.kind)) return ((Werkstoff) WerkstoffLoader.class.getField(entry.material)
+            .get(null)).getFluidOrGas(1);
+        if ("gtpp".equals(entry.kind)) {
+            net.minecraftforge.fluids.Fluid fluid = (net.minecraftforge.fluids.Fluid) GTPPFluids.class
+                .getField(entry.material)
+                .get(null);
+            return fluid == null ? null : new FluidStack(fluid, 1);
+        }
+        if ("element".equals(entry.kind)) {
+            Material material = (Material) MaterialsElements.class.getField(entry.material)
+                .get(MaterialsElements.getInstance());
+            net.minecraftforge.fluids.Fluid fluid = material.getFluid();
+            return fluid == null ? null : new FluidStack(fluid, 1);
+        }
+        Materials material = (Materials) Materials.class.getField(entry.material)
+            .get(null);
+        switch (entry.method) {
+            case "getGas":
+                return material.getGas(1);
+            case "getMolten":
+                return material.getMolten(1);
+            default:
+                return material.getFluid(1);
+        }
+    }
+
+    private static final class SpaceDrillingData {
+
+        Resource[] outputs;
     }
 
     /** Resolve material identity through the ore dictionary and registered material fluids. */

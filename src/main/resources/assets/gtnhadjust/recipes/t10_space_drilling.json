@@ -1,0 +1,210 @@
+{
+  "sourceCommit": "f93edbe8c425e2db93c089e7bc7a689b014b7755",
+  "outputs": [
+    {
+      "kind": "gt",
+      "material": "Hydrogen",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "Helium",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "Nitrogen",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "Methane",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "SulfurDioxide",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "CarbonDioxide",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "NitrogenDioxide",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "Ammonia",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "Chlorine",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "Fluorine",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "CarbonMonoxide",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "Oxygen",
+      "method": "getGas"
+    },
+    {
+      "kind": "fluid",
+      "id": "unknowwater"
+    },
+    {
+      "kind": "werkstoff",
+      "material": "Neon"
+    },
+    {
+      "kind": "gt",
+      "material": "Argon",
+      "method": "getGas"
+    },
+    {
+      "kind": "werkstoff",
+      "material": "Krypton"
+    },
+    {
+      "kind": "werkstoff",
+      "material": "Xenon"
+    },
+    {
+      "kind": "gt",
+      "material": "Radon",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "Helium3",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "Deuterium",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "Tritium",
+      "method": "getGas"
+    },
+    {
+      "kind": "gt",
+      "material": "HeavyFuel",
+      "method": "getFluid"
+    },
+    {
+      "kind": "gt",
+      "material": "LightFuel",
+      "method": "getFluid"
+    },
+    {
+      "kind": "gt",
+      "material": "Naphtha",
+      "method": "getFluid"
+    },
+    {
+      "kind": "gt",
+      "material": "Gas",
+      "method": "getGas"
+    },
+    {
+      "kind": "gtpp",
+      "material": "CoalGas"
+    },
+    {
+      "kind": "element",
+      "material": "BROMINE"
+    },
+    {
+      "kind": "gt",
+      "material": "Oil",
+      "method": "getFluid"
+    },
+    {
+      "kind": "gt",
+      "material": "OilHeavy",
+      "method": "getFluid"
+    },
+    {
+      "kind": "gt",
+      "material": "Lava",
+      "method": "getFluid"
+    },
+    {
+      "kind": "gt",
+      "material": "SaltWater",
+      "method": "getFluid"
+    },
+    {
+      "kind": "handler",
+      "method": "getDistilledWater"
+    },
+    {
+      "kind": "gtpp",
+      "material": "Pyrotheum"
+    },
+    {
+      "kind": "gtpp",
+      "material": "Cryotheum"
+    },
+    {
+      "kind": "handler",
+      "method": "getLiquidDNA"
+    },
+    {
+      "kind": "gt",
+      "material": "HydrochloricAcid",
+      "method": "getFluid"
+    },
+    {
+      "kind": "gt",
+      "material": "SulfuricAcid",
+      "method": "getFluid"
+    },
+    {
+      "kind": "gt",
+      "material": "NitricAcid",
+      "method": "getFluid"
+    },
+    {
+      "kind": "gt",
+      "material": "HydrofluoricAcid",
+      "method": "getFluid"
+    },
+    {
+      "kind": "gt",
+      "material": "PhosphoricAcid",
+      "method": "getFluid"
+    },
+    {
+      "kind": "gt",
+      "material": "PhthalicAcid",
+      "method": "getFluid"
+    },
+    {
+      "kind": "gt",
+      "material": "WhiteDwarfMatter",
+      "method": "getMolten"
+    },
+    {
+      "kind": "gt",
+      "material": "BlackDwarfMatter",
+      "method": "getMolten"
+    }
+  ]
+}
