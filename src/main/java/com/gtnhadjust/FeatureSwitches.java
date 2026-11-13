@@ -24,6 +24,8 @@ final class FeatureSwitches {
     private static final String LOOT_SIMULATOR = "lootSimulator";
     private static final String PROXY_FACTORY = "proxyFactory";
     private static final String THREADED_PROXY = "threadedJointProxy";
+    private static final String HIDE_SHIMMER = "hideGtnlShimmerRecipes";
+    private static final String HIDE_DISASSEMBLER = "hideGtnrDisassemblerRecipes";
     private static final String PROXY_TRACE = "proxyDispatchDiagnostics";
     private static final String CROP = "cropBreeder";
     private static final String GREENHOUSE = "steamGreenhouse";
@@ -52,6 +54,8 @@ final class FeatureSwitches {
     final boolean lootSimulator;
     final boolean proxyFactory;
     final boolean threadedJointProxy;
+    final boolean hideGtnlShimmerRecipes;
+    final boolean hideGtnrDisassemblerRecipes;
     final boolean proxyDispatchDiagnostics;
     final boolean cropBreeder;
     final boolean steamGreenhouse;
@@ -80,7 +84,9 @@ final class FeatureSwitches {
         boolean matrixPatternLoadFix, boolean soulVialExpandedCapture, boolean structureLibAeAutoPlace,
         boolean proxyDispatchDiagnostics, boolean ysmuAnimatedArms, boolean hologramImprovements,
         boolean questAeRetrieval, boolean gtnlQuickTerminalCraftFix, boolean grandAssemblyAutoMaintenance,
-        boolean threadedJointProxy) {
+        boolean threadedJointProxy, boolean hideGtnlShimmerRecipes, boolean hideGtnrDisassemblerRecipes) {
+        this.hideGtnlShimmerRecipes = hideGtnlShimmerRecipes;
+        this.hideGtnrDisassemblerRecipes = hideGtnrDisassemblerRecipes;
         this.threadedJointProxy = threadedJointProxy;
         this.grandAssemblyAutoMaintenance = grandAssemblyAutoMaintenance;
         this.gtnlQuickTerminalCraftFix = gtnlQuickTerminalCraftFix;
@@ -117,6 +123,8 @@ final class FeatureSwitches {
         defaults.setProperty(LOOT_SIMULATOR, "true");
         defaults.setProperty(PROXY_FACTORY, "true");
         defaults.setProperty(THREADED_PROXY, "true");
+        defaults.setProperty(HIDE_SHIMMER, "true");
+        defaults.setProperty(HIDE_DISASSEMBLER, "true");
         defaults.setProperty(PROXY_TRACE, "false");
         defaults.setProperty(CROP, "true");
         defaults.setProperty(QUEST_AE, "true");
@@ -181,7 +189,9 @@ final class FeatureSwitches {
                 read(values, QUEST_AE),
                 read(values, GTNL_CRAFT_FIX),
                 read(values, GRAND_MAINTENANCE),
-                read(values, THREADED_PROXY));
+                read(values, THREADED_PROXY),
+                read(values, HIDE_SHIMMER),
+                read(values, HIDE_DISASSEMBLER));
             LOG.info(
                 "Feature switches: lootSimulator=" + result.lootSimulator
                     + ", proxyFactory="
@@ -231,11 +241,17 @@ final class FeatureSwitches {
                     + ", gtnlQuickTerminalCraftFix="
                     + result.gtnlQuickTerminalCraftFix
                     + ", threadedJointProxy="
-                    + result.threadedJointProxy);
+                    + result.threadedJointProxy
+                    + ", hideGtnlShimmerRecipes="
+                    + result.hideGtnlShimmerRecipes
+                    + ", hideGtnrDisassemblerRecipes="
+                    + result.hideGtnrDisassemblerRecipes);
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
             return new FeatureSwitches(
+                false,
+                false,
                 false,
                 false,
                 false,
@@ -281,6 +297,12 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (client && loadedMods.contains("gregtech")) {
+            if (hideGtnlShimmerRecipes && loadedMods.contains("sciencenotleisure"))
+                mixins.add("nei.HideGtnlShimmerRecipesMixin");
+            if (hideGtnrDisassemblerRecipes && loadedMods.contains("gtneverreset"))
+                mixins.add("nei.HideGtnrDisassemblerRecipesMixin");
+        }
         if (grandAssemblyAutoMaintenance && loadedMods.contains("sciencenotleisure"))
             mixins.add("gtnl.GrandAssemblyMaintenanceMixin");
         if (gtnlQuickTerminalCraftFix && loadedMods.contains("sciencenotleisure")

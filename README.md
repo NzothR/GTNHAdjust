@@ -1,5 +1,18 @@
 # GTNH Adjust
 
+## 隐藏指定 NEI 配方页面
+
+仅在客户端隐藏 GTNL“微光嬗变”（`gtnl.recipe.shimmer`）和 GTNR“拆解机”（`gtnr.recipe.disassembler`）的 NEI 配方页面。隐藏时不注册对应池的 NEI 产物/用途展示处理器，因此通过物品配方查询、用途查询或机器/微光桶等催化剂入口都不会出现这些页面。实际配方注册、配方池内容、微光转化和拆解机运行不变，相关物品及其他页面也保留。
+
+`config/gtnhadjust-features.properties` 提供两个独立开关，均默认 `true`（隐藏）：
+
+```properties
+hideGtnlShimmerRecipes=true
+hideGtnrDisassemblerRecipes=true
+```
+
+设为 `false` 并重启客户端恢复相应页面；关闭时对应 Mixin 不加入加载列表。已有配置文件缺少这些键时也按 `true` 处理，可手动添加以控制。仅客户端生效，服务端无需同步这两项设置。适配 GTNH 2.9.0 的 GregTech NEI 处理器、NEI 2.8.171、GTNL dev-290 和 GTNR 0.1.37；更新或修改开关后重启客户端。开启 `general.debug` 时，NEI 注册阶段以 `[nei-hide]` 记录被隐藏的处理器。游戏内需验证两项独立恢复、物品的 R/U 查询、催化剂入口及实际转化/拆解仍正常。
+
 ## 大型装配线自动维护
 
 GTNL 大型装配线无需维护仓，运行时自动恢复全部维护状态。`config/gtnhadjust-features.properties` 的 `grandAssemblyAutoMaintenance` 默认开启；关闭后不加载修复。适配 GTNH 2.9.0 和 GTNL dev-290，客户端与服务端应保持版本和配置一致，修改后重启。已有停机的机器可能需要重新启用；结构成型和运行需在游戏内验证。
@@ -187,6 +200,8 @@ Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅�
 ```properties
 proxyFactory=true
 threadedJointProxy=true
+hideGtnlShimmerRecipes=true
+hideGtnrDisassemblerRecipes=true
 gtnlQuickTerminalCraftFix=true
 ysmuAnimatedArms=true
 cropBreeder=true
