@@ -33,7 +33,7 @@ for group in groups:
         elif werkstoff or gg:
             entry = {"kind": "werkstoff" if werkstoff else "goodgenerator", "prefix": wp or gp, "material": werkstoff or gg}
         elif gtpp:
-            entry = {"kind": owner, "material": gtpp}
+            entry = {"kind": owner, "prefix": "ore", "material": gtpp}
         else:
             ids = {"clay": "minecraft:clay", "HardcoreEnderExpansionEndPowderOre": "HardcoreEnderExpansion:end_powder_ore"}
             entry = {"kind": "item", "id": ids[block or moditem] if block or moditem else "appliedenergistics2:tile.BlockSkyStone", "meta": 0}

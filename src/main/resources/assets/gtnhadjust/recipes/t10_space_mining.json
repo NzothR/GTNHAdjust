@@ -133,6 +133,7 @@
     },
     {
       "kind": "MaterialsOres",
+      "prefix": "ore",
       "material": "CROCROITE"
     },
     {
@@ -527,6 +528,7 @@
     },
     {
       "kind": "MaterialsOres",
+      "prefix": "ore",
       "material": "ZIRCON"
     },
     {
@@ -836,6 +838,7 @@
     },
     {
       "kind": "MaterialsAlloy",
+      "prefix": "ore",
       "material": "KOBOLDITE"
     },
     {
@@ -1065,34 +1068,42 @@
     },
     {
       "kind": "MaterialsOres",
+      "prefix": "ore",
       "material": "LAUTARITE"
     },
     {
       "kind": "MaterialsOres",
+      "prefix": "ore",
       "material": "LEPERSONNITE"
     },
     {
       "kind": "MaterialsOres",
+      "prefix": "ore",
       "material": "GADOLINITE_Y"
     },
     {
       "kind": "MaterialsOres",
+      "prefix": "ore",
       "material": "HONEAITE"
     },
     {
       "kind": "MaterialsOres",
+      "prefix": "ore",
       "material": "ALBURNITE"
     },
     {
       "kind": "MaterialMisc",
+      "prefix": "ore",
       "material": "RARE_EARTH_LOW"
     },
     {
       "kind": "MaterialMisc",
+      "prefix": "ore",
       "material": "RARE_EARTH_MID"
     },
     {
       "kind": "MaterialMisc",
+      "prefix": "ore",
       "material": "RARE_EARTH_HIGH"
     },
     {

@@ -253,6 +253,14 @@ final class SingularityResources {
             Item found = GameRegistry.findItem(id[0], id[1]);
             return found == null ? null : new ItemStack(found, 1, entry.meta);
         }
+        if ("MaterialsOres".equals(entry.kind) || "MaterialsAlloy".equals(entry.kind)
+            || "MaterialMisc".equals(entry.kind)) {
+            Class<?> owner = "MaterialsOres".equals(entry.kind) ? MaterialsOres.class
+                : "MaterialsAlloy".equals(entry.kind) ? MaterialsAlloy.class : MaterialMisc.class;
+            Material material = (Material) owner.getField(entry.material)
+                .get(null);
+            return "dust".equals(entry.prefix) ? material.getDust(1) : material.getOre(1);
+        }
         OrePrefixes prefix;
         switch (entry.prefix) {
             case "dust":
@@ -282,11 +290,7 @@ final class SingularityResources {
                 .get(null);
             return material.get(prefix, 1);
         }
-        Class<?> owner = "MaterialsOres".equals(entry.kind) ? MaterialsOres.class
-            : "MaterialsAlloy".equals(entry.kind) ? MaterialsAlloy.class : MaterialMisc.class;
-        Material material = (Material) owner.getField(entry.material)
-            .get(null);
-        return prefix == OrePrefixes.dust ? material.getDust(1) : material.getOre(1);
+        throw new IllegalArgumentException("Unknown T10 item type: " + entry.kind);
     }
 
     private static final class SpaceMiningData {
