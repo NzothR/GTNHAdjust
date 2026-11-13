@@ -30,9 +30,11 @@ import net.minecraftforge.oredict.OreDictionary;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.gtnhadjust.GTNHAdjust;
+import com.science.gtnl.common.material.GTNLRecipeMaps;
 
 import bartworks.system.material.Werkstoff;
 import bartworks.system.material.WerkstoffLoader;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.registry.GameRegistry;
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
@@ -181,10 +183,39 @@ final class SingularityResources {
             }
             GTNHAdjust.LOG.info("Registered {} GT-Not-Hard dimension resource pools", registered);
             GTNHAdjust.LOG.info("Registered {} black hole dimension marker compression recipes", compressedMarkers);
+            if (Loader.isModLoaded("sciencenotleisure")) registerSpaceMining();
             if (unresolved && GTNHAdjust.debug) exportRegistry();
         } catch (Exception error) {
             throw new IllegalStateException("Cannot register GT-Not-Hard resource pools", error);
         }
+    }
+
+    /** Collect all distinct space-mining outputs after the other mods have registered recipes. */
+    private static void registerSpaceMining() {
+        Item marker = GameRegistry.findItem("gtneioreplugin", "blockDimensionDisplay_DD");
+        if (marker == null) {
+            GTNHAdjust.LOG.warn("Singularity: missing T10 dimension marker DD");
+            return;
+        }
+        Map<GTUtility.ItemId, ItemStack> outputs = new LinkedHashMap<>();
+        for (GTRecipe recipe : GTNLRecipeMaps.SpaceMinerRecipes.getAllRecipes()) {
+            for (ItemStack output : recipe.mOutputs) {
+                if (output == null) continue;
+                ItemStack copy = output.copy();
+                copy.stackSize = 1;
+                outputs.putIfAbsent(GTUtility.ItemId.create(copy), copy);
+            }
+        }
+        if (outputs.isEmpty()) {
+            GTNHAdjust.LOG.warn("Singularity: GTNL space mining has no item outputs");
+            return;
+        }
+        Pool pool = new Pool(
+            outputs.values()
+                .toArray(new ItemStack[0]),
+            new FluidStack[0]);
+        if (registerPool(new ItemStack(marker, 0, 0), 20, pool, 8 << 20, 128, true))
+            GTNHAdjust.LOG.info("Registered T10 space mining pool with {} distinct outputs", outputs.size());
     }
 
     /** Resolve material identity through the ore dictionary and registered material fluids. */
@@ -287,9 +318,14 @@ final class SingularityResources {
     }
 
     private static boolean registerPool(ItemStack markerStack, int circuit, Pool pool, int eut) {
+        return registerPool(markerStack, circuit, pool, eut, GTNHAdjust.collectorRecipeTicks, false);
+    }
+
+    private static boolean registerPool(ItemStack markerStack, int circuit, Pool pool, int eut, int duration,
+        boolean preserveItems) {
         ItemStack circuitStack = GTUtility.getIntegratedCircuit(circuit);
         circuitStack.stackSize = 0;
-        List<ItemStack> displayItems = uniqueItems(pool.items);
+        List<ItemStack> displayItems = preserveItems ? java.util.Arrays.asList(pool.items) : uniqueItems(pool.items);
         List<FluidStack> displayFluids = uniqueFluids(pool.fluids);
         for (int i = 0; i < displayFluids.size(); i++) {
             FluidStack output = displayFluids.get(i)
@@ -301,7 +337,7 @@ final class SingularityResources {
             .itemInputs(markerStack.copy(), circuitStack.copy())
             .itemOutputs(displayItems.toArray(new ItemStack[0]))
             .fluidOutputs(displayFluids.toArray(new FluidStack[0]))
-            .duration(GTNHAdjust.collectorRecipeTicks)
+            .duration(duration)
             .eut(eut)
             .recipeCategory(SuperFragmentRecipes.categoryFor(circuit))
             .hidden();
@@ -311,14 +347,14 @@ final class SingularityResources {
                 .warn("Singularity recipe rejected for {} circuit {}", markerStack.getUnlocalizedName(), circuit);
             return false;
         }
-        for (GTRecipe recipe : actualRecipes) recipe.mDuration = GTNHAdjust.collectorRecipeTicks;
+        for (GTRecipe recipe : actualRecipes) recipe.mDuration = duration;
         int pageSize = pool.fluids.length == 0 ? SuperFragmentRecipes.ITEM_OUTPUTS : SuperFragmentRecipes.FLUID_OUTPUTS;
         int total = pool.fluids.length == 0 ? displayItems.size() : displayFluids.size();
         for (int start = 0; start < total; start += pageSize) {
             int end = Math.min(total, start + pageSize);
             GTRecipeBuilder builder = GTRecipeBuilder.builder()
                 .itemInputs(markerStack.copy(), circuitStack.copy())
-                .duration(GTNHAdjust.collectorRecipeTicks)
+                .duration(duration)
                 .eut(eut)
                 .setNEIDesc("完整产物包含该配方的所有页面")
                 .recipeCategory(SuperFragmentRecipes.categoryFor(circuit))
@@ -330,8 +366,7 @@ final class SingularityResources {
             else builder.fluidOutputs(
                 displayFluids.subList(start, end)
                     .toArray(new FluidStack[0]));
-            for (GTRecipe recipe : builder.addTo(SuperFragmentRecipes.MAP))
-                recipe.mDuration = GTNHAdjust.collectorRecipeTicks;
+            for (GTRecipe recipe : builder.addTo(SuperFragmentRecipes.MAP)) recipe.mDuration = duration;
         }
         return true;
     }
