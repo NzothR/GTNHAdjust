@@ -1,0 +1,572 @@
+{
+  "source": "TST OreProcessingVisualRecipeMap; GTNH 2.9.0 registry snapshot",
+  "ores": [
+    {
+      "ore": "Indium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Indium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "ElectrumFlux",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "ElectrumFlux",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Tellurium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Tellurium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Manyullyn",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Manyullyn",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Shadow",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Shadow",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Ytterbium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Ytterbium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "SiliconSG",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "SiliconSG",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Phosphate",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Phosphate",
+          "prefix": "dust"
+        },
+        {
+          "kind": "gt",
+          "material": "Phosphorus",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Magnesium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Magnesium",
+          "prefix": "dust"
+        },
+        {
+          "kind": "gt",
+          "material": "Olivine",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Europium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Europium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Strontium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Strontium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Endium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Endium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Cheese",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Cheese",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Barium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Barium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Rubidium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Rubidium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Americium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Americium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Thulium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Thulium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Tantalum",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Tantalum",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Lutetium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Lutetium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Holmium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Holmium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Ichorium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Ichorium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Promethium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Promethium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Praseodymium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Praseodymium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Scandium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Scandium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Dysprosium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Dysprosium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Tritanium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Tritanium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "DarkIron",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "DarkIron",
+          "prefix": "dust"
+        },
+        {
+          "kind": "gt",
+          "material": "Iron",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Duralumin",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Duralumin",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Forcicium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Forcicium",
+          "prefix": "dust"
+        },
+        {
+          "kind": "gt",
+          "material": "Thorium",
+          "prefix": "dust"
+        },
+        {
+          "kind": "gt",
+          "material": "Neodymium",
+          "prefix": "dust"
+        },
+        {
+          "kind": "gt",
+          "material": "RareEarth",
+          "prefix": "dust"
+        }
+      ],
+      "gem": [
+        {
+          "kind": "gt",
+          "material": "Forcicium",
+          "prefix": "gem"
+        }
+      ]
+    },
+    {
+      "ore": "Forcillium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Forcillium",
+          "prefix": "dust"
+        },
+        {
+          "kind": "gt",
+          "material": "Thorium",
+          "prefix": "dust"
+        },
+        {
+          "kind": "gt",
+          "material": "Neodymium",
+          "prefix": "dust"
+        },
+        {
+          "kind": "gt",
+          "material": "RareEarth",
+          "prefix": "dust"
+        }
+      ],
+      "gem": [
+        {
+          "kind": "gt",
+          "material": "Forcillium",
+          "prefix": "gem"
+        }
+      ]
+    },
+    {
+      "ore": "Electrum",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Electrum",
+          "prefix": "dust"
+        },
+        {
+          "kind": "gt",
+          "material": "Gold",
+          "prefix": "dust"
+        },
+        {
+          "kind": "gt",
+          "material": "Silver",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Flerovium",
+      "kind": "gt",
+      "dust": [
+        {
+          "kind": "gt",
+          "material": "Flerovium",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "PTMetallicPowder",
+      "kind": "werkstoff",
+      "dust": [
+        {
+          "kind": "werkstoff",
+          "material": "PTMetallicPowder",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "Fluorspar",
+      "kind": "werkstoff",
+      "dust": [
+        {
+          "kind": "werkstoff",
+          "material": "Fluorspar",
+          "prefix": "dust"
+        }
+      ],
+      "gem": [
+        {
+          "kind": "werkstoff",
+          "material": "Fluorspar",
+          "prefix": "gemExquisite"
+        },
+        {
+          "kind": "werkstoff",
+          "material": "Fluorspar",
+          "prefix": "gemFlawless"
+        },
+        {
+          "kind": "werkstoff",
+          "material": "Fluorspar",
+          "prefix": "gem"
+        }
+      ]
+    },
+    {
+      "ore": "orundum",
+      "kind": "goodgenerator",
+      "dust": [
+        {
+          "kind": "goodgenerator",
+          "material": "orundum",
+          "prefix": "dust"
+        }
+      ],
+      "gem": [
+        {
+          "kind": "goodgenerator",
+          "material": "orundum",
+          "prefix": "gemExquisite"
+        },
+        {
+          "kind": "goodgenerator",
+          "material": "orundum",
+          "prefix": "gemFlawless"
+        },
+        {
+          "kind": "goodgenerator",
+          "material": "orundum",
+          "prefix": "gem"
+        }
+      ]
+    },
+    {
+      "ore": "KOBOLDITE",
+      "kind": "MaterialsAlloy",
+      "dust": [
+        {
+          "kind": "MaterialsAlloy",
+          "material": "KOBOLDITE",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "RARE_EARTH_LOW",
+      "kind": "MaterialMisc",
+      "dust": [
+        {
+          "kind": "MaterialMisc",
+          "material": "RARE_EARTH_LOW",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "RARE_EARTH_MID",
+      "kind": "MaterialMisc",
+      "dust": [
+        {
+          "kind": "MaterialMisc",
+          "material": "RARE_EARTH_MID",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    },
+    {
+      "ore": "RARE_EARTH_HIGH",
+      "kind": "MaterialMisc",
+      "dust": [
+        {
+          "kind": "MaterialMisc",
+          "material": "RARE_EARTH_HIGH",
+          "prefix": "dust"
+        }
+      ],
+      "gem": []
+    }
+  ]
+}

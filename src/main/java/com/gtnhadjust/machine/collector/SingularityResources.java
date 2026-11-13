@@ -192,6 +192,7 @@ final class SingularityResources {
             GTNHAdjust.LOG.info("Registered {} black hole dimension marker compression recipes", compressedMarkers);
             registerSpaceMining(data);
             registerSpaceDrilling(tierFluids);
+            registerT10OreProducts(tierItems);
             if (unresolved && GTNHAdjust.debug) exportRegistry();
         } catch (Exception error) {
             throw new IllegalStateException("Cannot register GT-Not-Hard resource pools", error);
@@ -250,7 +251,24 @@ final class SingularityResources {
             Item found = GameRegistry.findItem(id[0], id[1]);
             return found == null ? null : new ItemStack(found, 1, entry.meta);
         }
-        OrePrefixes prefix = "dust".equals(entry.prefix) ? OrePrefixes.dust : OrePrefixes.ore;
+        OrePrefixes prefix;
+        switch (entry.prefix) {
+            case "dust":
+                prefix = OrePrefixes.dust;
+                break;
+            case "gem":
+                prefix = OrePrefixes.gem;
+                break;
+            case "gemFlawless":
+                prefix = OrePrefixes.gemFlawless;
+                break;
+            case "gemExquisite":
+                prefix = OrePrefixes.gemExquisite;
+                break;
+            default:
+                prefix = OrePrefixes.ore;
+                break;
+        }
         if ("gt".equals(entry.kind)) return GTOreDictUnificator.get(
             prefix,
             (Materials) Materials.class.getField(entry.material)
@@ -264,8 +282,9 @@ final class SingularityResources {
         }
         Class<?> owner = "MaterialsOres".equals(entry.kind) ? MaterialsOres.class
             : "MaterialsAlloy".equals(entry.kind) ? MaterialsAlloy.class : MaterialMisc.class;
-        return ((Material) owner.getField(entry.material)
-            .get(null)).getOre(1);
+        Material material = (Material) owner.getField(entry.material)
+            .get(null);
+        return prefix == OrePrefixes.dust ? material.getDust(1) : material.getOre(1);
     }
 
     private static final class SpaceMiningData {
@@ -280,6 +299,83 @@ final class SingularityResources {
         String material;
         String id;
         int meta;
+    }
+
+    /** Merge the T0–T9 item pools with the fixed TST products for the new T10 ores. */
+    private static void registerT10OreProducts(List<Map<String, List<ItemStack>>> tierItems) {
+        Item marker = GameRegistry.findItem("gtneioreplugin", "blockDimensionDisplay_DD");
+        if (marker == null) {
+            GTNHAdjust.LOG.warn("Singularity: missing T10 dimension marker DD for ore products");
+            return;
+        }
+        Map<String, Map<GTUtility.ItemId, ItemStack>> pools = new LinkedHashMap<>();
+        for (String mode : new String[] { "gem", "dust" }) {
+            Map<GTUtility.ItemId, ItemStack> outputs = new LinkedHashMap<>();
+            for (Map<String, List<ItemStack>> tier : tierItems) {
+                for (ItemStack stack : tier.getOrDefault(mode, Collections.emptyList())) {
+                    ItemStack copy = stack.copy();
+                    copy.stackSize = 1;
+                    outputs.putIfAbsent(GTUtility.ItemId.create(copy), copy);
+                }
+            }
+            pools.put(mode, outputs);
+        }
+        String path = "/assets/gtnhadjust/recipes/t10_ore_processing.json";
+        try (InputStream stream = SingularityResources.class.getResourceAsStream(path)) {
+            OreProcessingData data = new Gson()
+                .fromJson(new InputStreamReader(stream, StandardCharsets.UTF_8), OreProcessingData.class);
+            for (OreProcessingRecord record : data.ores) {
+                for (String mode : pools.keySet()) {
+                    SpaceMiningOutput[] entries = "gem".equals(mode) ? record.gem : record.dust;
+                    for (SpaceMiningOutput entry : entries) {
+                        ItemStack stack = spaceMiningItem(entry);
+                        if (stack == null) {
+                            GTNHAdjust.LOG.warn(
+                                "Singularity: missing T10 {} output {} for ore {}",
+                                mode,
+                                entry.material,
+                                record.ore);
+                            continue;
+                        }
+                        stack.stackSize = 1;
+                        pools.get(mode)
+                            .putIfAbsent(GTUtility.ItemId.create(stack), stack);
+                    }
+                }
+            }
+        } catch (Exception error) {
+            throw new IllegalStateException("Cannot load T10 ore processing snapshot", error);
+        }
+        for (Map.Entry<String, Map<GTUtility.ItemId, ItemStack>> mode : pools.entrySet()) {
+            if (mode.getValue()
+                .isEmpty()) {
+                GTNHAdjust.LOG.warn("Singularity: T10 {} pool has no available outputs", mode.getKey());
+                continue;
+            }
+            Pool pool = new Pool(
+                mode.getValue()
+                    .values()
+                    .toArray(new ItemStack[0]),
+                new FluidStack[0]);
+            if (registerPool(new ItemStack(marker, 0, 0), circuit(mode.getKey()), pool, 8 << 20, 128, true))
+                GTNHAdjust.LOG.info(
+                    "Registered T10 {} pool with {} distinct outputs",
+                    mode.getKey(),
+                    mode.getValue()
+                        .size());
+        }
+    }
+
+    private static final class OreProcessingData {
+
+        OreProcessingRecord[] ores;
+    }
+
+    private static final class OreProcessingRecord {
+
+        String ore;
+        SpaceMiningOutput[] dust;
+        SpaceMiningOutput[] gem;
     }
 
     /** Merge the fixed drilling snapshot with all registered T0–T9 fluid pools. */
