@@ -44,6 +44,7 @@ gtnhadjust.collector.mode.23=Ingot collection
 gtnhadjust.collector.mode.24=Fluid collection
 gtnhadjust.collector.parallel_limit=Parallel (0 = automatic)
 gtnhadjust.collector.wireless_oc=Wireless overclock limit
+gtnhadjust.collector.wireless_mode=Wireless power mode
 
 item.gtnhadjust.tier_dimension.0.name=T0 Dimension
 item.gtnhadjust.tier_dimension.1.name=T1 Dimension

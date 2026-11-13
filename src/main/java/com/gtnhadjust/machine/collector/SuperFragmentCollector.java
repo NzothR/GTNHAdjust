@@ -63,6 +63,7 @@ import gregtech.api.util.GTRecipe;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.OverclockCalculator;
+import gregtech.api.util.ParallelHelper;
 import gregtech.api.util.shutdown.ShutDownReason;
 import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.common.misc.WirelessNetworkManager;
@@ -83,6 +84,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     private int glass = -1;
     private final String[] displayedThreads = new String[256];
     private boolean clientBlackHole;
+    private boolean clientWirelessMode;
     private boolean lastBlackHoleSent;
     @SideOnly(Side.CLIENT)
     private CollectorBlackHoleRenderer blackHoleRenderer;
@@ -158,6 +160,10 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             wirelessOwner = owner;
         }
         if (owner == null || !WirelessNetworkManager.addEUToGlobalEnergyMap(owner, -getActualEnergyUsage())) {
+            if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
+                "Collector wireless power request failed: owner={}, requested={} EU/t",
+                owner,
+                getActualEnergyUsage());
             stopMachine(ShutDownReasonRegistry.POWER_LOSS);
             return false;
         }
@@ -183,13 +189,21 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
 
         private int maxOverclocks = Integer.MAX_VALUE;
         private boolean wireless;
+        private long wirelessBudget;
 
         void setMaxOverclocks(int maxOverclocks) {
             this.maxOverclocks = Math.max(0, maxOverclocks);
         }
 
-        void setWireless(boolean wireless) {
+        void setWireless(boolean wireless, long budget) {
             this.wireless = wireless;
+            this.wirelessBudget = budget;
+        }
+
+        @Override
+        protected ParallelHelper createParallelHelper(GTRecipe recipe) {
+            ParallelHelper helper = super.createParallelHelper(recipe);
+            return wireless ? helper.setAvailableEUt(wirelessBudget) : helper;
         }
 
         @Override
@@ -362,14 +376,14 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         if (!(processingLogic instanceof CollectorProcessingLogic)) return false;
         CollectorProcessingLogic logic = (CollectorProcessingLogic) processingLogic;
         setupProcessingLogic(logic);
-        logic.setWireless(wireless);
+        logic.setWireless(wireless, remaining);
         long voltage = getMaxInputVoltage();
         if (voltage <= 0) return false;
         logic.setEuModifier(
             CollectorThreadPolicy.glassEnergyPercent(glass) / 100.0 * (wireless ? Math.pow(2, selectedOverclocks) : 1))
             .setSpeedBonus(CollectorThreadPolicy.glassEnergyPercent(glass) / 100.0)
             .setRecipeLocking(this, false)
-            .setAvailableVoltage(wireless ? remaining : voltage)
+            .setAvailableVoltage(voltage)
             .setAvailableAmperage(wireless ? 1 : Math.max(1, selectedParallel))
             .setAmperageOC(false)
             .setMaxParallel(selectedParallel)
@@ -542,6 +556,12 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
 
     @Override
     protected void drawTexts(DynamicPositionedColumn screenElements, SlotWidget inventorySlot) {
+        screenElements.widget(
+            TextWidget.dynamicString(() -> StatCollector.translateToLocal("gtnhadjust.collector.wireless_mode"))
+                .setSynced(false)
+                .setEnabled(widget -> clientWirelessMode));
+        screenElements
+            .widget(new FakeSyncWidget.BooleanSyncer(this::wirelessMode, value -> clientWirelessMode = value));
         super.drawTexts(screenElements, inventorySlot);
         for (int i = 0; i < displayedThreads.length; i++) {
             final int row = i;
