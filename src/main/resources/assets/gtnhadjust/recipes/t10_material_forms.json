@@ -89,8 +89,8 @@
     {
       "material": "Endium",
       "ingot": {
-        "id": "HardcoreEnderExpansion:endium_ingot",
-        "meta": 0
+        "id": "gregtech:gt.metaitem.01",
+        "meta": 11770
       },
       "fluid": "molten.heeendium"
     },

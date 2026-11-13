@@ -150,9 +150,11 @@
       "kind": "gt",
       "dust": [
         {
-          "kind": "gt",
+          "kind": "item",
           "material": "Endium",
-          "prefix": "dust"
+          "prefix": "dust",
+          "id": "gregtech:gt.metaitem.01",
+          "meta": 2770
         }
       ],
       "gem": []
@@ -530,8 +532,8 @@
           "kind": "item",
           "material": "KOBOLDITE",
           "prefix": "dust",
-          "id": "witchery:ingredient",
-          "meta": 148
+          "id": "miscutils:itemDustKoboldite",
+          "meta": 0
         }
       ],
       "gem": []

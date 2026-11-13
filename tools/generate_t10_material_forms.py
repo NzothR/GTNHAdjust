@@ -26,11 +26,12 @@ for (kind, material), _ in entries.items():
     else:
         key = other_names[material]
     ingots = registry["solidMaterials"].get("ingot" + key, [])
-    # The 2.9.0 wiremill recipe shown in NEI uses the GT Manyullyn ingot.
-    if material == "Manyullyn":
-        selected = "gregtech:gt.metaitem.01:11386"
+    # Retain the requested GT forms, independent of ore-dictionary order.
+    selected = {"Manyullyn": "gregtech:gt.metaitem.01:11386",
+                "Endium": "gregtech:gt.metaitem.01:11770"}.get(material)
+    if selected:
         if selected not in ingots:
-            raise ValueError("The verified GT Manyullyn ingot is not registered")
+            raise ValueError(f"The requested ingot is not registered: {selected}")
         ingots = [selected]
     item = None
     if ingots:
