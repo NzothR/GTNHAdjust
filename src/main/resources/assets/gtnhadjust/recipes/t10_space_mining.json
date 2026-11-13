@@ -1,0 +1,1219 @@
+{
+  "sourceCommit": "f93edbe8c425e2db93c089e7bc7a689b014b7755",
+  "outputs": [
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Naquadah"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Chromite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Plutonium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "NaquadahEnriched"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Trinium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Indium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Draconium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "DraconiumAwakened"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "ElectrumFlux"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Scheelite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Tungstate"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Lithium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Tellurium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Tungsten"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Pitchblende"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Bismuth"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Antimony"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Gallium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Garnierite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Nickel"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Cobaltite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Pentlandite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Platinum"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Palladium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Rutile"
+    },
+    {
+      "kind": "item",
+      "id": "minecraft:clay",
+      "meta": 0
+    },
+    {
+      "kind": "MaterialsOres",
+      "material": "CROCROITE"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "Bornite"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "PTMetallicPowder"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Graphite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Diamond"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Coal"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Titanium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Ardite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Manyullyn"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Opal"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Oilsands"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Gold"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "InfusedGold"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Bauxite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Ilmenite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Aluminium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "BlueTopaz"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Osmium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Iridium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Magnetite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "VanadiumMagnetite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "CassiteriteSand"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "GarnetSand"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Asbestos"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Diatomite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Shadow"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "NetherStar"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Quantium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Apatite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "TricalciumPhosphate"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Pyrochlore"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Sulfur"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Pyrite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Sphalerite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Lignite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Cadmium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Zinc"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Redstone"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Ruby"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Cinnabar"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "NetherQuartz"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Quartzite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Lanthanum"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Niobium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Ytterbium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Yttrium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "RockSalt"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Salt"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Lepidolite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Spodumene"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "Djurleit"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Silicon"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "SiliconSG"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Saltpeter"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Topaz"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "BasalticMineralSand"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "GraniticMineralSand"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "FullersEarth"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Gypsum"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Phosphate"
+    },
+    {
+      "kind": "gt",
+      "prefix": "dust",
+      "material": "Void"
+    },
+    {
+      "kind": "gt",
+      "prefix": "dust",
+      "material": "Thaumium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Barite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "GarnetRed"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "GarnetYellow"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Amethyst"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "GreenSapphire"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "Roquesit"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Naquadria"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "MysteriousCrystal"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Oriharukon"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Desh"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "CertusQuartz"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "BrownLimonite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Cassiterite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "BandedIron"
+    },
+    {
+      "kind": "goodgenerator",
+      "prefix": "ore",
+      "material": "orundum"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Uranium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Uranium235"
+    },
+    {
+      "kind": "MaterialsOres",
+      "material": "ZIRCON"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "YellowLimonite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Kyanite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Mica"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Almandine"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Plutonium241"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "Tiberium"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "Thorianit"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Galena"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Silver"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Lead"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Molybdenite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Molybdenum"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Magnesium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Manganese"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "Fluorspar"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Vanadium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Lazurite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Sodalite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Lapis"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Calcite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Wulfenite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Europium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Samarium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Strontium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Grossular"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Pyrolusite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Tantalite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Endium"
+    },
+    {
+      "kind": "item",
+      "id": "HardcoreEnderExpansion:end_powder_ore",
+      "meta": 0
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Cheese"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Beryllium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Emerald"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Chalcopyrite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Iron"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Copper"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Arsenic"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Barium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Electrotine"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Alunite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Rubidium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Ledox"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "CallistoIce"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Borax"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Zeolite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Realgar"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Mytryl"
+    },
+    {
+      "kind": "item",
+      "id": "appliedenergistics2:tile.BlockSkyStone",
+      "meta": 0
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Americium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Dilithium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "MeteoricIron"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Spessartine"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Thulium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Tantalum"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Lutetium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Soapstone"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Talc"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Glauconite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Neodymium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Monazite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Adamantium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Vinteum"
+    },
+    {
+      "kind": "MaterialsAlloy",
+      "material": "KOBOLDITE"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Bastnasite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Malachite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Holmium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Ichorium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "ShadowIron"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Pyrope"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Sapphire"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Stibnite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Uraninite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "InfusedAir"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "InfusedEarth"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "InfusedFire"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Tetrahedrite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Bentonite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Olivine"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "GlauconiteSand"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "InfusedWater"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "InfusedEntropy"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "InfusedOrder"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Tin"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Cerium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Promethium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Praseodymium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Scandium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Dysprosium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Jasper"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Tanzanite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Vulcanite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Jade"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Mithril"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Tritanium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "DarkIron"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Firestone"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Spinel"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Duralumin"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Forcicium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Forcillium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Orichalcum"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Vyroxeres"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Perlite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Chrysotile"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Trona"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Mirabilite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "DeepIron"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Electrum"
+    },
+    {
+      "kind": "MaterialsOres",
+      "material": "LAUTARITE"
+    },
+    {
+      "kind": "MaterialsOres",
+      "material": "LEPERSONNITE"
+    },
+    {
+      "kind": "MaterialsOres",
+      "material": "GADOLINITE_Y"
+    },
+    {
+      "kind": "MaterialsOres",
+      "material": "HONEAITE"
+    },
+    {
+      "kind": "MaterialsOres",
+      "material": "ALBURNITE"
+    },
+    {
+      "kind": "MaterialMisc",
+      "material": "RARE_EARTH_LOW"
+    },
+    {
+      "kind": "MaterialMisc",
+      "material": "RARE_EARTH_MID"
+    },
+    {
+      "kind": "MaterialMisc",
+      "material": "RARE_EARTH_HIGH"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "Bismutite"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "FluorBuergerit"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "DescloiziteCUVO4"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "DescloiziteZNVO4"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "Fayalit"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "Forsterit"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "FuchsitCR"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "FuchsitAL"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "Wittichenit"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "ChromoAluminoPovondrait"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "VanadioOxyDravit"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "Olenit"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "RedZircon"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "Hedenbergit"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "Prasiolite"
+    },
+    {
+      "kind": "werkstoff",
+      "prefix": "ore",
+      "material": "BArTiMaEuSNeK"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Tartarite"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Neutronium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "CosmicNeutronium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "BlackPlutonium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Bedrockium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "InfinityCatalyst"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "Flerovium"
+    },
+    {
+      "kind": "gt",
+      "prefix": "ore",
+      "material": "TengamRaw"
+    }
+  ]
+}

@@ -30,18 +30,22 @@ import net.minecraftforge.oredict.OreDictionary;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.gtnhadjust.GTNHAdjust;
-import com.science.gtnl.common.material.GTNLRecipeMaps;
 
 import bartworks.system.material.Werkstoff;
 import bartworks.system.material.WerkstoffLoader;
-import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.registry.GameRegistry;
+import goodgenerator.items.GGMaterial;
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.recipe.RecipeMaps;
+import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe;
 import gregtech.api.util.GTRecipeBuilder;
 import gregtech.api.util.GTUtility;
+import gtPlusPlus.core.material.Material;
+import gtPlusPlus.core.material.MaterialMisc;
+import gtPlusPlus.core.material.MaterialsAlloy;
+import gtPlusPlus.core.material.MaterialsOres;
 
 /** Fixed, deduplicated resource lists derived from GT-Not-Hard. */
 final class SingularityResources {
@@ -183,31 +187,48 @@ final class SingularityResources {
             }
             GTNHAdjust.LOG.info("Registered {} GT-Not-Hard dimension resource pools", registered);
             GTNHAdjust.LOG.info("Registered {} black hole dimension marker compression recipes", compressedMarkers);
-            if (Loader.isModLoaded("sciencenotleisure")) registerSpaceMining();
+            registerSpaceMining(data);
             if (unresolved && GTNHAdjust.debug) exportRegistry();
         } catch (Exception error) {
             throw new IllegalStateException("Cannot register GT-Not-Hard resource pools", error);
         }
     }
 
-    /** Collect all distinct space-mining outputs after the other mods have registered recipes. */
-    private static void registerSpaceMining() {
+    /** Resolve the fixed GTNL space-mining snapshot into one T10 collector recipe. */
+    private static void registerSpaceMining(Data dimensions) {
         Item marker = GameRegistry.findItem("gtneioreplugin", "blockDimensionDisplay_DD");
         if (marker == null) {
             GTNHAdjust.LOG.warn("Singularity: missing T10 dimension marker DD");
             return;
         }
         Map<GTUtility.ItemId, ItemStack> outputs = new LinkedHashMap<>();
-        for (GTRecipe recipe : GTNLRecipeMaps.SpaceMinerRecipes.getAllRecipes()) {
-            for (ItemStack output : recipe.mOutputs) {
-                if (output == null) continue;
-                ItemStack copy = output.copy();
-                copy.stackSize = 1;
-                outputs.putIfAbsent(GTUtility.ItemId.create(copy), copy);
+        for (Map<String, Resource[]> modes : dimensions.dimensions.values()) {
+            for (Resource resource : modes.getOrDefault("ore", new Resource[0])) {
+                ItemStack stack = item(resource);
+                if (stack != null) outputs.putIfAbsent(GTUtility.ItemId.create(stack), stack);
             }
         }
+        String path = "/assets/gtnhadjust/recipes/t10_space_mining.json";
+        try (InputStream stream = SingularityResources.class.getResourceAsStream(path)) {
+            SpaceMiningData data = new Gson()
+                .fromJson(new InputStreamReader(stream, StandardCharsets.UTF_8), SpaceMiningData.class);
+            for (SpaceMiningOutput entry : data.outputs) {
+                ItemStack stack = spaceMiningItem(entry);
+                if (stack == null) {
+                    GTNHAdjust.LOG.warn(
+                        "Singularity: missing T10 space mining output {} {}",
+                        entry.kind,
+                        entry.material == null ? entry.id : entry.material);
+                    continue;
+                }
+                stack.stackSize = 1;
+                outputs.putIfAbsent(GTUtility.ItemId.create(stack), stack);
+            }
+        } catch (Exception error) {
+            throw new IllegalStateException("Cannot load T10 space mining snapshot", error);
+        }
         if (outputs.isEmpty()) {
-            GTNHAdjust.LOG.warn("Singularity: GTNL space mining has no item outputs");
+            GTNHAdjust.LOG.warn("Singularity: T10 space mining snapshot has no available outputs");
             return;
         }
         Pool pool = new Pool(
@@ -216,6 +237,45 @@ final class SingularityResources {
             new FluidStack[0]);
         if (registerPool(new ItemStack(marker, 0, 0), 20, pool, 8 << 20, 128, true))
             GTNHAdjust.LOG.info("Registered T10 space mining pool with {} distinct outputs", outputs.size());
+    }
+
+    /** Resolve a snapshot entry using the same material or item lookup as the source recipe. */
+    private static ItemStack spaceMiningItem(SpaceMiningOutput entry) throws ReflectiveOperationException {
+        if ("item".equals(entry.kind)) {
+            String[] id = entry.id.split(":", 2);
+            Item found = GameRegistry.findItem(id[0], id[1]);
+            return found == null ? null : new ItemStack(found, 1, entry.meta);
+        }
+        OrePrefixes prefix = "dust".equals(entry.prefix) ? OrePrefixes.dust : OrePrefixes.ore;
+        if ("gt".equals(entry.kind)) return GTOreDictUnificator.get(
+            prefix,
+            (Materials) Materials.class.getField(entry.material)
+                .get(null),
+            1);
+        if ("werkstoff".equals(entry.kind) || "goodgenerator".equals(entry.kind)) {
+            Class<?> owner = "werkstoff".equals(entry.kind) ? WerkstoffLoader.class : GGMaterial.class;
+            Werkstoff material = (Werkstoff) owner.getField(entry.material)
+                .get(null);
+            return material.get(prefix, 1);
+        }
+        Class<?> owner = "MaterialsOres".equals(entry.kind) ? MaterialsOres.class
+            : "MaterialsAlloy".equals(entry.kind) ? MaterialsAlloy.class : MaterialMisc.class;
+        return ((Material) owner.getField(entry.material)
+            .get(null)).getOre(1);
+    }
+
+    private static final class SpaceMiningData {
+
+        SpaceMiningOutput[] outputs;
+    }
+
+    private static final class SpaceMiningOutput {
+
+        String kind;
+        String prefix;
+        String material;
+        String id;
+        int meta;
     }
 
     /** Resolve material identity through the ore dictionary and registered material fluids. */
