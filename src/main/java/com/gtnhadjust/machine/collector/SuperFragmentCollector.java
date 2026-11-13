@@ -15,7 +15,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
@@ -27,10 +29,12 @@ import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructa
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.gtnewhorizons.modularui.api.screen.ModularWindow;
 import com.gtnewhorizons.modularui.common.widget.DynamicPositionedColumn;
 import com.gtnewhorizons.modularui.common.widget.FakeSyncWidget;
 import com.gtnewhorizons.modularui.common.widget.SlotWidget;
 import com.gtnewhorizons.modularui.common.widget.TextWidget;
+import com.gtnewhorizons.modularui.common.widget.textfield.NumericWidget;
 import com.gtnhadjust.GTNHAdjust;
 import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadOutputs;
 import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadTask;
@@ -41,7 +45,9 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
+import gregtech.api.enums.GTValues;
 import gregtech.api.enums.Textures;
+import gregtech.api.gui.modularui.GTUITextures;
 import gregtech.api.interfaces.IIconContainer;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
@@ -59,6 +65,7 @@ import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.OverclockCalculator;
 import gregtech.api.util.shutdown.ShutDownReason;
 import gregtech.api.util.shutdown.ShutDownReasonRegistry;
+import gregtech.common.misc.WirelessNetworkManager;
 import gregtech.common.render.IMTERenderer;
 import io.netty.buffer.ByteBuf;
 
@@ -69,6 +76,9 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     private static final short[] GOLD = { 255, 205, 75, 255 };
     private static final String THREADS_NBT = "gtnhadjustCollectorThreads";
     private final CollectorThreadLedger threads = new CollectorThreadLedger();
+    private int wirelessOverclockLimit;
+    private int parallelLimit;
+    private UUID wirelessOwner;
     private IStructureDefinition<SuperFragmentCollector> structure;
     private int glass = -1;
     private final String[] displayedThreads = new String[256];
@@ -107,6 +117,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
 
     @Override
     public long getMaxInputVoltage() {
+        if (wirelessMode()) return GTValues.V[14];
         long sum = 0;
         long highest = 0;
         for (gregtech.api.metatileentity.implementations.MTEHatch hatch : getExoticAndNormalEnergyHatchList()) {
@@ -120,11 +131,37 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     }
 
     public int maxParallel() {
-        return CollectorThreadPolicy.parallel(
+        int limit = CollectorThreadPolicy.parallel(
             GTUtility.getTier(getMaxInputVoltage()),
             glass,
             GTNHAdjust.collectorBaseParallel,
             GTNHAdjust.collectorVoltageParallelMultiplier);
+        return parallelLimit == 0 ? limit : Math.min(limit, parallelLimit);
+    }
+
+    /** The wireless grid supplies the controller only when no energy hatch is installed. */
+    private boolean wirelessMode() {
+        return GTNHAdjust.collectorWirelessPower && mEnergyHatches.isEmpty() && mExoticEnergyHatches.isEmpty();
+    }
+
+    /** Wireless scheduling uses the representable per-tick power limit without reading grid balance. */
+    private long availablePower() {
+        return wirelessMode() ? Long.MAX_VALUE - 1 : getMaxInputEu();
+    }
+
+    @Override
+    public boolean onRunningTick(ItemStack stack) {
+        if (!wirelessMode()) return super.onRunningTick(stack);
+        UUID owner = getBaseMetaTileEntity().getOwnerUuid();
+        if (owner != null && !owner.equals(wirelessOwner)) {
+            WirelessNetworkManager.strongCheckOrAddUser(owner);
+            wirelessOwner = owner;
+        }
+        if (owner == null || !WirelessNetworkManager.addEUToGlobalEnergyMap(owner, -getActualEnergyUsage())) {
+            stopMachine(ShutDownReasonRegistry.POWER_LOSS);
+            return false;
+        }
+        return true;
     }
 
     public int maxThreads() {
@@ -137,7 +174,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
 
     @Override
     protected ProcessingLogic createProcessingLogic() {
-        return new CollectorProcessingLogic().enablePerfectOverclock()
+        return new CollectorProcessingLogic().setOverclock(2.0, 2.0)
             .setAmperageOC(false)
             .noRecipeCaching();
     }
@@ -145,14 +182,23 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     private static final class CollectorProcessingLogic extends ProcessingLogic {
 
         private int maxOverclocks = Integer.MAX_VALUE;
+        private boolean wireless;
 
         void setMaxOverclocks(int maxOverclocks) {
             this.maxOverclocks = Math.max(0, maxOverclocks);
         }
 
+        void setWireless(boolean wireless) {
+            this.wireless = wireless;
+        }
+
         @Override
         protected OverclockCalculator createOverclockCalculator(GTRecipe recipe) {
-            return super.createOverclockCalculator(recipe).setMaxOverclocks(maxOverclocks);
+            if (!wireless) return super.createOverclockCalculator(recipe).setMaxOverclocks(maxOverclocks);
+            int duration = Math.max(1, (int) (recipe.mDuration * speedBoost / Math.pow(2, maxOverclocks)));
+            return super.createOverclockCalculator(recipe).setDuration(duration)
+                .setDurationModifier(1.0)
+                .setNoOverclock(true);
         }
     }
 
@@ -201,7 +247,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             .stream()
             .anyMatch(this::isRunnableThread);
         if (running) {
-            if (power > Math.max(0, getMaxInputEu())) {
+            if (!wirelessMode() && power > Math.max(0, getMaxInputEu())) {
                 stopMachine(ShutDownReasonRegistry.POWER_LOSS);
                 return;
             }
@@ -270,7 +316,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
                 recipeEUts[i] = recipe.mEUt;
                 durations[i] = recipe.mDuration;
             }
-            long available = CollectorThreadPolicy.remainingPower(getMaxInputEu(), runningPower());
+            long available = CollectorThreadPolicy.remainingPower(availablePower(), runningPower());
             CollectorThreadPolicy.BalancedAllocation allocation = CollectorThreadPolicy.allocateBalanced(
                 available,
                 getMaxInputVoltage(),
@@ -278,10 +324,12 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
                 durations,
                 maxThreads() - threads.size(),
                 maxParallel(),
-                percent);
+                percent,
+                wirelessMode(),
+                wirelessOverclockLimit);
             for (int i = 0; i < pending.size(); i++) {
                 if (allocation.budgets[i] > 0)
-                    startThread(pending.get(i), allocation.budgets[i], allocation.parallel, allocation.overclocks);
+                    startThread(pending.get(i), allocation.budgets[i], allocation.parallel, allocation.overclocks[i]);
             }
         } finally {
             endRecipeProcessing();
@@ -304,7 +352,8 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     }
 
     private boolean startThread(PendingRecipe pending, long budget, int selectedParallel, int selectedOverclocks) {
-        long remaining = Math.min(budget, CollectorThreadPolicy.remainingPower(getMaxInputEu(), runningPower()));
+        boolean wireless = wirelessMode();
+        long remaining = Math.min(budget, CollectorThreadPolicy.remainingPower(availablePower(), runningPower()));
         if (remaining == 0) return false;
         GTRecipe candidate = pending.recipe;
         ItemStack marker = pending.marker;
@@ -313,13 +362,15 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         if (!(processingLogic instanceof CollectorProcessingLogic)) return false;
         CollectorProcessingLogic logic = (CollectorProcessingLogic) processingLogic;
         setupProcessingLogic(logic);
+        logic.setWireless(wireless);
         long voltage = getMaxInputVoltage();
         if (voltage <= 0) return false;
-        logic.setEuModifier(CollectorThreadPolicy.glassEnergyPercent(glass) / 100.0)
+        logic.setEuModifier(
+            CollectorThreadPolicy.glassEnergyPercent(glass) / 100.0 * (wireless ? Math.pow(2, selectedOverclocks) : 1))
             .setSpeedBonus(CollectorThreadPolicy.glassEnergyPercent(glass) / 100.0)
             .setRecipeLocking(this, false)
-            .setAvailableVoltage(voltage)
-            .setAvailableAmperage(Math.max(1, selectedParallel))
+            .setAvailableVoltage(wireless ? remaining : voltage)
+            .setAvailableAmperage(wireless ? 1 : Math.max(1, selectedParallel))
             .setAmperageOC(false)
             .setMaxParallel(selectedParallel)
             .setInputItems(marker.copy(), circuit.copy())
@@ -427,11 +478,15 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     public void saveNBTData(NBTTagCompound tag) {
         super.saveNBTData(tag);
         tag.setTag(THREADS_NBT, threads.save());
+        tag.setInteger("collectorWirelessOverclockLimit", wirelessOverclockLimit);
+        tag.setInteger("collectorParallelLimit", parallelLimit);
     }
 
     @Override
     public void loadNBTData(NBTTagCompound tag) {
         super.loadNBTData(tag);
+        wirelessOverclockLimit = Math.max(0, tag.getInteger("collectorWirelessOverclockLimit"));
+        parallelLimit = Math.max(0, tag.getInteger("collectorParallelLimit"));
         if (tag.hasKey(THREADS_NBT, 9)) threads.load(tag.getTagList(THREADS_NBT, 10));
         else threads.clear();
         updateThreadDisplay();
@@ -445,6 +500,44 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     @Override
     public boolean showRecipeTextInGUI() {
         return false;
+    }
+
+    @Override
+    public ModularWindow createPowerPanel(EntityPlayer player) {
+        return ModularWindow.builder(160, 110)
+            .setBackground(GTUITextures.BACKGROUND_SINGLEBLOCK_DEFAULT)
+            .setDraggable(true)
+            .widget(
+                TextWidget.localised("gtnhadjust.collector.parallel_limit")
+                    .setPos(8, 6)
+                    .setSize(144, 16))
+            .widget(
+                new NumericWidget().setGetter(() -> parallelLimit == 0 ? maxParallel() : parallelLimit)
+                    .setSetter(value -> {
+                        parallelLimit = (int) value;
+                        markDirty();
+                    })
+                    .setBounds(0, Integer.MAX_VALUE)
+                    .setScrollValues(1, 4, 64)
+                    .setBackground(GTUITextures.BACKGROUND_TEXT_FIELD)
+                    .setPos(8, 24)
+                    .setSize(144, 18))
+            .widget(
+                TextWidget.localised("gtnhadjust.collector.wireless_oc")
+                    .setPos(8, 52)
+                    .setSize(144, 16))
+            .widget(
+                new NumericWidget().setGetter(() -> wirelessOverclockLimit)
+                    .setSetter(value -> {
+                        wirelessOverclockLimit = (int) value;
+                        markDirty();
+                    })
+                    .setBounds(0, Integer.MAX_VALUE)
+                    .setScrollValues(1, 4, 16)
+                    .setBackground(GTUITextures.BACKGROUND_TEXT_FIELD)
+                    .setPos(8, 70)
+                    .setSize(144, 18))
+            .build();
     }
 
     @Override
@@ -624,7 +717,8 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         checkHatchMin(errors, InputBus, 1);
         checkHatchMin(errors, OutputBus, 1);
         checkHatchMin(errors, OutputHatch, 1);
-        if (mEnergyHatches.isEmpty() && mExoticEnergyHatches.isEmpty()) checkHatchMin(errors, Energy, 1);
+        if (!GTNHAdjust.collectorWirelessPower && mEnergyHatches.isEmpty() && mExoticEnergyHatches.isEmpty())
+            checkHatchMin(errors, Energy, 1);
         if (shouldCheckMaintenance()) checkHatchMin(errors, Maintenance, 1);
     }
 
@@ -673,7 +767,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             .addOutputBus("1+", "洁净不锈钢机械方块", 1)
             .addInputHatch("0+", "洁净不锈钢机械方块", 1)
             .addOutputHatch("1+", "洁净不锈钢机械方块", 1)
-            .addEnergyHatch("1+", "洁净不锈钢机械方块", 1)
+            .addEnergyHatch("0+", "洁净不锈钢机械方块；无能源仓时使用无线电网", 1)
             .addMaintenanceHatch("1+", "洁净不锈钢机械方块", 1)
             .addAir("黑洞核心空间")
             .toolTipFinisher();

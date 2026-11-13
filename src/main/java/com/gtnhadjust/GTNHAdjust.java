@@ -36,6 +36,7 @@ public class GTNHAdjust {
     public static boolean debug;
     public static boolean singularityResourceRecipes;
     public static boolean collectorBlackHole;
+    public static boolean collectorWirelessPower;
     public static int collectorRecipeTicks = 128;
     public static int collectorBaseParallel = 64;
     public static int collectorBaseThreads = 8;
@@ -121,6 +122,11 @@ public class GTNHAdjust {
             "collector",
             true,
             "Render the GregTech black hole in the formed super fragment collector. Server setting; restart required.");
+        collectorWirelessPower = config.getBoolean(
+            "wirelessPower",
+            "collector",
+            true,
+            "Allow the collector to use its owner's wireless EU network when no energy hatch is installed. Restart required.");
         superFragmentMteId = config.getInt(
             "superFragmentMteId",
             "collector",

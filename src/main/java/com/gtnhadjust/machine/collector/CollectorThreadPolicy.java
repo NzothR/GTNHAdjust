@@ -37,8 +37,9 @@ final class CollectorThreadPolicy {
     }
 
     static long requiredEnergy(long recipeEUt, int parallel, int percent, int overclocks) {
-        double energy = recipeEUt * (double) parallel * (percent / 100.0);
-        for (int i = 0; i < overclocks && energy < Long.MAX_VALUE; i++) energy *= 4.0;
+        double energy = recipeEUt * (percent / 100.0);
+        for (int i = 0; i < overclocks && energy < Long.MAX_VALUE; i++) energy *= 2.0;
+        energy = Math.ceil(energy) * parallel;
         if (energy >= Long.MAX_VALUE) return Long.MAX_VALUE;
         return Math.max(1, (long) Math.ceil(energy));
     }
@@ -55,16 +56,30 @@ final class CollectorThreadPolicy {
             .setDurationModifier(percent / 100.0)
             .setEUtDiscount(percent / 100.0)
             .setAmperageOC(false)
-            .setEUtIncreasePerOC(4.0)
-            .setDurationDecreasePerOC(4.0)
+            .setEUtIncreasePerOC(2.0)
+            .setDurationDecreasePerOC(2.0)
+            .setMaxOverclocks(usefulOverclocks(duration, percent))
             .calculate()
             .getPerformedOverclocks();
     }
 
+    /** Limit doubling to the first step that reaches one tick after the glass bonus. */
+    static int usefulOverclocks(int duration, int percent) {
+        double ticks = duration * (percent / 100.0);
+        int count = 0;
+        while (ticks >= 2.0 && count < 31) {
+            ticks /= 2.0;
+            count++;
+        }
+        return count;
+    }
+
     static BalancedAllocation allocateBalanced(long capacity, long voltage, long[] recipeEUts, int[] durations,
-        int slots, int maxParallel, int percent) {
+        int slots, int maxParallel, int percent, boolean wireless, int wirelessOverclockLimit) {
         long[] budgets = new long[recipeEUts.length];
-        if (capacity <= 0 || slots <= 0 || maxParallel <= 0) return new BalancedAllocation(budgets, 0, 0);
+        int[] threadOverclocks = new int[recipeEUts.length];
+        if (capacity <= 0 || slots <= 0 || maxParallel <= 0)
+            return new BalancedAllocation(budgets, 0, threadOverclocks);
 
         List<Integer> candidates = new ArrayList<>();
         for (int i = 0; i < recipeEUts.length; i++) if (recipeEUts[i] > 0) candidates.add(i);
@@ -78,7 +93,7 @@ final class CollectorThreadPolicy {
             admitted.add(index);
             reserved = addPower(reserved, minimum);
         }
-        if (admitted.isEmpty()) return new BalancedAllocation(budgets, 0, 0);
+        if (admitted.isEmpty()) return new BalancedAllocation(budgets, 0, threadOverclocks);
 
         int low = 1;
         int high = maxParallel;
@@ -89,6 +104,30 @@ final class CollectorThreadPolicy {
         }
         int parallel = low;
 
+        if (wireless) {
+            long used = 0;
+            for (int index : admitted) {
+                budgets[index] = requiredEnergy(recipeEUts[index], parallel, percent, 0);
+                used += budgets[index];
+            }
+            boolean advanced;
+            do {
+                advanced = false;
+                for (int index : admitted) {
+                    int next = threadOverclocks[index] + 1;
+                    if (next > wirelessOverclockLimit || next > usefulOverclocks(durations[index], percent)) continue;
+                    long nextBudget = requiredEnergy(recipeEUts[index], parallel, percent, next);
+                    long extra = nextBudget - budgets[index];
+                    if (nextBudget == Long.MAX_VALUE || extra > capacity - used) continue;
+                    used += extra;
+                    budgets[index] = nextBudget;
+                    threadOverclocks[index] = next;
+                    advanced = true;
+                }
+            } while (advanced);
+            return new BalancedAllocation(budgets, parallel, threadOverclocks);
+        }
+
         int commonOverclocks = Integer.MAX_VALUE;
         for (int index : admitted) commonOverclocks = Math
             .min(commonOverclocks, maximumOverclocks(voltage, recipeEUts[index], percent, durations[index], parallel));
@@ -98,8 +137,11 @@ final class CollectorThreadPolicy {
             overclocks = candidate;
         }
 
-        for (int index : admitted) budgets[index] = requiredEnergy(recipeEUts[index], parallel, percent, overclocks);
-        return new BalancedAllocation(budgets, parallel, overclocks);
+        for (int index : admitted) {
+            budgets[index] = requiredEnergy(recipeEUts[index], parallel, percent, overclocks);
+            threadOverclocks[index] = overclocks;
+        }
+        return new BalancedAllocation(budgets, parallel, threadOverclocks);
     }
 
     private static long requiredPower(List<Integer> indexes, long[] recipeEUts, int parallel, int overclocks,
@@ -114,9 +156,9 @@ final class CollectorThreadPolicy {
 
         final long[] budgets;
         final int parallel;
-        final int overclocks;
+        final int[] overclocks;
 
-        BalancedAllocation(long[] budgets, int parallel, int overclocks) {
+        BalancedAllocation(long[] budgets, int parallel, int[] overclocks) {
             this.budgets = budgets;
             this.parallel = parallel;
             this.overclocks = overclocks;
