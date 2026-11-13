@@ -11,6 +11,7 @@ import static gregtech.api.enums.HatchElement.OutputHatch;
 import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
 import static gregtech.api.util.GTStructureUtility.chainAllGlasses;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.UUID;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -300,12 +302,16 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         try {
             List<ItemStack> markers = new ArrayList<>();
             List<ItemStack> circuits = new ArrayList<>();
+            Map<String, Integer> markerCounts = new java.util.HashMap<>();
             ItemStack controllerSlot = getStackInSlot(1);
             for (ItemStack item : getStoredInputs()) {
                 if (item == null || item.stackSize <= 0 || item == controllerSlot) continue;
                 GameRegistry.UniqueIdentifier id = GameRegistry.findUniqueIdentifierFor(item.getItem());
-                if (id != null && CollectorMarkerPolicy.isMarker(id.modId, id.name)) markers.add(item);
-                else if (GTUtility.isAnyIntegratedCircuit(item)) circuits.add(item);
+                if (id != null && CollectorMarkerPolicy.isMarker(id.modId, id.name)) {
+                    markers.add(item);
+                    String markerKey = id + ":" + item.getItemDamage();
+                    markerCounts.merge(markerKey, Math.min(64, item.stackSize), (a, b) -> Math.min(64, a + b));
+                } else if (GTUtility.isAnyIntegratedCircuit(item)) circuits.add(item);
             }
             List<PendingRecipe> pending = new ArrayList<>();
             java.util.Set<String> seen = new java.util.HashSet<>(threads.keys());
@@ -320,7 +326,13 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
                 if (recipe.mEUt > OverclockCalculator.getMaxAllowedRecipeEUt(getMaxInputVoltage(), 1)) continue;
                 boolean consumes = false;
                 for (ItemStack input : recipe.mInputs) if (input != null && input.stackSize != 0) consumes = true;
-                if (!consumes) pending.add(new PendingRecipe(marker, circuit, key, recipe));
+                if (!consumes) {
+                    GameRegistry.UniqueIdentifier markerId = GameRegistry.findUniqueIdentifierFor(marker.getItem());
+                    int count = GTNHAdjust.collectorMarkerOutputMultiplier
+                        ? markerCounts.get(markerId + ":" + marker.getItemDamage())
+                        : 1;
+                    pending.add(new PendingRecipe(marker, circuit, key, recipe, count));
+                }
             }
             int percent = CollectorThreadPolicy.glassEnergyPercent(glass);
             long[] recipeEUts = new long[pending.size()];
@@ -356,12 +368,14 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         final ItemStack circuit;
         final String key;
         final GTRecipe recipe;
+        final int markerCount;
 
-        PendingRecipe(ItemStack marker, ItemStack circuit, String key, GTRecipe recipe) {
+        PendingRecipe(ItemStack marker, ItemStack circuit, String key, GTRecipe recipe, int markerCount) {
             this.marker = marker;
             this.circuit = circuit;
             this.key = key;
             this.recipe = recipe;
+            this.markerCount = markerCount;
         }
     }
 
@@ -412,11 +426,11 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             eut,
             Math.max(1, logic.getDuration()),
             Math.max(1, logic.getCurrentParallels()),
-            new RecipeThreadOutputs(logic.getOutputItems(), logic.getOutputFluids()));
+            scaledOutputs(logic.getOutputItems(), logic.getOutputFluids(), pending.markerCount));
         if (!threads.add(key, task, maxThreads())) return false;
         mEfficiency = Math.max(1000, 10000 - (getIdealStatus() - getRepairStatus()) * 1000);
         if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
-            "Collector started thread {}: {} parallels, {} ticks, {} EU/t; shared parallel {}, shared overclocks {}, power budget {} EU/t, voltage {}, batch {}",
+            "Collector started thread {}: {} parallels, {} ticks, {} EU/t; shared parallel {}, overclocks {}, power budget {} EU/t, voltage {}, batch {}, marker multiplier {}",
             key,
             task.getParallels(),
             task.getDuration(),
@@ -425,9 +439,30 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             selectedOverclocks,
             remaining,
             voltage,
-            isBatchModeEnabled());
+            isBatchModeEnabled(),
+            pending.markerCount);
         markDirty();
         return true;
+    }
+
+    /** Store multiplied output quantities in the existing arbitrary-precision thread ledger. */
+    private static RecipeThreadOutputs scaledOutputs(ItemStack[] items, net.minecraftforge.fluids.FluidStack[] fluids,
+        int multiplier) {
+        RecipeThreadOutputs outputs = new RecipeThreadOutputs(items, fluids);
+        if (multiplier == 1) return outputs;
+        NBTTagCompound saved = outputs.save();
+        BigInteger factor = BigInteger.valueOf(multiplier);
+        for (String[] kind : new String[][] { { "items", "amount" }, { "fluids", "bigAmount" } }) {
+            NBTTagList entries = saved.getTagList(kind[0], 10);
+            for (int i = 0; i < entries.tagCount(); i++) {
+                NBTTagCompound entry = entries.getCompoundTagAt(i);
+                entry.setString(
+                    kind[1],
+                    new BigInteger(entry.getString(kind[1])).multiply(factor)
+                        .toString());
+            }
+        }
+        return RecipeThreadOutputs.load(saved);
     }
 
     private static String recipeKey(ItemStack marker, ItemStack circuit) {
@@ -769,6 +804,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             .addInfo("输入维度标记与 20–24 号电路采集对应维度资源")
             .addInfo("20 矿石、21 宝石、22 粉末、23 锭、24 流体")
             .addInfo("标记和电路不消耗；不同配方可同时运行")
+            .addInfo(GTNHAdjust.collectorMarkerOutputMultiplier ? "对应维度标记数量放大产出，最多 64 倍" : "维度标记产出倍率已关闭")
             .addInfo("基础耗时 " + GTNHAdjust.collectorRecipeTicks + " tick，支持无损超频与批处理")
             .addInfo(
                 "LV " + GTNHAdjust.collectorBaseParallel

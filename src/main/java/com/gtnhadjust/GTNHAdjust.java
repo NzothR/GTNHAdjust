@@ -37,6 +37,7 @@ public class GTNHAdjust {
     public static boolean singularityResourceRecipes;
     public static boolean collectorBlackHole;
     public static boolean collectorWirelessPower;
+    public static boolean collectorMarkerOutputMultiplier;
     public static int collectorRecipeTicks = 128;
     public static int collectorBaseParallel = 64;
     public static int collectorBaseThreads = 8;
@@ -127,6 +128,11 @@ public class GTNHAdjust {
             "collector",
             true,
             "Allow the collector to use its owner's wireless EU network when no energy hatch is installed. Restart required.");
+        collectorMarkerOutputMultiplier = config.getBoolean(
+            "markerOutputMultiplier",
+            "collector",
+            true,
+            "Multiply collector outputs by the number of matching dimension markers in input buses, up to 64. Restart required.");
         superFragmentMteId = config.getInt(
             "superFragmentMteId",
             "collector",
