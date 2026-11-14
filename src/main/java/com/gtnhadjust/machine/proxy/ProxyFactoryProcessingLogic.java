@@ -1,5 +1,6 @@
 package com.gtnhadjust.machine.proxy;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -9,6 +10,7 @@ import javax.annotation.Nullable;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.gtnhadjust.GTNHAdjust;
 import com.xyp.gtneverreset.api.me.RecipeMapPatternInventory;
 import com.xyp.gtneverreset.common.machine.hatch.SuperMTEHatchCraftingInputME;
 import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadProcessingLogic;
@@ -18,6 +20,7 @@ import appeng.api.networking.crafting.ICraftingPatternDetails;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.storage.data.IAEStack;
+import gregtech.api.enums.GTValues;
 import gregtech.api.objects.ItemData;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.RecipeMaps;
@@ -26,6 +29,7 @@ import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe;
 import gregtech.api.util.OverclockCalculator;
+import gregtech.api.util.ParallelHelper;
 import gregtech.common.tileentities.machines.IDualInputInventoryWithPattern;
 import gregtech.common.tileentities.machines.MTEHatchCraftingInputME;
 
@@ -36,6 +40,10 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     private RecipeMap<?> patternRecipeMap;
     private IDualInputInventoryWithPattern traceInventory;
     private String tracePattern;
+    private int wirelessDuration;
+    private double wirelessEUtModifier;
+    private int wirelessOverclocks;
+    private ProxyThreadOutputs wirelessOutputs;
 
     public ProxyFactoryProcessingLogic(ProxyFactory controller) {
         this.controller = controller;
@@ -116,7 +124,90 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
         RecipeMap<?> map = controller.getRecipeMap();
         double factor = ProxyRecipeDuration
             .factor(map == null ? null : map.unlocalizedName, controller.getRecipeGlassTier());
-        return super.createOverclockCalculator(recipe).setDurationModifier(speedBoost * factor);
+        if (!controller.isWirelessMode())
+            return super.createOverclockCalculator(recipe).setDurationModifier(speedBoost * factor);
+        planWirelessOverclocks(recipe, factor);
+        return super.createOverclockCalculator(recipe).setDuration(wirelessDuration)
+            .setDurationModifier(1)
+            .setEUtDiscount(wirelessEUtModifier)
+            .setNoOverclock(true);
+    }
+
+    /**
+     * Reserve overclock power before choosing parallels, without converting surplus voltage into undertick parallels.
+     */
+    @Override
+    @Nonnull
+    protected ParallelHelper createParallelHelper(@Nonnull GTRecipe recipe) {
+        ParallelHelper helper = super.createParallelHelper(recipe);
+        if (!controller.isWirelessMode()) return helper;
+        RecipeMap<?> map = controller.getRecipeMap();
+        planWirelessOverclocks(
+            recipe,
+            ProxyRecipeDuration.factor(map == null ? null : map.unlocalizedName, controller.getRecipeGlassTier()));
+        if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
+            "[proxy-wireless] recipeEUt={} overclocks={} duration={} modifier={} budget={}",
+            recipe.mEUt,
+            wirelessOverclocks,
+            wirelessDuration,
+            wirelessEUtModifier,
+            controller.availableThreadPower());
+        wirelessOutputs = new ProxyThreadOutputs(
+            recipe.mOutputs == null ? null
+                : Arrays.copyOf(recipe.mOutputs, Math.min(recipe.mOutputs.length, controller.getItemOutputLimit())),
+            recipe.mFluidOutputs == null ? null
+                : Arrays.copyOf(
+                    recipe.mFluidOutputs,
+                    Math.min(recipe.mFluidOutputs.length, controller.getFluidOutputLimit())));
+        return helper.setEUtModifier(wirelessEUtModifier)
+            .setCustomItemOutputCalculation(parallels -> {
+                for (int i = 0; i < wirelessOutputs.items.length; i++) {
+                    if (recipe.mOutputs[i] != null)
+                        wirelessOutputs.itemAmounts[i] = BigInteger.valueOf(recipe.mOutputs[i].stackSize)
+                            .multiply(chancedMultiplier(recipe.getOutputChance(i), parallels));
+                }
+                return GTValues.emptyItemStackArray;
+            })
+            .setCustomFluidOutputCalculation(parallels -> {
+                for (int i = 0; i < wirelessOutputs.fluids.length; i++) {
+                    if (recipe.mFluidOutputs[i] != null)
+                        wirelessOutputs.fluidAmounts[i] = BigInteger.valueOf(recipe.mFluidOutputs[i].amount)
+                            .multiply(chancedMultiplier(recipe.getFluidOutputChance(i), parallels));
+                }
+                return GTValues.emptyFluidStackArray;
+            });
+    }
+
+    /** Keep guaranteed chance multiples out of the native int multiplication at MAX parallel. */
+    private static BigInteger chancedMultiplier(int chance, int parallels) {
+        long guaranteed = (long) (chance / 10000) * parallels;
+        return BigInteger
+            .valueOf(guaranteed + ParallelHelper.calculateIntegralChancedOutputMultiplier(chance % 10000, parallels));
+    }
+
+    /** The compact ledger is committed with the same transaction as the consumed inputs. */
+    ProxyThreadOutputs getPreparedOutputs() {
+        return controller.isWirelessMode() ? wirelessOutputs
+            : new ProxyThreadOutputs(getOutputItems(), getOutputFluids());
+    }
+
+    /** Stop at one tick, the configured limit, or the current thread's representable power budget. */
+    private void planWirelessOverclocks(GTRecipe recipe, double durationFactor) {
+        double time = recipe.mDuration * speedBoost * durationFactor;
+        double modifier = euModifier;
+        double reduction = controller.getOverclockTimeReduction();
+        double increase = controller.getOverclockPowerIncrease();
+        int overclocks = 0;
+        while (overclocks < controller.getWirelessMaxOverclocks() && time >= 2 && reduction > 1) {
+            double nextModifier = modifier * increase;
+            if (Math.ceil(recipe.mEUt * nextModifier) > controller.availableThreadPower()) break;
+            modifier = nextModifier;
+            time /= reduction;
+            overclocks++;
+        }
+        wirelessDuration = (int) Math.max(1, time);
+        wirelessEUtModifier = modifier;
+        wirelessOverclocks = overclocks;
     }
 
     @Override

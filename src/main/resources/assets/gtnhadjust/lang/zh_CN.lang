@@ -30,6 +30,12 @@ gtnhadjust.proxy.operation.0=代理联合工厂：运行模式
 gtnhadjust.proxy.operation.1=代理联合工厂：输入模式
 gtnhadjust.proxy.operation.2=代理联合工厂：输出模式
 gtnhadjust.proxy.count=已保存控制器：%s；可用配方池：%s
+gtnhadjust.proxy.power.wireless=供电：无线电网（MAX 配方电压）
+gtnhadjust.proxy.power.wired=供电：能源仓
+gtnhadjust.proxy.wireless.oc=无线最大超频次数
+gtnhadjust.proxy.wireless.oc.tip=仅无线模式生效；0为不超频，到达1 tick后停止超频
+gtnhadjust.proxy.wireless.oc.reset=重置为不超频
+gtnhadjust.proxy.wireless.tooltip=UEV及以上玻璃且未装能源仓时自动使用所有者无线电网；无线超频默认0，可在电源面板设置
 
 gtnhadjust.recipe.super_fragment_ore=维度资源：矿石
 gtnhadjust.recipe.super_fragment_gem=维度资源：宝石

@@ -54,16 +54,15 @@ public final class ProxyThreadOutputs {
         return largest;
     }
 
-    /** Adds detached stacks for the native GUI; the output ledger remains authoritative. */
+    /** Adds one bounded preview per output type; the full quantity remains in the authoritative ledger. */
     public void appendDisplayItems(List<ItemStack> itemOutputs) {
         BigInteger stackLimit = BigInteger.valueOf(Integer.MAX_VALUE);
         for (int i = 0; i < items.length; i++) {
-            for (BigInteger remaining = itemAmounts[i]; remaining.signum() > 0;) {
+            if (itemAmounts[i].signum() > 0) {
                 ItemStack stack = items[i].copy();
-                stack.stackSize = remaining.min(stackLimit)
+                stack.stackSize = itemAmounts[i].min(stackLimit)
                     .intValueExact();
                 itemOutputs.add(stack);
-                remaining = remaining.subtract(BigInteger.valueOf(stack.stackSize));
             }
         }
     }
@@ -71,12 +70,11 @@ public final class ProxyThreadOutputs {
     public void appendDisplayFluids(List<FluidStack> fluidOutputs) {
         BigInteger stackLimit = BigInteger.valueOf(Integer.MAX_VALUE);
         for (int i = 0; i < fluids.length; i++) {
-            for (BigInteger remaining = fluidAmounts[i]; remaining.signum() > 0;) {
+            if (fluidAmounts[i].signum() > 0) {
                 FluidStack stack = fluids[i].copy();
-                stack.amount = remaining.min(stackLimit)
+                stack.amount = fluidAmounts[i].min(stackLimit)
                     .intValueExact();
                 fluidOutputs.add(stack);
-                remaining = remaining.subtract(BigInteger.valueOf(stack.amount));
             }
         }
     }

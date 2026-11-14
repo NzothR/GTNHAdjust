@@ -15,11 +15,13 @@ import static gregtech.api.util.GTStructureUtility.chainAllGlasses;
 import static gregtech.api.util.GTStructureUtility.ofHatchAdder;
 import static gregtech.api.util.GTUtility.validMTEList;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -48,6 +50,7 @@ import appeng.api.util.DimensionalCoord;
 import appeng.me.helpers.AENetworkProxy;
 import appeng.me.helpers.IGridProxyable;
 import gregtech.api.GregTechAPI;
+import gregtech.api.enums.GTValues;
 import gregtech.api.enums.Textures;
 import gregtech.api.enums.VoltageIndex;
 import gregtech.api.interfaces.IIconContainer;
@@ -55,6 +58,7 @@ import gregtech.api.interfaces.IOutputBus;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.logic.ProcessingLogic;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.metatileentity.implementations.MTEHatchOutputBus;
 import gregtech.api.recipe.RecipeMap;
@@ -66,6 +70,8 @@ import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.GTModHandler;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.ItemEjectionHelper;
+import gregtech.api.util.shutdown.ShutDownReasonRegistry;
+import gregtech.common.misc.WirelessNetworkManager;
 import gregtech.common.tileentities.machines.IDualInputHatch;
 import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
 import gregtech.common.tileentities.machines.MTEHatchCraftingInputME;
@@ -88,9 +94,10 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     private static final int RUN = 0, INPUT = 1, OUTPUT = 2;
     private static final int MAX_CONTROLLERS = 256;
 
+    /** Each voltage tier above LV quadruples the parallel limit, saturating at the GT integer limit. */
     public static int parallelsForTier(int tier) {
-        int upgrades = (int) Math.min(30, Math.max(0L, (long) tier - VoltageIndex.LV));
-        return (int) Math.min(Integer.MAX_VALUE, (long) BASE_PARALLELS << upgrades);
+        int upgrades = (int) Math.min(13, Math.max(0L, (long) tier - VoltageIndex.LV));
+        return (int) Math.min(Integer.MAX_VALUE, (long) BASE_PARALLELS << (2 * upgrades));
     }
 
     public static int threadsForTier(int tier) {
@@ -106,6 +113,8 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     private List<String> clientRecipeNames;
     private String savedRecipeName;
     private int operationMode = RUN;
+    private int wirelessMaxOverclocks;
+    private UUID wirelessOwner;
 
     public ProxyFactory(int id, String name, String regionalName) {
         super(id, name, regionalName);
@@ -220,7 +229,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     @Override
     protected void checkMachineHatches(List<StructureError> errors) {
         checkHatchMin(errors, InputBus.or(InputHatch), 1);
-        checkHatchMin(errors, Energy.or(ExoticEnergy), 1);
+        if (!isWirelessMode()) checkHatchMin(errors, Energy.or(ExoticEnergy), 1);
         checkHatchMin(errors, Maintenance, 1);
         checkHatchMax(errors, Maintenance, 1);
     }
@@ -228,6 +237,68 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     @Override
     protected RecipeThreadProcessingLogic createRecipeThreadProcessingLogic() {
         return new ProxyFactoryProcessingLogic(this);
+    }
+
+    @Override
+    protected ProxyThreadOutputs createThreadOutputs(RecipeThreadProcessingLogic logic) {
+        return ((ProxyFactoryProcessingLogic) logic).getPreparedOutputs();
+    }
+
+    /** High-tier glass unlocks wireless power only while every energy hatch slot is absent. */
+    public boolean isWirelessMode() {
+        return !isTooltipProbeActive() && GTNHAdjust.proxyFactoryWirelessPower
+            && mGlassTier > VoltageIndex.UHV
+            && mEnergyHatches.isEmpty()
+            && mExoticEnergyHatches.isEmpty();
+    }
+
+    @Override
+    public long getMaxInputVoltage() {
+        return isWirelessMode() ? GTValues.V[VoltageIndex.MAX] : super.getMaxInputVoltage();
+    }
+
+    @Override
+    public long getMaxInputEu() {
+        return isWirelessMode() ? Long.MAX_VALUE - 1 : super.getMaxInputEu();
+    }
+
+    /** Recipe recognition sees MAX voltage independently of the actual per-thread EU budget. */
+    @Override
+    protected void setupProcessingLogic(ProcessingLogic logic) {
+        super.setupProcessingLogic(logic);
+        if (isWirelessMode()) logic.setAvailableVoltage(GTValues.V[VoltageIndex.MAX])
+            .setAvailableAmperage(1);
+    }
+
+    /** Debit the native owner/team wireless account once per running tick at the actual machine load. */
+    @Override
+    public boolean onRunningTick(ItemStack stack) {
+        if (!isWirelessMode()) return super.onRunningTick(stack);
+        UUID owner = getBaseMetaTileEntity().getOwnerUuid();
+        if (owner != null && !owner.equals(wirelessOwner)) {
+            WirelessNetworkManager.strongCheckOrAddUser(owner);
+            wirelessOwner = owner;
+        }
+        BigInteger cost = BigInteger.valueOf(-lEUt)
+            .multiply(BigInteger.valueOf(10000))
+            .divide(BigInteger.valueOf(Math.max(1000, mEfficiency)));
+        if (owner == null || !WirelessNetworkManager.addEUToGlobalEnergyMap(owner, cost.negate())) {
+            if (GTNHAdjust.debug)
+                GTNHAdjust.LOG.info("[proxy-wireless] insufficient energy owner={} requested={} EU/t", owner, cost);
+            stopMachine(ShutDownReasonRegistry.POWER_LOSS);
+            return false;
+        }
+        return true;
+    }
+
+    public int getWirelessMaxOverclocks() {
+        return wirelessMaxOverclocks;
+    }
+
+    /** Changes apply to newly started wireless threads; running tasks retain their committed costs. */
+    public void setWirelessMaxOverclocks(int value) {
+        wirelessMaxOverclocks = Math.max(0, value);
+        markDirty();
     }
 
     @Override
@@ -410,6 +481,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
         if (proxy != null) proxy.writeToNBT(tag);
         writeControllers(tag);
         tag.setInteger("gtnhadjustProxyOperation", operationMode);
+        tag.setInteger("gtnhadjustProxyWirelessOC", wirelessMaxOverclocks);
         RecipeMap<?> selected = getRecipeMap();
         if (selected != null) tag.setString("gtnhadjustProxySelectedMap", selected.unlocalizedName);
     }
@@ -426,6 +498,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
             if (stack != null && stack.stackSize > 0) controllers.add(stack);
         }
         operationMode = Math.floorMod(tag.getInteger("gtnhadjustProxyOperation"), 3);
+        wirelessMaxOverclocks = Math.max(0, tag.getInteger("gtnhadjustProxyWirelessOC"));
         savedRecipeName = tag.hasKey("gtnhadjustProxySelectedMap") ? tag.getString("gtnhadjustProxySelectedMap") : null;
         unlockedMaps = null;
         clientRecipeNames = null;
@@ -450,6 +523,8 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     public String[] getInfoData() {
         List<String> lines = new ArrayList<>();
         Collections.addAll(lines, super.getInfoData());
+        lines
+            .add(StatCollector.translateToLocal("gtnhadjust.proxy.power." + (isWirelessMode() ? "wireless" : "wired")));
         lines.add(StatCollector.translateToLocal("gtnhadjust.proxy.operation." + operationMode));
         lines.add(
             StatCollector.translateToLocalFormatted(
@@ -511,6 +586,14 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
         // # Universal processing / cross-recipe threads
         // # zh_CN 通用加工 / 跨配方线程
         return StatCollector.translateToLocal("gtnr.machine.universal_joint_factory.type");
+    }
+
+    @Override
+    public List<String> getTooltipFeatureLines() {
+        List<String> lines = super.getTooltipFeatureLines();
+        if (GTNHAdjust.proxyFactoryWirelessPower)
+            lines.add(StatCollector.translateToLocal("gtnhadjust.proxy.wireless.tooltip"));
+        return lines;
     }
 
     @Override

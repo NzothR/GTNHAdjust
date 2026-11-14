@@ -37,6 +37,7 @@ public class GTNHAdjust {
     public static boolean singularityResourceRecipes;
     public static boolean collectorBlackHole;
     public static boolean collectorWirelessPower;
+    public static boolean proxyFactoryWirelessPower;
     public static boolean collectorMarkerOutputMultiplier;
     public static int collectorRecipeTicks = 128;
     public static int collectorBaseParallel = 64;
@@ -128,6 +129,11 @@ public class GTNHAdjust {
             "collector",
             true,
             "Allow the collector to use its owner's wireless EU network when no energy hatch is installed. Restart required.");
+        proxyFactoryWirelessPower = config.getBoolean(
+            "wirelessPower",
+            "proxyFactory",
+            true,
+            "Allow UEV+ glass proxy factories without energy hatches to use their owner's wireless EU network. Restart required; client and server must match.");
         collectorMarkerOutputMultiplier = config.getBoolean(
             "markerOutputMultiplier",
             "collector",

@@ -250,13 +250,15 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
                 eut,
                 Math.max(1, logic.getDuration()),
                 Math.max(1, logic.getCurrentParallels()),
-                new ProxyThreadOutputs(logic.getOutputItems(), logic.getOutputFluids()));
+                createThreadOutputs(logic));
             if (GTNHAdjust.debug && logic instanceof ProxyFactoryProcessingLogic) GTNHAdjust.LOG.info(
-                "[proxy-flow] thread={} planned {} itemOutputs={} fluidOutputs={}",
+                "[proxy-flow] thread={} planned {} itemOutputs={} itemAmounts={} fluidOutputs={} fluidAmounts={}",
                 slot,
                 ((ProxyFactoryProcessingLogic) logic).describePlannedInputs(),
-                java.util.Arrays.toString(logic.getOutputItems()),
-                java.util.Arrays.toString(logic.getOutputFluids()));
+                java.util.Arrays.toString(task.getOutputs().items),
+                java.util.Arrays.toString(task.getOutputs().itemAmounts),
+                java.util.Arrays.toString(task.getOutputs().fluids),
+                java.util.Arrays.toString(task.getOutputs().fluidAmounts));
             if (!logic.commitInputs()) return CheckRecipeResultRegistry.INTERNAL_ERROR;
             committed = true;
             threadTasks.put(slot, task);
@@ -392,7 +394,12 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
         return Math.max(0, getMaxInputEu() - usedThreadPower());
     }
 
-    private long availableThreadPower() {
+    /** Allows the proxy's wireless path to retain large outputs without expanding them into int-sized stacks. */
+    protected ProxyThreadOutputs createThreadOutputs(RecipeThreadProcessingLogic logic) {
+        return new ProxyThreadOutputs(logic.getOutputItems(), logic.getOutputFluids());
+    }
+
+    protected final long availableThreadPower() {
         long remaining = remainingPower();
         if (useRemainingPower || preparingThread < 0) return remaining;
         int total = getTotalRecipeThreads();

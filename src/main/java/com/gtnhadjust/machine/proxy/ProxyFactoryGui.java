@@ -14,11 +14,14 @@ import com.cleanroommc.modularui.drawable.DynamicDrawable;
 import com.cleanroommc.modularui.network.NetworkUtils;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.value.StringValue;
+import com.cleanroommc.modularui.value.sync.BooleanSyncValue;
 import com.cleanroommc.modularui.value.sync.GenericListSyncHandler;
 import com.cleanroommc.modularui.value.sync.IntSyncValue;
 import com.cleanroommc.modularui.value.sync.InteractionSyncHandler;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
+import com.cleanroommc.modularui.widgets.ListWidget;
+import com.cleanroommc.modularui.widgets.ToggleButton;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
 import com.xyp.gtneverreset.common.gui.modularui.multiblock.GTNRMultiBlockBaseGui;
@@ -52,6 +55,7 @@ final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
     @Override
     protected void registerSyncValues(PanelSyncManager syncManager) {
         super.registerSyncValues(syncManager);
+        syncManager.syncValue("proxyWirelessMode", new BooleanSyncValue(multiblock::isWirelessMode));
         syncManager.syncValue("itemOutput", new GenericListSyncHandler<>(() -> {
             List<ItemStack> values = new ArrayList<>();
             for (ProxyThreadTask task : multiblock.getProxyThreadTasks()) task.getOutputs()
@@ -86,6 +90,113 @@ final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
                 NetworkUtils::writeStringSafe,
                 String::equals,
                 value -> value));
+    }
+
+    /** Synchronize the server's detected power source rather than deriving it from client hatch lists. */
+    @Override
+    protected ListWidget<IWidget, ?> createTerminalTextWidget(PanelSyncManager syncManager, ModularPanel parent) {
+        BooleanSyncValue wireless = syncManager.findSyncHandler("proxyWirelessMode", BooleanSyncValue.class);
+        return super.createTerminalTextWidget(syncManager, parent).child(
+            IKey.dynamic(
+                () -> StatCollector
+                    .translateToLocal("gtnhadjust.proxy.power." + (wireless.getValue() ? "wireless" : "wired")))
+                .asWidget()
+                .fullWidth());
+    }
+
+    /** Keep the native parallel and power-failure controls together with the wireless-only overclock limit. */
+    @Override
+    protected ButtonWidget<?> createPowerPanelButton(PanelSyncManager syncManager, ModularPanel parent) {
+        IPanelHandler settings = syncManager
+            .syncedPanel("powerPanel", true, (manager, handler) -> createPowerSettingsPanel(manager, parent));
+        return new ButtonWidget<>().marginLeft(4)
+            .overlay(GTGuiTextures.TT_OVERLAY_BUTTON_POWER_PANEL)
+            .tooltipBuilder(t -> t.addLine(IKey.lang("GT5U.gui.button.power_panel")))
+            .onMousePressed(mouse -> {
+                if (settings.isPanelOpen()) settings.closePanel();
+                else settings.openPanel();
+                return true;
+            });
+    }
+
+    private ModularPanel createPowerSettingsPanel(PanelSyncManager manager, ModularPanel parent) {
+        IntSyncValue maximum = new IntSyncValue(() -> Math.max(1, multiblock.getMaxParallelRecipes()));
+        BooleanSyncValue alwaysMax = new BooleanSyncValue(
+            multiblock::isAlwaysMaxParallel,
+            multiblock::setAlwaysMaxParallel).allowC2S();
+        IntSyncValue selected = new IntSyncValue(multiblock::getTrueParallel, multiblock::setPowerPanelMaxParallel)
+            .allowC2S();
+        IntSyncValue overclocks = new IntSyncValue(
+            multiblock::getWirelessMaxOverclocks,
+            multiblock::setWirelessMaxOverclocks).allowC2S();
+        BooleanSyncValue powerfail = new BooleanSyncValue(
+            multiblock::makesPowerfailEvents,
+            multiblock::setPowerfailEventCreationStatus).allowC2S();
+        manager.syncValue("maxParallel", maximum);
+        manager.syncValue("alwaysMaxParallel", alwaysMax);
+        return new ModularPanel("powerPanel").relative(parent)
+            .leftRel(1)
+            .topRel(0)
+            .size(140, 175)
+            .child(
+                Flow.column()
+                    .full()
+                    .padding(3)
+                    .child(makeTitleTextWidget())
+                    .child(
+                        IKey.lang("GTPP.CC.parallel")
+                            .asWidget()
+                            .marginBottom(4))
+                    .child(
+                        Flow.row()
+                            .fullWidth()
+                            .height(22)
+                            .child(makeParallelConfiguratorTextFieldWidget(maximum, alwaysMax, selected))
+                            .child(
+                                new ButtonWidget<>()
+                                    .overlay(
+                                        new DynamicDrawable(
+                                            () -> alwaysMax.getValue() ? GTGuiTextures.OVERLAY_BUTTON_CHECKMARK
+                                                : GTGuiTextures.OVERLAY_BUTTON_CROSS))
+                                    .tooltipBuilder(t -> t.addLine(IKey.lang("GT5U.gui.button.max_parallel")))
+                                    .onMousePressed(mouse -> {
+                                        alwaysMax.setValue(!alwaysMax.getValue());
+                                        selected.setValue(maximum.getValue());
+                                        return true;
+                                    })))
+                    .child(
+                        IKey.lang("gtnhadjust.proxy.wireless.oc")
+                            .asWidget()
+                            .marginBottom(4))
+                    .child(
+                        Flow.row()
+                            .fullWidth()
+                            .height(22)
+                            .child(
+                                new TextFieldWidget().value(overclocks)
+                                    .numbersInt(0, Integer.MAX_VALUE)
+                                    .size(70, 14)
+                                    .marginRight(16)
+                                    .tooltipBuilder(t -> t.addLine(IKey.lang("gtnhadjust.proxy.wireless.oc.tip"))))
+                            .child(
+                                new ButtonWidget<>().overlay(IKey.str("0"))
+                                    .tooltipBuilder(t -> t.addLine(IKey.lang("gtnhadjust.proxy.wireless.oc.reset")))
+                                    .onMousePressed(mouse -> {
+                                        overclocks.setValue(0);
+                                        return true;
+                                    })))
+                    .child(
+                        Flow.row()
+                            .fullWidth()
+                            .height(18)
+                            .child(
+                                IKey.lang("GT5U.gui.text.powerfail_events")
+                                    .asWidget()
+                                    .marginRight(2))
+                            .child(
+                                new ToggleButton().value(powerfail)
+                                    .overlay(true, GTGuiTextures.OVERLAY_BUTTON_CHECKMARK)
+                                    .overlay(false, GTGuiTextures.OVERLAY_BUTTON_CROSS))));
     }
 
     @Override

@@ -30,6 +30,12 @@ gtnhadjust.proxy.operation.0=Proxy Joint Factory: Run mode
 gtnhadjust.proxy.operation.1=Proxy Joint Factory: Input mode
 gtnhadjust.proxy.operation.2=Proxy Joint Factory: Output mode
 gtnhadjust.proxy.count=Stored controllers: %s; unlocked recipe maps: %s
+gtnhadjust.proxy.power.wireless=Power: wireless network (MAX recipe voltage)
+gtnhadjust.proxy.power.wired=Power: energy hatches
+gtnhadjust.proxy.wireless.oc=Wireless overclock limit
+gtnhadjust.proxy.wireless.oc.tip=Wireless only; 0 disables overclocking. Stops at 1 tick.
+gtnhadjust.proxy.wireless.oc.reset=Reset to no overclocking
+gtnhadjust.proxy.wireless.tooltip=UEV+ glass without energy hatches uses the owner's wireless network; configure wireless overclocks in the power panel (default 0)
 
 gtnhadjust.recipe.super_fragment_ore=Dimension Resources: Ores
 gtnhadjust.recipe.super_fragment_gem=Dimension Resources: Gems
