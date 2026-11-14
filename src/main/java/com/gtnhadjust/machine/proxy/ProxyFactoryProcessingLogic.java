@@ -227,8 +227,10 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
         RecipeMap<?> current = patternRecipeMap == null ? controller.getRecipeMap() : patternRecipeMap;
         if (ProxyFactoryEssentia.requiresEssentiaCell(current) && !controller.hasCreativeEssentiaCell())
             return CheckRecipeResultRegistry.NO_RECIPE;
-        return matchesPatternOutputs(recipe) && consumesPatternInputs(recipe, current) ? super.validateRecipe(recipe)
-            : CheckRecipeResultRegistry.NO_RECIPE;
+        if (!matchesPatternOutputs(recipe) || !consumesPatternInputs(recipe, current))
+            return CheckRecipeResultRegistry.NO_RECIPE;
+        CheckRecipeResult sourceResult = controller.checkLocatorRequirements(current, recipe);
+        return sourceResult.wasSuccessful() ? super.validateRecipe(recipe) : sourceResult;
     }
 
     /** Describes the exact copies that will be committed, before their source amounts change. */

@@ -39,7 +39,6 @@ import com.gtnhadjust.GTNHAdjust;
 import com.xyp.gtneverreset.common.gui.modularui.multiblock.GTNRMultiBlockBaseGui;
 import com.xyp.gtneverreset.common.machine.hatch.ParameterModuleHatch;
 import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadProcessingLogic;
-import com.xyp.gtneverreset.common.machine.multiblock.UniversalJointFactory;
 import com.xyp.gtneverreset.common.machine.tooltip.StructureTooltipHooks;
 import com.xyp.gtneverreset.utils.structure.MultiblockStructureLoader;
 
@@ -62,7 +61,6 @@ import gregtech.api.logic.ProcessingLogic;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 import gregtech.api.metatileentity.implementations.MTEHatchOutputBus;
 import gregtech.api.recipe.RecipeMap;
-import gregtech.api.recipe.RecipeMaps;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.render.TextureFactory;
@@ -113,6 +111,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     private List<String> clientRecipeNames;
     private String savedRecipeName;
     private int operationMode = RUN;
+    private final ProxyLocatorPool locatorPool = new ProxyLocatorPool();
     private int wirelessMaxOverclocks;
     private UUID wirelessOwner;
 
@@ -424,17 +423,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
         String selected = previous != null && !previous.isEmpty()
             ? previous.get(Math.floorMod(machineMode, previous.size())).unlocalizedName
             : savedRecipeName;
-        List<RecipeMap<?>> maps = new ArrayList<>(UniversalJointFactory.RECIPE_MAPS);
-        if (!maps.contains(RecipeMaps.furnaceRecipes)) maps.add(RecipeMaps.furnaceRecipes);
-        List<String> original = new ArrayList<>();
-        for (RecipeMap<?> map : maps) original.add(map.unlocalizedName);
-        List<List<String>> supplied = new ArrayList<>();
-        for (ItemStack controller : controllers) supplied.add(ProxyFactoryControllerRegistry.maps(controller));
-        for (String name : ProxyFactoryUnlockRules
-            .orderedAdditional(original, ProxyFactoryRecipeWhitelist.ADDITIONAL, supplied)) {
-            RecipeMap<?> map = RecipeMap.ALL_RECIPE_MAPS.get(name);
-            if (map != null && !maps.contains(map)) maps.add(map);
-        }
+        List<RecipeMap<?>> maps = locatorPool.recipeMaps();
         unlockedMaps = Collections.unmodifiableList(maps);
         int index = 0;
         if (selected != null) {
@@ -444,9 +433,21 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
                     break;
                 }
             }
-        } else if (previous == null) index = Math.floorMod(machineMode, maps.size());
+        } else if (previous == null && !maps.isEmpty()) index = Math.floorMod(machineMode, maps.size());
         machineMode = index;
         savedRecipeName = null;
+    }
+
+    /** Replaces the ordered backend records; the locator input UI is introduced in a later stage. */
+    public void setRecordedLocators(List<ItemStack> locators) {
+        locatorPool.replace(locators);
+        refreshUnlockedMaps();
+        markDirty();
+    }
+
+    /** Admission is checked only for a prospective new thread, never for a running task. */
+    CheckRecipeResult checkLocatorRequirements(RecipeMap<?> map, gregtech.api.util.GTRecipe recipe) {
+        return locatorPool.checkStart(this, map, recipe);
     }
 
     List<String> getUnlockedRecipeNames() {
@@ -480,6 +481,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
         AENetworkProxy proxy = getProxy();
         if (proxy != null) proxy.writeToNBT(tag);
         writeControllers(tag);
+        tag.setTag("gtnhadjustProxyLocators", locatorPool.save());
         tag.setInteger("gtnhadjustProxyOperation", operationMode);
         tag.setInteger("gtnhadjustProxyWirelessOC", wirelessMaxOverclocks);
         RecipeMap<?> selected = getRecipeMap();
@@ -491,6 +493,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
         super.loadNBTData(tag);
         AENetworkProxy proxy = getProxy();
         if (proxy != null) proxy.readFromNBT(tag);
+        locatorPool.load(tag.getTagList("gtnhadjustProxyLocators", 10));
         controllers.clear();
         NBTTagList saved = tag.getTagList("gtnhadjustProxyControllers", 10);
         for (int i = 0; i < saved.tagCount(); i++) {
@@ -513,6 +516,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     @Override
     public void setItemNBT(NBTTagCompound tag) {
         super.setItemNBT(tag);
+        tag.setTag("gtnhadjustProxyLocators", locatorPool.save());
         if (controllers.isEmpty()) return;
         writeControllers(tag);
         RecipeMap<?> selected = getRecipeMap();
@@ -537,7 +541,8 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     @Override
     public RecipeMap<?> getRecipeMap() {
         List<RecipeMap<?>> maps = getAvailableRecipeMaps();
-        return processingRecipeMap == null ? maps.get(Math.floorMod(machineMode, maps.size())) : processingRecipeMap;
+        return processingRecipeMap != null ? processingRecipeMap
+            : maps.isEmpty() ? null : maps.get(Math.floorMod(machineMode, maps.size()));
     }
 
     void setProcessingRecipeMap(RecipeMap<?> map) {
@@ -552,7 +557,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
                 RecipeMap<?> map = RecipeMap.ALL_RECIPE_MAPS.get(name);
                 if (map != null && !maps.contains(map)) maps.add(map);
             }
-            if (!maps.isEmpty()) return maps;
+            return maps;
         }
         if (unlockedMaps == null) refreshUnlockedMaps();
         return unlockedMaps;
@@ -608,11 +613,13 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
 
     @Override
     public int nextMachineMode() {
-        return (getMachineMode() + 1) % getAvailableRecipeMaps().size();
+        int count = getAvailableRecipeMaps().size();
+        return count == 0 ? 0 : (getMachineMode() + 1) % count;
     }
 
     void changeRecipeMode(boolean previous) {
         int count = getAvailableRecipeMaps().size();
+        if (count == 0) return;
         setMachineMode(Math.floorMod(getMachineMode() + (previous ? -1 : 1), count));
         getBaseMetaTileEntity().markDirty();
     }
@@ -623,13 +630,15 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
         if (getBaseMetaTileEntity() != null && getBaseMetaTileEntity().isClientSide()) {
             super.setMachineMode(index);
         } else {
-            super.setMachineMode(index % getAvailableRecipeMaps().size());
+            int count = getAvailableRecipeMaps().size();
+            super.setMachineMode(count == 0 ? 0 : index % count);
         }
     }
 
     @Override
     public String getMachineModeKey() {
-        return getRecipeMap().unlocalizedName;
+        RecipeMap<?> map = getRecipeMap();
+        return map == null ? "gtnhadjust.proxy.no_locator" : map.unlocalizedName;
     }
 
     @Override

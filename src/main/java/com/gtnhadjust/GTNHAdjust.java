@@ -172,6 +172,10 @@ public class GTNHAdjust {
         GameRegistry.registerItem(tierDimension, "tier_dimension");
         if (event.getSide()
             .isClient()) tierDimension.registerRenderer();
+        if (FeatureConfig.get().proxyFactory && Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech"))
+            ProxyFactoryRegistration.registerItems(
+                event.getSide()
+                    .isClient());
     }
 
     @Mod.EventHandler

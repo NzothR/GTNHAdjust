@@ -13,10 +13,11 @@ import com.gtnhadjust.GTNHAdjust;
 
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.RecipeMapWorkable;
+import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.common.blocks.ItemMachines;
 
-/** Resolves only registered GT controllers and intersects their live maps with our whitelist. */
+/** Provides unrestricted locator pool lookup while retaining the legacy controller whitelist for existing callers. */
 public final class ProxyFactoryControllerRegistry {
 
     private static final Set<String> ALLOWED = new HashSet<>();
@@ -27,6 +28,19 @@ public final class ProxyFactoryControllerRegistry {
     }
 
     private ProxyFactoryControllerRegistry() {}
+
+    /** Version 0.2 locator sources expose every registered processing map; the legacy whitelist stays separate. */
+    public static List<RecipeMap<?>> unrestrictedMaps(ItemStack stack) {
+        if (stack == null || !(stack.getItem() instanceof ItemMachines)) return Collections.emptyList();
+        IMetaTileEntity target = ItemMachines.getMetaTileEntity(stack);
+        if (!(target instanceof MTEMultiBlockBase)) return Collections.emptyList();
+        Collection<RecipeMap<?>> exposed = ((RecipeMapWorkable) target).getAvailableRecipeMaps();
+        List<RecipeMap<?>> result = new ArrayList<>();
+        for (RecipeMap<?> map : exposed) {
+            if (RecipeMap.ALL_RECIPE_MAPS.get(map.unlocalizedName) == map && !result.contains(map)) result.add(map);
+        }
+        return result;
+    }
 
     public static List<String> maps(ItemStack stack) {
         if (stack == null || stack.stackSize <= 0 || !(stack.getItem() instanceof ItemMachines))
