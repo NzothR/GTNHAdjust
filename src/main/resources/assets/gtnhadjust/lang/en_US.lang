@@ -95,3 +95,9 @@ gtnhadjust.proxy.locator_pool=Recipe pool: %s
 gtnhadjust.proxy.locator_locked=Run mode: locator inventory locked
 gtnhadjust.proxy.locator_overflow=Beyond configured capacity: extraction only
 GT5U.gui.text.recipe_result.gtnhadjust_proxy_missing_map=Pattern has no recipe pool information; execution rejected
+
+gtnhadjust.proxy.status.pattern_failure=Pattern %s (output %s): %s
+gtnhadjust.proxy.status.source_failure=Pattern %s (output %s): required structure %s: %s
+gtnhadjust.proxy.status.unknown_output=unknown output
+gtnhadjust.proxy.status.unformed=not formed
+GT5U.gui.text.recipe_result.gtnhadjust_proxy_waiting_recipe=Waiting for ingredients or a recipe matching both inputs and outputs

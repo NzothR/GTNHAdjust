@@ -39,7 +39,9 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     private ICraftingPatternDetails pattern;
     private RecipeMap<?> patternRecipeMap;
     private CheckRecipeResult patternFailure;
+    private CheckRecipeResult sourceFailureResult;
     private IDualInputInventoryWithPattern traceInventory;
+    private IDualInputInventoryWithPattern activePatternInventory;
     private String tracePattern;
     private int wirelessDuration;
     private double wirelessEUtModifier;
@@ -53,9 +55,11 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     @Override
     public boolean tryCachePossibleRecipesFromPattern(IDualInputInventoryWithPattern inventory) {
         resetPatternInventory();
-        traceInventory = null;
+        traceInventory = inventory;
+        activePatternInventory = inventory;
         tracePattern = null;
-        pattern = null;
+        pattern = inventory instanceof SuperMTEHatchCraftingInputME.PatternSlot<?>slot ? slot.getPatternDetails()
+            : inventory instanceof MTEHatchCraftingInputME.PatternSlot<?>slot ? slot.getPatternDetails() : null;
         patternRecipeMap = null;
         patternFailure = null;
         if (!(inventory instanceof RecipeMapPatternInventory mapped) || mapped.getRecipeMapName() == null
@@ -72,9 +76,6 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
             return true;
         }
         patternRecipeMap = requested;
-        pattern = inventory instanceof SuperMTEHatchCraftingInputME.PatternSlot<?>slot ? slot.getPatternDetails()
-            : inventory instanceof MTEHatchCraftingInputME.PatternSlot<?>slot ? slot.getPatternDetails() : null;
-        traceInventory = inventory;
         tracePattern = pattern == null ? "none" : Arrays.toString(pattern.getCondensedAEOutputs());
         // Match current accumulated inputs, including virtual tools and fractional AE deliveries.
         // The native input-only cache cannot distinguish recipes with identical inputs in different maps.
@@ -84,11 +85,21 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     @Override
     @Nonnull
     protected CheckRecipeResult processRecipe() {
+        CheckRecipeResult result = CheckRecipeResultRegistry.NO_RECIPE;
+        sourceFailureResult = null;
         try {
-            if (patternFailure != null) return patternFailure;
-            if (pattern == null || patternRecipeMap == null) return CheckRecipeResultRegistry.NO_RECIPE;
-            return super.processRecipe();
+            result = patternFailure != null ? patternFailure
+                : pattern == null || patternRecipeMap == null ? CheckRecipeResultRegistry.NO_RECIPE
+                    : super.processRecipe();
+            return result;
         } finally {
+            if (activePatternInventory != null) controller.recordPatternResult(
+                activePatternInventory,
+                pattern,
+                patternRecipeMap,
+                result,
+                result.equals(sourceFailureResult));
+            activePatternInventory = null;
             pattern = null;
             patternRecipeMap = null;
             patternFailure = null;
@@ -233,6 +244,7 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
         if (!matchesPatternOutputs(recipe) || !consumesPatternInputs(recipe, current))
             return CheckRecipeResultRegistry.NO_RECIPE;
         CheckRecipeResult sourceResult = controller.checkLocatorRequirements(current, recipe);
+        if (!sourceResult.wasSuccessful()) sourceFailureResult = sourceResult;
         return sourceResult.wasSuccessful() ? super.validateRecipe(recipe) : sourceResult;
     }
 

@@ -51,6 +51,12 @@ public final class ProxyLocatorPool {
         return java.util.Collections.unmodifiableList(new ArrayList<>(sources.keySet()));
     }
 
+    /** Display the same first locator source used for admission, without querying its world. */
+    ItemStack sourceController(RecipeMap<?> map) {
+        MachineLocatorRecord source = sources.get(map);
+        return source == null ? null : source.controller();
+    }
+
     /** No chunk tickets, dimension initialization, background checks or fallback to later same-pool records. */
     public CheckRecipeResult checkStart(ProxyFactory proxy, RecipeMap<?> map, GTRecipe recipe) {
         MachineLocatorRecord record = sources.get(map);

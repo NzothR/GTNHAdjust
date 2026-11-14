@@ -98,6 +98,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     private List<String> clientRecipeNames;
     private int operationMode = INPUT;
     private final ProxyLocatorPool locatorPool = new ProxyLocatorPool();
+    private final ProxyPatternIssues patternIssues = new ProxyPatternIssues();
     private int wirelessMaxOverclocks;
     private UUID wirelessOwner;
 
@@ -321,6 +322,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
 
     void cycleOperationMode() {
         operationMode = operationMode == INPUT ? RUN : INPUT;
+        patternIssues.clear();
         scheduleRecipeCheckImmediate();
         markDirty();
     }
@@ -337,6 +339,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     void onLocatorInventoryChanged() {
         IGregTechTileEntity tile = getBaseMetaTileEntity();
         if (tile == null || tile.isClientSide()) return;
+        patternIssues.clear();
         List<ItemStack> locators = new ArrayList<>();
         for (int i = 0; i < locatorInventory.getSlots(); i++) {
             ItemStack stack = locatorInventory.getStackInSlot(i);
@@ -351,6 +354,16 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     /** Admission is checked only for a prospective new thread, never for a running task. */
     CheckRecipeResult checkLocatorRequirements(RecipeMap<?> map, gregtech.api.util.GTRecipe recipe) {
         return locatorPool.checkStart(this, map, recipe);
+    }
+
+    void recordPatternResult(gregtech.common.tileentities.machines.IDualInputInventoryWithPattern inventory,
+        appeng.api.networking.crafting.ICraftingPatternDetails pattern, RecipeMap<?> map, CheckRecipeResult result,
+        boolean sourceFailure) {
+        patternIssues.record(inventory, pattern, sourceFailure ? locatorPool.sourceController(map) : null, result);
+    }
+
+    List<ProxyFactoryStatus.Issue> getPatternIssues() {
+        return patternIssues.snapshot();
     }
 
     List<String> getUnlockedRecipeNames() {

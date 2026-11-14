@@ -214,7 +214,9 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
     protected CheckRecipeResult doCheckRecipe() {
         CheckRecipeResult result = patternScheduler
             .checkNext(mDualInputHatches, (RecipeThreadProcessingLogic) processingLogic);
-        return result.wasSuccessful() ? result : super.doCheckRecipe();
+        if (result.wasSuccessful()) return result;
+        CheckRecipeResult fallback = super.doCheckRecipe();
+        return fallback.equals(CheckRecipeResultRegistry.NO_RECIPE) ? result : fallback;
     }
 
     @Override

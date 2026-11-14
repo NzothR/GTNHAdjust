@@ -29,8 +29,11 @@ import com.cleanroommc.modularui.widget.EmptyWidget;
 import com.cleanroommc.modularui.widget.ParentWidget;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
 import com.cleanroommc.modularui.widgets.DynamicSyncedWidget;
+import com.cleanroommc.modularui.widgets.FluidDisplayWidget;
+import com.cleanroommc.modularui.widgets.ItemDisplayWidget;
 import com.cleanroommc.modularui.widgets.ListWidget;
 import com.cleanroommc.modularui.widgets.PagedWidget;
+import com.cleanroommc.modularui.widgets.TextWidget;
 import com.cleanroommc.modularui.widgets.ToggleButton;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.cleanroommc.modularui.widgets.layout.Grid;
@@ -41,6 +44,8 @@ import com.xyp.gtneverreset.common.gui.modularui.multiblock.GTNRMultiBlockBaseGu
 
 import gregtech.api.modularui2.GTGuiTextures;
 import gregtech.api.modularui2.GTGuiThemes;
+import gregtech.api.recipe.check.CheckRecipeResult;
+import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.common.modularui2.factory.GTBaseGuiBuilder;
 
 /** Status/inventory pages share the same real container and server-side locator admission rules. */
@@ -48,6 +53,21 @@ final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
 
     private final StringValue search = new StringValue("");
     private PagedWidget<?> pages;
+    private List<ProxyFactoryStatus.Output> clientOutputs = new ArrayList<>();
+    private List<ProxyFactoryStatus.Issue> clientIssues = new ArrayList<>();
+    private List<ProxyFactoryStatus.Output> outputSnapshot = new ArrayList<>();
+    private List<ProxyFactoryStatus.Output> outputShape = new ArrayList<>();
+    private long outputSnapshotTick = Long.MIN_VALUE;
+
+    /** Match the displayed tenth-second precision without rebuilding output widgets for progress-only updates. */
+    private List<ProxyFactoryStatus.Output> outputSnapshot() {
+        long tick = baseMetaTileEntity.getTimer() / 2;
+        if (tick != outputSnapshotTick) {
+            outputSnapshotTick = tick;
+            outputSnapshot = ProxyFactoryStatus.outputs(multiblock);
+        }
+        return outputSnapshot;
+    }
 
     ProxyFactoryGui(ProxyFactory controller) {
         super(controller);
@@ -113,10 +133,51 @@ final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
                 value -> value));
     }
 
+    /** Native aggregate recipe text mixes thread timing and the last idle lookup; display only actual failures here. */
     @Override
     protected ListWidget<IWidget, ?> createTerminalTextWidget(PanelSyncManager manager, ModularPanel parent) {
         BooleanSyncValue wireless = manager.findSyncHandler("proxyWirelessMode", BooleanSyncValue.class);
-        return super.createTerminalTextWidget(manager, parent)
+        GenericListSyncHandler<ProxyFactoryStatus.Output> outputs = new GenericListSyncHandler<>(
+            this::outputSnapshot,
+            value -> clientOutputs = value,
+            ProxyFactoryStatus.Output::read,
+            ProxyFactoryStatus.Output::write,
+            ProxyFactoryStatus.Output::same,
+            value -> value);
+        GenericListSyncHandler<ProxyFactoryStatus.Issue> issues = new GenericListSyncHandler<>(
+            multiblock::getPatternIssues,
+            value -> clientIssues = value,
+            ProxyFactoryStatus.Issue::read,
+            ProxyFactoryStatus.Issue::write,
+            ProxyFactoryStatus.Issue::same,
+            value -> value);
+        manager.syncValue("proxyThreadOutputs", outputs);
+        manager.syncValue("proxyPatternIssues", issues);
+        return new ListWidget<>().fullWidth()
+            .crossAxisAlignment(Alignment.CrossAxis.START)
+            .child(createShutdownDurationWidget(manager))
+            .child(
+                IKey.dynamic(
+                    () -> baseMetaTileEntity.getLastShutDownReason()
+                        .getDisplayString())
+                    .color(0xffff5555)
+                    .asWidget()
+                    .fullWidth()
+                    .setEnabledIf(
+                        widget -> shouldShutdownReasonBeDisplayed(
+                            baseMetaTileEntity.getLastShutDownReason()
+                                .getDisplayString())))
+            .child(createStructureErrorWidget(manager))
+            .child(
+                IKey.dynamic(
+                    () -> multiblock.getCheckRecipeResult()
+                        .getDisplayString())
+                    .color(0xffff5555)
+                    .asWidget()
+                    .fullWidth()
+                    .setEnabledIf(widget -> showGlobalFailure()))
+            .child(createPatternIssues(manager, issues))
+            .child(createThreadOutputs(manager, outputs))
             .child(
                 IKey.dynamic(
                     () -> StatCollector.translateToLocal("gtnhadjust.proxy.operation." + multiblock.getOperationMode()))
@@ -128,6 +189,116 @@ final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
                         .translateToLocal("gtnhadjust.proxy.power." + (wireless.getValue() ? "wireless" : "wired")))
                     .asWidget()
                     .fullWidth());
+    }
+
+    private boolean showGlobalFailure() {
+        CheckRecipeResult result = multiblock.getCheckRecipeResult();
+        if (multiblock.canEditLocators() || result.wasSuccessful()
+            || result.equals(CheckRecipeResultRegistry.NO_RECIPE)
+            || result.equals(CheckRecipeResultRegistry.NONE)) return false;
+        for (ProxyFactoryStatus.Issue issue : clientIssues) if (issue.result.equals(result)) return false;
+        return true;
+    }
+
+    private IWidget createPatternIssues(PanelSyncManager manager,
+        GenericListSyncHandler<ProxyFactoryStatus.Issue> issues) {
+        DynamicSyncHandler display = new DynamicSyncHandler().widgetProvider((sync, packet) -> {
+            if (packet == null) return new EmptyWidget();
+            Flow column = Flow.column()
+                .coverChildrenHeight(0)
+                .fullWidth()
+                .crossAxisAlignment(Alignment.CrossAxis.START);
+            int count = packet.readInt();
+            for (int i = 0; i < count; i++) {
+                final int index = i;
+                column.child(
+                    IKey.dynamic(
+                        () -> index < clientIssues.size() ? clientIssues.get(index)
+                            .text() : "")
+                        .color(0xffff5555)
+                        .asWidget()
+                        .fullWidth()
+                        .marginBottom(2));
+            }
+            return column;
+        });
+        if (!manager.isClient()) issues.setChangeListener(
+            () -> display.notifyUpdate(
+                packet -> packet.writeInt(
+                    issues.getValue()
+                        .size())));
+        return new DynamicSyncedWidget<>().syncHandler(display)
+            .fullWidth()
+            .coverChildrenHeight(0);
+    }
+
+    private IWidget createThreadOutputs(PanelSyncManager manager,
+        GenericListSyncHandler<ProxyFactoryStatus.Output> outputs) {
+        DynamicSyncHandler display = new DynamicSyncHandler().widgetProvider((sync, packet) -> {
+            if (packet == null) return new EmptyWidget();
+            Flow column = Flow.column()
+                .coverChildrenHeight(0)
+                .fullWidth()
+                .crossAxisAlignment(Alignment.CrossAxis.START);
+            int count = packet.readInt();
+            for (int i = 0; i < count; i++) {
+                final int index = i;
+                ProxyFactoryStatus.Output row = ProxyFactoryStatus.Output.read(packet);
+                IWidget icon = row.item != null ? new ItemDisplayWidget().item(row.item)
+                    .displayAmount(false)
+                    .disableThemeBackground(true)
+                    .disableHoverThemeBackground(true)
+                    .size(14)
+                    .marginRight(2)
+                    : new FluidDisplayWidget().value(row.fluid)
+                        .displayAmount(false)
+                        .disableThemeBackground(true)
+                        .disableHoverThemeBackground(true)
+                        .size(14)
+                        .marginRight(2);
+                column.child(
+                    Flow.row()
+                        .fullWidth()
+                        .height(15)
+                        .child(icon)
+                        .child(
+                            Flow.column()
+                                .coverChildrenHeight(0)
+                                .width(getTerminalWidgetWidth() - 24)
+                                .crossAxisAlignment(Alignment.CrossAxis.START)
+                                .child(
+                                    new TextWidget<>(
+                                        IKey.dynamic(
+                                            () -> index < clientOutputs.size() ? clientOutputs.get(index)
+                                                .name() : "")).color(0xff55ffff)
+                                                    .height(8)
+                                                    .scale(0.75f))
+                                .child(
+                                    new TextWidget<>(
+                                        IKey.dynamic(
+                                            () -> index < clientOutputs.size() ? clientOutputs.get(index)
+                                                .amountAndProgress() : "")).height(6)
+                                                    .scale(0.6f))));
+            }
+            return column;
+        });
+        if (!manager.isClient()) {
+            outputs.setChangeListener(() -> {
+                List<ProxyFactoryStatus.Output> current = outputs.getValue();
+                boolean changed = current.size() != outputShape.size();
+                for (int i = 0; !changed && i < current.size(); i++) changed = !current.get(i)
+                    .sameShape(outputShape.get(i));
+                if (!changed) return;
+                outputShape = new ArrayList<>(current);
+                display.notifyUpdate(packet -> {
+                    packet.writeInt(current.size());
+                    for (ProxyFactoryStatus.Output row : current) ProxyFactoryStatus.Output.write(packet, row);
+                });
+            });
+        }
+        return new DynamicSyncedWidget<>().syncHandler(display)
+            .fullWidth()
+            .coverChildrenHeight(0);
     }
 
     @Override

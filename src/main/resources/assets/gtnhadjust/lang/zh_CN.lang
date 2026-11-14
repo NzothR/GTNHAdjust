@@ -95,3 +95,9 @@ gtnhadjust.proxy.locator_pool=配方池：%s
 gtnhadjust.proxy.locator_locked=运行模式：定位器库存已锁定
 gtnhadjust.proxy.locator_overflow=超出当前配置容量：仅允许取出
 GT5U.gui.text.recipe_result.gtnhadjust_proxy_missing_map=样板没有记录配方池，拒绝执行
+
+gtnhadjust.proxy.status.pattern_failure=样板%s(产物%s) %s
+gtnhadjust.proxy.status.source_failure=样板%s(产物%s) 所需的结构 %s %s
+gtnhadjust.proxy.status.unknown_output=未知产物
+gtnhadjust.proxy.status.unformed=未成型
+GT5U.gui.text.recipe_result.gtnhadjust_proxy_waiting_recipe=缺少原料或没有输入、产物均匹配的配方
