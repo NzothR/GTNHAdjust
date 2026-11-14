@@ -38,6 +38,7 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     private final ProxyFactory controller;
     private ICraftingPatternDetails pattern;
     private RecipeMap<?> patternRecipeMap;
+    private CheckRecipeResult patternFailure;
     private IDualInputInventoryWithPattern traceInventory;
     private String tracePattern;
     private int wirelessDuration;
@@ -56,11 +57,21 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
         tracePattern = null;
         pattern = null;
         patternRecipeMap = null;
-        if (inventory instanceof RecipeMapPatternInventory mapped && mapped.getRecipeMapName() != null) {
-            RecipeMap<?> requested = PatternRecipeMap.resolve(mapped.getRecipeMapName());
-            if (requested == null || !controller.isRecipeMapUnlocked(requested)) return false;
-            patternRecipeMap = requested;
+        patternFailure = null;
+        if (!(inventory instanceof RecipeMapPatternInventory mapped) || mapped.getRecipeMapName() == null
+            || mapped.getRecipeMapName()
+                .isEmpty()) {
+            patternFailure = gregtech.api.recipe.check.SimpleCheckRecipeResult
+                .ofFailure("gtnhadjust_proxy_missing_map");
+            return true;
         }
+        RecipeMap<?> requested = PatternRecipeMap.resolve(mapped.getRecipeMapName());
+        if (requested == null || !controller.isRecipeMapUnlocked(requested)) {
+            patternFailure = gregtech.api.recipe.check.SimpleCheckRecipeResult
+                .ofFailure("gtnhadjust_proxy_missing_locator");
+            return true;
+        }
+        patternRecipeMap = requested;
         pattern = inventory instanceof SuperMTEHatchCraftingInputME.PatternSlot<?>slot ? slot.getPatternDetails()
             : inventory instanceof MTEHatchCraftingInputME.PatternSlot<?>slot ? slot.getPatternDetails() : null;
         traceInventory = inventory;
@@ -74,10 +85,13 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     @Nonnull
     protected CheckRecipeResult processRecipe() {
         try {
+            if (patternFailure != null) return patternFailure;
+            if (pattern == null || patternRecipeMap == null) return CheckRecipeResultRegistry.NO_RECIPE;
             return super.processRecipe();
         } finally {
             pattern = null;
             patternRecipeMap = null;
+            patternFailure = null;
             resetPatternInventory();
             controller.setProcessingRecipeMap(null);
         }
@@ -86,7 +100,7 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     @Override
     @Nonnull
     protected Stream<GTRecipe> findRecipeMatches(@Nullable RecipeMap<?> selected) {
-        RecipeMap<?> target = patternRecipeMap == null ? selected : patternRecipeMap;
+        RecipeMap<?> target = patternRecipeMap;
         if (ProxyFactoryEssentia.requiresEssentiaCell(target) && !controller.hasCreativeEssentiaCell())
             return Stream.empty();
         ItemStack[] lookupItems = ProxyFactoryEssentia.requiresEssentiaCell(target) && inputItems != null
@@ -213,18 +227,7 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     @Override
     @Nonnull
     protected CheckRecipeResult validateRecipe(@Nonnull GTRecipe recipe) {
-        // Also guard the native single-recipe-lock path, which bypasses findRecipeMatches.
-        if (isRecipeLocked && recipeLockableMachine != null && recipeLockableMachine.getSingleRecipeCheck() != null) {
-            RecipeMap<?> requested = patternRecipeMap == null ? controller.getRecipeMap() : patternRecipeMap;
-            if (requested != recipeLockableMachine.getSingleRecipeCheck()
-                .getRecipeMap()) {
-                return CheckRecipeResultRegistry.NO_RECIPE;
-            }
-            controller.setProcessingRecipeMap(
-                recipeLockableMachine.getSingleRecipeCheck()
-                    .getRecipeMap());
-        }
-        RecipeMap<?> current = patternRecipeMap == null ? controller.getRecipeMap() : patternRecipeMap;
+        RecipeMap<?> current = patternRecipeMap;
         if (ProxyFactoryEssentia.requiresEssentiaCell(current) && !controller.hasCreativeEssentiaCell())
             return CheckRecipeResultRegistry.NO_RECIPE;
         if (!matchesPatternOutputs(recipe) || !consumesPatternInputs(recipe, current))

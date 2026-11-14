@@ -38,6 +38,16 @@ public final class MachineLocatorRecord {
         return controller.copy();
     }
 
+    /** Compare recorded facts, ignoring unrelated tags on the locator item itself. */
+    public boolean sameRecord(MachineLocatorRecord other) {
+        return dimension == other.dimension && x == other.x
+            && y == other.y
+            && z == other.z
+            && machineName.equals(other.machineName)
+            && controller.isItemEqual(other.controller)
+            && ItemStack.areItemStackTagsEqual(controller, other.controller);
+    }
+
     /** Match item registry identity, metadata, item NBT and MTE name, while ignoring live machine state. */
     public boolean matches(IMetaTileEntity machine) {
         ItemStack actual = machine.getStackForm(1);

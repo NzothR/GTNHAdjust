@@ -817,7 +817,7 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
     }
 
     @Override
-    public final boolean supportsSingleRecipeLocking() {
+    public boolean supportsSingleRecipeLocking() {
         return true;
     }
 
