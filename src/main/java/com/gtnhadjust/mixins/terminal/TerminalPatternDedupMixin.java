@@ -13,13 +13,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.gtnhadjust.terminal.PatternDuplicates;
 import com.gtnhadjust.terminal.TerminalNotifications;
-import com.xyp.gtneverreset.common.gui.container.ContainerQuickEncodingTerminal;
+import com.xyp.gtneverreset.common.gui.container.QuickEncodingTerminalContainer;
 import com.xyp.gtneverreset.common.packet.InterfacePatternTarget;
 
 import appeng.container.slot.SlotRestrictedInput;
 import appeng.helpers.InventoryAction;
 
-@Mixin(targets = "com.xyp.gtneverreset.common.gui.container.ContainerQuickEncodingTerminal", remap = false)
+@Mixin(targets = "com.xyp.gtneverreset.common.gui.container.QuickEncodingTerminalContainer", remap = false)
 public abstract class TerminalPatternDedupMixin {
 
     @Shadow
@@ -34,7 +34,7 @@ public abstract class TerminalPatternDedupMixin {
     @Inject(method = "performInterfacePatternAction", at = @At("HEAD"), cancellable = true, remap = false)
     private void gtnhadjust$checkManual(InterfacePatternTarget target, InventoryAction action, CallbackInfo ci) {
         if (action != InventoryAction.PICKUP_OR_SET_DOWN || target == null) return;
-        ContainerQuickEncodingTerminal terminal = (ContainerQuickEncodingTerminal) (Object) this;
+        QuickEncodingTerminalContainer terminal = (QuickEncodingTerminalContainer) (Object) this;
         EntityPlayer player = terminal.getPlayerInv().player;
         ItemStack held = terminal.getPlayerInv()
             .getItemStack();
@@ -48,7 +48,7 @@ public abstract class TerminalPatternDedupMixin {
     @Inject(method = "placeEncodedPattern", at = @At("HEAD"), cancellable = true, remap = false)
     private void gtnhadjust$checkAutomatic(InterfacePatternTarget target, CallbackInfo ci) {
         if (target == null || encodedPatternSlot == null || !encodedPatternSlot.getHasStack()) return;
-        EntityPlayer player = ((ContainerQuickEncodingTerminal) (Object) this).getPlayerInv().player;
+        EntityPlayer player = ((QuickEncodingTerminalContainer) (Object) this).getPlayerInv().player;
         if (PatternDuplicates.contains(
             trackedPatterns(target.getEntryId()),
             target.getSlot(),

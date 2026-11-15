@@ -1,5 +1,8 @@
 # GTNH Adjust
 
+## GTNR 0.1.47 兼容说明
+
+本版本以 GTNH 2.9.0、GT-Never-Reset 0.1.47 和同版 GTNRLib 0.1.35 为编译适配基准；二合一终端及相关 Mixin 已适配上游更名。客户端和服务端更新到相同版本及功能开关后重启。旧版 GTNR 的终端类名不同，本版本不兼容 0.1.37 及之前的终端实现。引用源码主分支还包含 0.1.47 发布后的修改；兼容性以正式包为基准，游戏启动及操作需在游戏内验证。非机器功能与上游功能的对照见 [GTNR 功能对照](docs/gtnr-feature-audit.md)。
 ## 隐藏指定 NEI 配方页面
 
 仅在客户端隐藏 GTNL“微光嬗变”（`gtnl.recipe.shimmer`）和 GTNR“拆解机”（`gtnr.recipe.disassembler`）的 NEI 配方页面。隐藏时不注册对应池的 NEI 产物/用途展示处理器，因此通过物品配方查询、用途查询或机器/微光桶等催化剂入口都不会出现这些页面。实际配方注册、配方池内容、微光转化和拆解机运行不变，相关物品及其他页面也保留。
@@ -179,9 +182,9 @@ $env:TMP = $env:TEMP
 .\gradlew.bat build
 ```
 
-构建产物位于 `build/libs/`。NEI 提示及收藏配方编译还需将客户端的 `CodeChickenCore-1.4.22.jar` 和 `ae2fc-1.5.116-gtnh.jar` 分别保存为 `ref/libs/codechickencore-instance.jar` 和 `ref/libs/ae2fc-instance.jar`。YSMU 兼容编译还需将客户端的 `gtnrlib-0.1.31.jar` 和 `ysmu-1.9.jar` 复制到 `ref/libs/` 对应文件名；它们仅供编译，不打包进模组。开发约定和本机环境见 [AGENTS.md](AGENTS.md)；参考仓库位于不提交的 `ref/`。
+构建产物位于 `build/libs/`。NEI 提示及收藏配方编译还需将客户端的 `CodeChickenCore-1.4.22.jar` 和 `ae2fc-1.5.116-gtnh.jar` 分别保存为 `ref/libs/codechickencore-instance.jar` 和 `ref/libs/ae2fc-instance.jar`。YSMU 兼容编译还需将客户端的 `gtnrlib-0.1.35.jar` 和 `ysmu-1.9.jar` 复制到 `ref/libs/` 对应文件名；它们仅供编译，不打包进模组。开发约定和本机环境见 [AGENTS.md](AGENTS.md)；参考仓库位于不提交的 `ref/`。
 
-Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅助任务使用相应的旧版 Java 工具链，并可将其下载到上述项目内的 Gradle 缓存。当前模组使用示例的 Jabel 模式生成 Java 8 字节码。CropsNH 和 GregTech 依赖通过 GTNH 2.9.0 清单解析。构建还需要将 GT-Never-Reset 0.1.37 正式包保存为不提交的 `ref/libs/gtneverreset-0.1.37.jar`；该文件的 SHA-256 为 `ce83a236d884f04edcc4df9ef854617f737394ac00653b19a9e63ab9766b7650`。
+Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅助任务使用相应的旧版 Java 工具链，并可将其下载到上述项目内的 Gradle 缓存。当前模组使用示例的 Jabel 模式生成 Java 8 字节码。CropsNH 和 GregTech 依赖通过 GTNH 2.9.0 清单解析。构建还需要将 GT-Never-Reset 0.1.47 正式包保存为不提交的 `ref/libs/gtneverreset-0.1.47.jar`。
 
 同样将实例中的 `sciencenotleisure-dev-290-fde37b9871fd-f93edbe8c425.jar` 复制为 `ref/libs/gtnl-instance.jar`；已验证文件的 SHA-256 为 `977335c74149afdbf280f15506fb59bd1b97e126acb3807be770d0e0b3374840`。
 

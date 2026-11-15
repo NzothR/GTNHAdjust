@@ -11,7 +11,7 @@ import net.minecraftforge.common.MinecraftForge;
 
 import org.lwjgl.opengl.GL11;
 
-import com.xyp.gtneverreset.client.gui.GuiQuickEncodingTerminal;
+import com.xyp.gtneverreset.client.gui.QuickEncodingTerminalGui;
 
 import codechicken.nei.recipe.GuiRecipe;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -50,7 +50,7 @@ public final class ClientNotice {
             long id = Long.parseLong(message.substring(1, nameStart));
             String fallback = message.substring(nameStart + 1, slotStart);
             GuiScreen source = screen instanceof GuiRecipe<?> ? ((GuiRecipe<?>) screen).firstGui : screen;
-            String name = source instanceof GuiQuickEncodingTerminal ? ClientTargets.displayName(source, id) : null;
+            String name = source instanceof QuickEncodingTerminalGui ? ClientTargets.displayName(source, id) : null;
             if (name == null) {
                 name = StatCollector.canTranslate(fallback) ? StatCollector.translateToLocal(fallback)
                     : StatCollector.canTranslate(fallback + ".name")
@@ -64,8 +64,8 @@ public final class ClientNotice {
     }
 
     private static boolean isTerminalScreen(GuiScreen screen) {
-        return screen instanceof GuiQuickEncodingTerminal
-            || screen instanceof GuiRecipe<?> && ((GuiRecipe<?>) screen).firstGui instanceof GuiQuickEncodingTerminal;
+        return screen instanceof QuickEncodingTerminalGui
+            || screen instanceof GuiRecipe<?> && ((GuiRecipe<?>) screen).firstGui instanceof QuickEncodingTerminalGui;
     }
 
     @SubscribeEvent

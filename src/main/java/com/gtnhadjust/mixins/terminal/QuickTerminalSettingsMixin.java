@@ -23,7 +23,7 @@ import appeng.api.config.StringOrder;
 import appeng.api.config.TerminalStyle;
 import appeng.core.AEConfig;
 
-@Mixin(targets = "com.xyp.gtneverreset.client.gui.GuiQuickEncodingTerminal$EmbeddedInterfaceTerminal", remap = false)
+@Mixin(targets = "com.xyp.gtneverreset.client.gui.QuickEncodingTerminalGui$EmbeddedInterfaceTerminal", remap = false)
 public abstract class QuickTerminalSettingsMixin {
 
     @Shadow

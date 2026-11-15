@@ -22,7 +22,7 @@ import com.gtnhadjust.terminal.PatternEncodingResult;
 import com.gtnhadjust.terminal.Reflection;
 import com.gtnhadjust.terminal.TerminalNotifications;
 import com.gtnhadjust.terminal.TransferMetadata;
-import com.xyp.gtneverreset.common.gui.container.ContainerQuickEncodingTerminal;
+import com.xyp.gtneverreset.common.gui.container.QuickEncodingTerminalContainer;
 import com.xyp.gtneverreset.common.packet.InterfacePatternTarget;
 import com.xyp.gtneverreset.common.packet.RecipeTransferPayload;
 
@@ -33,7 +33,7 @@ import appeng.container.implementations.ContainerInterfaceTerminal;
 import appeng.container.slot.SlotRestrictedInput;
 import appeng.util.Platform;
 
-@Mixin(targets = "com.xyp.gtneverreset.common.gui.container.ContainerQuickEncodingTerminal", remap = false)
+@Mixin(targets = "com.xyp.gtneverreset.common.gui.container.QuickEncodingTerminalContainer", remap = false)
 public abstract class QuickTerminalContainerMixin {
 
     @Shadow
@@ -71,7 +71,7 @@ public abstract class QuickTerminalContainerMixin {
         }
         ICraftingPatternDetails details = ((ICraftingPatternItem) pattern.getItem()).getPatternForItem(
             pattern,
-            ((ContainerQuickEncodingTerminal) (Object) this).getPlayerInv().player.worldObj);
+            ((QuickEncodingTerminalContainer) (Object) this).getPlayerInv().player.worldObj);
         if (details == null) {
             gtnhadjust$report("未自动上传：无法解析编码后的样板，样板已保留。");
             return;
@@ -107,7 +107,7 @@ public abstract class QuickTerminalContainerMixin {
                 gtnhadjust$report("未自动上传：没有找到匹配接口（" + query + "），请等待接口列表同步。");
                 return;
             }
-            if (((ContainerQuickEncodingTerminal) (Object) this).getPlayerInv()
+            if (((QuickEncodingTerminalContainer) (Object) this).getPlayerInv()
                 .getItemStack() != null) {
                 gtnhadjust$report("未自动上传：鼠标上正持有物品，请先放下；样板已保留。");
                 return;
@@ -123,7 +123,7 @@ public abstract class QuickTerminalContainerMixin {
                     inventory,
                     -1,
                     pattern,
-                    ((ContainerQuickEncodingTerminal) (Object) this).getPlayerInv().player.worldObj)) {
+                    ((QuickEncodingTerminalContainer) (Object) this).getPlayerInv().player.worldObj)) {
                     gtnhadjust$report("未自动上传：目标接口已有产物种类和 NBT 完全相同的样板；样板已保留。");
                     return;
                 }
@@ -140,7 +140,7 @@ public abstract class QuickTerminalContainerMixin {
                     if (!encodedPatternSlot.getHasStack()) {
                         interfaceDelegate.scheduleUpdate();
                         TerminalNotifications.reportUpload(
-                            ((ContainerQuickEncodingTerminal) (Object) this).getPlayerInv().player,
+                            ((QuickEncodingTerminalContainer) (Object) this).getPlayerInv().player,
                             id,
                             rawName instanceof String ? (String) rawName : "",
                             slot + 1);
@@ -161,6 +161,6 @@ public abstract class QuickTerminalContainerMixin {
 
     @Unique
     private void gtnhadjust$report(String message) {
-        TerminalNotifications.report(((ContainerQuickEncodingTerminal) (Object) this).getPlayerInv().player, message);
+        TerminalNotifications.report(((QuickEncodingTerminalContainer) (Object) this).getPlayerInv().player, message);
     }
 }

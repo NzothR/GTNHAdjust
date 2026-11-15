@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.xyp.gtneverreset.client.gui.GuiQuickEncodingTerminal;
+import com.xyp.gtneverreset.client.gui.QuickEncodingTerminalGui;
 import com.xyp.gtneverreset.compat.nei.TerminalNeiCrafting;
 
 import appeng.api.AEApi;
@@ -41,9 +41,9 @@ public abstract class NeiAlwaysShowPresenceMixin {
     public abstract List<GuiRecipeButton> getRecipeButtons();
 
     @Unique
-    private static GuiQuickEncodingTerminal gtnhadjust$terminal() {
+    private static QuickEncodingTerminalGui gtnhadjust$terminal() {
         if (Minecraft.getMinecraft().currentScreen instanceof GuiRecipe<?>recipe
-            && recipe.firstGui instanceof GuiQuickEncodingTerminal terminal) return terminal;
+            && recipe.firstGui instanceof QuickEncodingTerminalGui terminal) return terminal;
         return null;
     }
 
@@ -63,7 +63,7 @@ public abstract class NeiAlwaysShowPresenceMixin {
         at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glTranslatef(FFF)V", ordinal = 1),
         remap = false)
     private void gtnhadjust$drawPresence(int mouseX, int mouseY, CallbackInfo ci) {
-        GuiQuickEncodingTerminal terminal = gtnhadjust$terminal();
+        QuickEncodingTerminalGui terminal = gtnhadjust$terminal();
         if (terminal == null) return;
         for (GuiRecipeButton button : getRecipeButtons()) {
             if (!(button instanceof GuiOverlayButton overlay) || overlay.firstGui != terminal) continue;
@@ -80,7 +80,7 @@ public abstract class NeiAlwaysShowPresenceMixin {
     }
 
     @Unique
-    private static boolean gtnhadjust$isCraftable(GuiQuickEncodingTerminal terminal, ItemStack stack) {
+    private static boolean gtnhadjust$isCraftable(QuickEncodingTerminalGui terminal, ItemStack stack) {
         if (stack == null) return false;
         FluidStack fluid = StackInfo.isFluidDisplayItem(stack) ? StackInfo.getFluid(stack) : null;
         IAEStack<?> query = fluid == null ? AEItemStack.create(stack) : AEFluidStack.create(fluid);

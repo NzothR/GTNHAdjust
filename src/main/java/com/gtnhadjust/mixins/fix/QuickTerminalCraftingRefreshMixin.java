@@ -20,7 +20,7 @@ import appeng.helpers.InventoryAction;
 import appeng.util.Platform;
 
 /** Repeat the provider refresh outside the inventory action and its nested network notifications. */
-@Mixin(targets = "com.xyp.gtneverreset.common.gui.container.ContainerQuickEncodingTerminal", remap = false)
+@Mixin(targets = "com.xyp.gtneverreset.common.gui.container.QuickEncodingTerminalContainer", remap = false)
 public abstract class QuickTerminalCraftingRefreshMixin {
 
     @Shadow

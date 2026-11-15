@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import com.gtnhadjust.GTNHAdjust;
-import com.xyp.gtneverreset.common.gui.container.ContainerQuickEncodingTerminal;
+import com.xyp.gtneverreset.common.gui.container.QuickEncodingTerminalContainer;
 import com.xyp.gtneverreset.common.terminal.DualTerminalGuiObject;
 
 import appeng.core.sync.GuiBridge;
@@ -26,8 +26,8 @@ public abstract class GtnlQuickTerminalCraftMixin {
             target = "Lappeng/util/Platform;openGUI(Lnet/minecraft/entity/player/EntityPlayer;Lnet/minecraft/tileentity/TileEntity;Lnet/minecraftforge/common/util/ForgeDirection;Lappeng/core/sync/GuiBridge;)V"))
     private void gtnhadjust$openWithTerminalSlot(EntityPlayer player, TileEntity tile, ForgeDirection side,
         GuiBridge type) {
-        if (player.openContainer instanceof ContainerQuickEncodingTerminal) {
-            ContainerQuickEncodingTerminal container = (ContainerQuickEncodingTerminal) player.openContainer;
+        if (player.openContainer instanceof QuickEncodingTerminalContainer) {
+            QuickEncodingTerminalContainer container = (QuickEncodingTerminalContainer) player.openContainer;
             if (container.getTarget() instanceof DualTerminalGuiObject) {
                 int slot = ((DualTerminalGuiObject) container.getTarget()).getInventorySlot();
                 if (GTNHAdjust.debug)

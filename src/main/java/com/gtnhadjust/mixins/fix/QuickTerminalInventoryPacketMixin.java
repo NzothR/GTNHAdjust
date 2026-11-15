@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.gtnhadjust.GTNHAdjust;
 import com.gtnhadjust.terminal.RecipePresenceRefresh;
-import com.xyp.gtneverreset.client.gui.GuiQuickEncodingTerminal;
+import com.xyp.gtneverreset.client.gui.QuickEncodingTerminalGui;
 
 import appeng.api.storage.data.IAEStack;
 import appeng.core.sync.AppEngPacket;
@@ -35,7 +35,7 @@ public abstract class QuickTerminalInventoryPacketMixin {
     private void gtnhadjust$forwardToCoveredTerminal(INetworkInfo network, AppEngPacket packet, EntityPlayer player,
         CallbackInfo ci) {
         GuiScreen screen = Minecraft.getMinecraft().currentScreen;
-        if (!(screen instanceof GuiRecipe<?>recipe) || !(recipe.firstGui instanceof GuiQuickEncodingTerminal terminal)
+        if (!(screen instanceof GuiRecipe<?>recipe) || !(recipe.firstGui instanceof QuickEncodingTerminalGui terminal)
             || player == null
             || list == null) return;
         terminal.postUpdate(list);

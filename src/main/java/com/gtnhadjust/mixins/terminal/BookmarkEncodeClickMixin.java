@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.gtnhadjust.terminal.BookmarkQuickEncode;
-import com.xyp.gtneverreset.client.gui.GuiQuickEncodingTerminal;
+import com.xyp.gtneverreset.client.gui.QuickEncodingTerminalGui;
 
 import codechicken.nei.BookmarkPanel;
 import codechicken.nei.NEIClientUtils;
@@ -21,7 +21,7 @@ public abstract class BookmarkEncodeClickMixin {
     @Inject(method = "handleClick", at = @At("HEAD"), cancellable = true)
     private void gtnhadjust$encodeBookmark(int x, int y, int button, CallbackInfoReturnable<Boolean> cir) {
         if (button != 0 || !NEIClientUtils.altKey()
-            || !(Minecraft.getMinecraft().currentScreen instanceof GuiQuickEncodingTerminal terminal)) return;
+            || !(Minecraft.getMinecraft().currentScreen instanceof QuickEncodingTerminalGui terminal)) return;
         BookmarkPanel panel = (BookmarkPanel) (Object) this;
         BookmarksGridSlot slot = panel.getSlotMouseOver(x, y);
         if (slot == null || slot.getType() != BookmarkItemType.RESULT || slot.getRecipeId() == null) return;

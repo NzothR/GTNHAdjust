@@ -40,7 +40,7 @@ public abstract class ProxyCpuDispatchAuditMixin {
         InventoryCrafting inventory, Operation<Boolean> original) {
         boolean target = medium instanceof SuperMTEHatchCraftingInputME || medium instanceof MTEHatchCraftingInputME;
         long batch = inventory instanceof LargeInventoryCrafting
-            ? ((LargeInventoryCrafting) inventory).getAssemblerSize()
+            ? ((LargeInventoryCrafting) inventory).gtnr$getAssemblerSize()
             : 1;
         List<String> materials = new ArrayList<>();
         if (target && inventory instanceof MEInventoryCrafting) {

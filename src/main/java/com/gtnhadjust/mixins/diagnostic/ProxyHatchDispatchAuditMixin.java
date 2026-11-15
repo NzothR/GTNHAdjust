@@ -33,7 +33,7 @@ public abstract class ProxyHatchDispatchAuditMixin {
         if (cpu == null) return;
         ICraftingLink link = cpu.getLastCraftingLink();
         long batch = inventory instanceof LargeInventoryCrafting
-            ? ((LargeInventoryCrafting) inventory).getAssemblerSize()
+            ? ((LargeInventoryCrafting) inventory).gtnr$getAssemblerSize()
             : 1;
         String owner = "none";
         if (cpu instanceof QuantumCraftingCpuCluster) {

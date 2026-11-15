@@ -10,7 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.gtnhadjust.GTNHAdjust;
-import com.xyp.gtneverreset.client.gui.GuiQuickEncodingTerminal;
+import com.xyp.gtneverreset.client.gui.QuickEncodingTerminalGui;
 
 import appeng.api.storage.data.IAEStack;
 import appeng.api.storage.data.IItemList;
@@ -41,9 +41,9 @@ public final class SmartIngredients {
 
     public static int begin(GuiContainer gui, IRecipeHandler handler, int index) {
         ACTIVE.remove();
-        if (!(gui instanceof GuiQuickEncodingTerminal)) return index;
+        if (!(gui instanceof QuickEncodingTerminalGui)) return index;
         try {
-            Context context = new Context((GuiQuickEncodingTerminal) gui);
+            Context context = new Context((QuickEncodingTerminalGui) gui);
             if (hasFullRecipe(handler, index, context.bookmarks)) return index;
             ACTIVE.set(context);
             int chosen = chooseRecipe(handler, index, context);
@@ -236,7 +236,7 @@ public final class SmartIngredients {
         final IItemList<IAEStack<?>> network;
 
         @SuppressWarnings("unchecked")
-        Context(GuiQuickEncodingTerminal terminal) throws ReflectiveOperationException {
+        Context(QuickEncodingTerminalGui terminal) throws ReflectiveOperationException {
             bookmarks = new ArrayList<>(
                 (List<BookmarkItem>) Reflection.field(ItemPanels.bookmarkPanel.getGrid(), "bookmarkItems"));
             Object repo = Reflection.field(terminal, "repo");

@@ -11,7 +11,7 @@ import com.gtnhadjust.terminal.Reflection;
 import com.gtnhadjust.terminal.TransferMetadata;
 import com.xyp.gtneverreset.common.packet.RecipeTransferPayload;
 
-@Mixin(targets = "com.xyp.gtneverreset.client.gui.GuiQuickEncodingTerminal", remap = false)
+@Mixin(targets = "com.xyp.gtneverreset.client.gui.QuickEncodingTerminalGui", remap = false)
 public abstract class QuickTerminalGuiMixin {
 
     @Shadow

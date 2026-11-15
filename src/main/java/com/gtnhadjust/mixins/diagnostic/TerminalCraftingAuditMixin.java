@@ -15,7 +15,7 @@ import com.xyp.gtneverreset.common.packet.InterfacePatternTarget;
 import appeng.helpers.InventoryAction;
 import appeng.util.Platform;
 
-@Mixin(targets = "com.xyp.gtneverreset.common.gui.container.ContainerQuickEncodingTerminal", remap = false)
+@Mixin(targets = "com.xyp.gtneverreset.common.gui.container.QuickEncodingTerminalContainer", remap = false)
 public abstract class TerminalCraftingAuditMixin {
 
     @Shadow

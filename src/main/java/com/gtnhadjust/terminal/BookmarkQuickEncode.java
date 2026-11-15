@@ -14,7 +14,7 @@ import com.glodblock.github.common.item.ItemFluidDrop;
 import com.glodblock.github.common.item.ItemFluidPacket;
 import com.glodblock.github.util.Util;
 import com.gtnhadjust.GTNHAdjust;
-import com.xyp.gtneverreset.client.gui.GuiQuickEncodingTerminal;
+import com.xyp.gtneverreset.client.gui.QuickEncodingTerminalGui;
 import com.xyp.gtneverreset.common.me.PatternRecipeMap;
 import com.xyp.gtneverreset.common.packet.RecipeTransferPayload;
 import com.xyp.gtneverreset.common.terminal.DualTerminalGuiObject;
@@ -44,7 +44,7 @@ public final class BookmarkQuickEncode {
 
     private BookmarkQuickEncode() {}
 
-    public static void encode(GuiQuickEncodingTerminal terminal, BookmarkPanel panel, BookmarkItem clicked) {
+    public static void encode(QuickEncodingTerminalGui terminal, BookmarkPanel panel, BookmarkItem clicked) {
         try {
             List<BookmarkItem> inputs = new ArrayList<>(), outputs = new ArrayList<>();
             BookmarkGrid grid = panel.getGrid();

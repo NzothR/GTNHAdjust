@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL11;
 import com.github.vfyjxf.nee.utils.GuiUtils;
 import com.github.vfyjxf.nee.utils.Ingredient;
 import com.github.vfyjxf.nee.utils.IngredientTracker;
-import com.xyp.gtneverreset.client.gui.GuiQuickEncodingTerminal;
+import com.xyp.gtneverreset.client.gui.QuickEncodingTerminalGui;
 
 import appeng.api.AEApi;
 import appeng.api.storage.data.IAEItemStack;
@@ -30,7 +30,7 @@ public final class OverlayIngredientTooltip {
 
     private OverlayIngredientTooltip() {}
 
-    public static void append(GuiOverlayButton button, GuiQuickEncodingTerminal terminal, List<String> tooltip) {
+    public static void append(GuiOverlayButton button, QuickEncodingTerminalGui terminal, List<String> tooltip) {
         IngredientTracker tracker = new IngredientTracker(
             terminal,
             button.handlerRef.handler,
