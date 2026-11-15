@@ -12,12 +12,12 @@ public class RecipeListSnapshotTest {
 
     @Test
     public void removesMatchingRecipesAndRestoresOriginalOrder() {
-        List<String> recipes = new ArrayList<>(Arrays.asList("other-a", "uhv", "other-b", "umv", "other-c"));
+        List<String> recipes = new ArrayList<>(Arrays.asList("other-a", "uhv", "other-b", "uxv", "other-c"));
         RecipeListSnapshot<String> snapshot = new RecipeListSnapshot<>();
-        assertEquals(2, snapshot.remove(recipes, s -> s.equals("uhv") || s.equals("umv")));
+        assertEquals(2, snapshot.remove(recipes, s -> s.equals("uhv") || s.equals("uxv")));
         assertEquals(Arrays.asList("other-a", "other-b", "other-c"), recipes);
         snapshot.restore(recipes);
-        assertEquals(Arrays.asList("other-a", "uhv", "other-b", "umv", "other-c"), recipes);
+        assertEquals(Arrays.asList("other-a", "uhv", "other-b", "uxv", "other-c"), recipes);
         snapshot.restore(recipes);
         assertEquals(5, recipes.size());
     }

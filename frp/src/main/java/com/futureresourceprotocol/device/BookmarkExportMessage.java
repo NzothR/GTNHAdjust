@@ -86,9 +86,9 @@ public final class BookmarkExportMessage implements IMessage {
         debts = new LinkedHashMap<>();
         for (int i = 0; i < count; i++) {
             String key = ByteBufUtils.readUTF8String(buf);
-            long uhv = buf.readLong(), umv = buf.readLong();
-            if (uhv < 0 || umv < 0) throw new IllegalArgumentException("Invalid FRP debt");
-            debts.put(key, new long[] { uhv, umv });
+            long uhv = buf.readLong(), uxv = buf.readLong();
+            if (uhv < 0 || uxv < 0) throw new IllegalArgumentException("Invalid FRP debt");
+            debts.put(key, new long[] { uhv, uxv });
         }
     }
 

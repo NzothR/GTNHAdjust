@@ -20,7 +20,7 @@ public final class ProtocolCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/frp status|held|allowall [on|off|toggle]|milestone uhv|milestone umv confirm";
+        return "/frp status|held|allowall [on|off|toggle]|milestone uhv|milestone uxv confirm";
     }
 
     @Override
@@ -78,7 +78,7 @@ public final class ProtocolCommand extends CommandBase {
         if (args.length == 1 && args[0].equals("held")) {
             Boolean classification = world.cachedClass(key);
             String classKey = classification == null ? "frp.value.unset"
-                : classification ? "frp.value.umv" : "frp.value.uhv";
+                : classification ? "frp.value.uxv" : "frp.value.uhv";
             say(
                 sender,
                 "frp.chat.command_held",
@@ -87,16 +87,16 @@ public final class ProtocolCommand extends CommandBase {
                 world.debt(key, true),
                 new ChatComponentTranslation(classKey));
         } else if ((args.length == 2 || args.length == 3) && args[0].equals("milestone")) {
-            boolean uhv = args[1].equals("uhv"), umv = args[1].equals("umv");
-            if (umv && (args.length != 3 || !args[2].equals("confirm"))) {
+            boolean uhv = args[1].equals("uhv"), uxv = args[1].equals("uxv");
+            if (uxv && (args.length != 3 || !args[2].equals("confirm"))) {
                 say(sender, "frp.chat.command_confirm");
                 return;
             }
-            if (!(uhv || umv) || !(uhv ? ItemList.Hull_MAX : ItemList.Hull_UMV).isStackEqual(held, false, true)) {
+            if (!(uhv || uxv) || !(uhv ? ItemList.Hull_MAX : ItemList.Hull_UXV).isStackEqual(held, false, true)) {
                 say(sender, "frp.chat.command_hull");
                 return;
             }
-            boolean ok = uhv ? world.completeUhv() : world.completeUmv();
+            boolean ok = uhv ? world.completeUhv() : world.completeUxv();
             if (ok) {
                 held.stackSize--;
                 if (held.stackSize <= 0) player.inventory.setInventorySlotContents(player.inventory.currentItem, null);

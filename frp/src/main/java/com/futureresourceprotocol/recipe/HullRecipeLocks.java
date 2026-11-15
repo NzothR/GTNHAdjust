@@ -21,7 +21,7 @@ import gregtech.api.util.GTRecipe;
 /** Temporarily remove exact hull outputs according to the current world's permissions. */
 public final class HullRecipeLocks {
 
-    public static final int UHV = 1, UMV = 2, UXV = 4;
+    public static final int UHV = 1, UXV = 2;
     private static final RecipeListSnapshot<IRecipe> CRAFT_REMOVED = new RecipeListSnapshot<>();
     private static final Map<RecipeMapBackend, List<GTRecipe>> GT_REMOVED = new LinkedHashMap<>();
     // Machines may retain recipe objects after the backend removes them from its lookup structures.
@@ -39,13 +39,12 @@ public final class HullRecipeLocks {
     public static int tier(ItemStack stack) {
         if (stack == null) return 0;
         if (sameItem(stack, ItemList.Hull_MAX.get(1))) return UHV;
-        if (sameItem(stack, ItemList.Hull_UMV.get(1))) return UMV;
         if (sameItem(stack, ItemList.Hull_UXV.get(1))) return UXV;
         return 0;
     }
 
     public static int snapshot(WorldProtocol world) {
-        return (world.permitsHull(9) ? 0 : UHV) | (world.permitsHull(12) ? 0 : UMV) | (world.permitsHull(13) ? 0 : UXV);
+        return (world.permitsHull(9) ? 0 : UHV) | (world.permitsHull(13) ? 0 : UXV);
     }
 
     public static int serverMask() {
@@ -57,7 +56,7 @@ public final class HullRecipeLocks {
         serverMask = snapshot(world);
         applyMask(serverMask);
         FutureResourceProtocol.LOG.info(
-            "FRP hull snapshot UHV debt={} UMV debt={} terminated={} mask={}",
+            "FRP hull snapshot UHV debt={} UXV debt={} terminated={} mask={}",
             world.stageDebt(false),
             world.stageDebt(true),
             world.isTerminated(),

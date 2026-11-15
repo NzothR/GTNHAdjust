@@ -52,8 +52,7 @@ public final class ClientHullLocks {
     public void onTooltip(ItemTooltipEvent event) {
         int tier = HullRecipeLocks.tier(event.itemStack);
         if ((tier & mask) == 0) return;
-        String key = tier == HullRecipeLocks.UXV ? "frp.tooltip.hull_final_locked" : "frp.tooltip.hull_debt_locked";
-        event.toolTip.add(EnumChatFormatting.RED + I18n.format(key));
+        event.toolTip.add(EnumChatFormatting.RED + I18n.format("frp.tooltip.hull_debt_locked"));
     }
 
     @SubscribeEvent

@@ -24,7 +24,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 public final class WorldProtocol extends WorldSavedData {
 
     private static final String NAME = "futureresourceprotocol_ledger";
-    private static final int VERSION = 1;
+    private static final int VERSION = 2;
     private final Map<String, Entry> entries = new TreeMap<>();
     private boolean uhvMilestone;
     private boolean terminated;
@@ -204,8 +204,8 @@ public final class WorldProtocol extends WorldSavedData {
         return true;
     }
 
-    public boolean canAdvance(boolean umv) {
-        return !isTerminated() && (!umv || uhvMilestone || allowAllItems());
+    public boolean canAdvance(boolean uxv) {
+        return !isTerminated() && (!uxv || uhvMilestone || allowAllItems());
     }
 
     public boolean isUhvMilestone() {
@@ -214,28 +214,28 @@ public final class WorldProtocol extends WorldSavedData {
 
     public Boolean cachedClass(String key) {
         Entry e = entries.get(key);
-        return e == null || !e.classified ? null : e.umvClass;
+        return e == null || !e.classified ? null : e.uxvClass;
     }
 
-    public long debt(String key, boolean umv) {
+    public long debt(String key, boolean uxv) {
         Entry e = entries.get(key);
-        return e == null ? 0 : (umv ? e.umvAdvanced - e.umvPaid : e.uhvAdvanced - e.uhvPaid);
+        return e == null ? 0 : (uxv ? e.uxvAdvanced - e.uxvPaid : e.uhvAdvanced - e.uhvPaid);
     }
 
-    public long stageDebt(boolean umv) {
+    public long stageDebt(boolean uxv) {
         long sum = 0;
         for (String key : entries.keySet()) {
-            long value = debt(key, umv);
+            long value = debt(key, uxv);
             if (Long.MAX_VALUE - sum < value) return Long.MAX_VALUE;
             sum += value;
         }
         return sum;
     }
 
-    public boolean canRecord(String key, boolean umv, long amount) {
-        if (key == null || amount <= 0 || !canAdvance(umv)) return false;
+    public boolean canRecord(String key, boolean uxv, long amount) {
+        if (key == null || amount <= 0 || !canAdvance(uxv)) return false;
         Entry e = entries.get(key);
-        long total = e == null ? 0 : (umv ? e.umvAdvanced : e.uhvAdvanced);
+        long total = e == null ? 0 : (uxv ? e.uxvAdvanced : e.uhvAdvanced);
         return total <= Long.MAX_VALUE - amount && (e == null || e.events < Long.MAX_VALUE);
     }
 
@@ -243,19 +243,18 @@ public final class WorldProtocol extends WorldSavedData {
     public boolean permitsHull(int tier) {
         if (invalid) return false;
         if (tier == 9) return stageDebt(false) == 0;
-        if (tier == 12) return stageDebt(false) == 0 && stageDebt(true) == 0;
-        if (tier == 13) return terminated;
+        if (tier == 13) return stageDebt(false) == 0 && stageDebt(true) == 0;
         throw new IllegalArgumentException("Unknown FRP hull tier: " + tier);
     }
 
-    public void advance(String key, boolean umv, long amount) {
-        if (!canRecord(key, umv, amount)) throw new IllegalStateException("Invalid FRP advance");
+    public void advance(String key, boolean uxv, long amount) {
+        if (!canRecord(key, uxv, amount)) throw new IllegalStateException("Invalid FRP advance");
         Entry e = entries.computeIfAbsent(key, k -> new Entry());
         if (!e.classified) {
             e.classified = true;
-            e.umvClass = umv;
+            e.uxvClass = uxv;
         }
-        if (umv) e.umvAdvanced += amount;
+        if (uxv) e.uxvAdvanced += amount;
         else e.uhvAdvanced += amount;
         e.events++;
         debtRevision++;
@@ -264,7 +263,7 @@ public final class WorldProtocol extends WorldSavedData {
         FutureResourceProtocol.debug(
             "advance key={} class={} count={} outstanding={}/{} events={}",
             key,
-            umv ? "UMV" : "UHV",
+            uxv ? "UXV" : "UHV",
             amount,
             debt(key, false),
             debt(key, true),
@@ -277,9 +276,9 @@ public final class WorldProtocol extends WorldSavedData {
         Entry e = entries.get(key);
         if (e == null) return 0;
         long first = Math.min(count, e.uhvAdvanced - e.uhvPaid);
-        long second = Math.min(count - first, e.umvAdvanced - e.umvPaid);
+        long second = Math.min(count - first, e.uxvAdvanced - e.uxvPaid);
         e.uhvPaid += first;
-        e.umvPaid += second;
+        e.uxvPaid += second;
         if (first + second > 0) {
             debtRevision++;
             markDirty();
@@ -303,12 +302,12 @@ public final class WorldProtocol extends WorldSavedData {
         return true;
     }
 
-    public boolean completeUmv() {
+    public boolean completeUxv() {
         if (invalid || terminated || !uhvMilestone || stageDebt(false) != 0 || stageDebt(true) != 0) return false;
         terminated = true;
         markDirty();
         HullRecipeLocks.refresh(this);
-        FutureResourceProtocol.debug("UMV milestone completed, protocol terminated");
+        FutureResourceProtocol.debug("UXV milestone completed, protocol terminated");
         return true;
     }
 
@@ -337,19 +336,19 @@ public final class WorldProtocol extends WorldSavedData {
             NBTTagCompound tag = list.getCompoundTagAt(i);
             Entry e = new Entry();
             e.classified = tag.getBoolean("classified");
-            e.umvClass = tag.getBoolean("umvClass");
+            e.uxvClass = tag.getBoolean("uxvClass");
             e.uhvAdvanced = tag.getLong("uhvAdvanced");
             e.uhvPaid = tag.getLong("uhvPaid");
-            e.umvAdvanced = tag.getLong("umvAdvanced");
-            e.umvPaid = tag.getLong("umvPaid");
+            e.uxvAdvanced = tag.getLong("uxvAdvanced");
+            e.uxvPaid = tag.getLong("uxvPaid");
             e.events = tag.getLong("events");
             String key = tag.getString("key");
             if (key.isEmpty() || e.uhvAdvanced < 0
                 || e.uhvPaid < 0
                 || e.uhvPaid > e.uhvAdvanced
-                || e.umvAdvanced < 0
-                || e.umvPaid < 0
-                || e.umvPaid > e.umvAdvanced
+                || e.uxvAdvanced < 0
+                || e.uxvPaid < 0
+                || e.uxvPaid > e.uxvAdvanced
                 || entries.put(key, e) != null) {
                 invalid = true;
             }
@@ -377,11 +376,11 @@ public final class WorldProtocol extends WorldSavedData {
             NBTTagCompound tag = new NBTTagCompound();
             tag.setString("key", pair.getKey());
             tag.setBoolean("classified", e.classified);
-            tag.setBoolean("umvClass", e.umvClass);
+            tag.setBoolean("uxvClass", e.uxvClass);
             tag.setLong("uhvAdvanced", e.uhvAdvanced);
             tag.setLong("uhvPaid", e.uhvPaid);
-            tag.setLong("umvAdvanced", e.umvAdvanced);
-            tag.setLong("umvPaid", e.umvPaid);
+            tag.setLong("uxvAdvanced", e.uxvAdvanced);
+            tag.setLong("uxvPaid", e.uxvPaid);
             tag.setLong("events", e.events);
             list.appendTag(tag);
         }
@@ -390,7 +389,7 @@ public final class WorldProtocol extends WorldSavedData {
 
     private static final class Entry {
 
-        boolean classified, umvClass;
-        long uhvAdvanced, uhvPaid, umvAdvanced, umvPaid, events;
+        boolean classified, uxvClass;
+        long uhvAdvanced, uhvPaid, uxvAdvanced, uxvPaid, events;
     }
 }

@@ -15,6 +15,6 @@ public final class HullLockToken extends Item {
     @Override
     public String getUnlocalizedName(ItemStack stack) {
         int meta = stack.getItemDamage();
-        return "item.frp.hull_lock_" + (meta == 0 ? "uhv" : meta == 1 ? "umv" : "final");
+        return "item.frp.hull_lock_" + (meta == 0 ? "uhv" : meta == 1 ? "uxv" : "final");
     }
 }

@@ -21,12 +21,12 @@ public class EligibilityPolicyTest {
     @Test
     public void voltageTierBoundariesIncludePracticalVoltages() {
         long uvMax = 524288L;
-        long uivMax = 33554432L;
-        assertFalse(EligibilityPolicy.isUmvClass(uvMax, uvMax));
-        assertTrue(EligibilityPolicy.isUmvClass(uvMax + 1, uvMax));
-        assertTrue(EligibilityPolicy.isUmvClass(1966080, uvMax));
-        assertFalse(EligibilityPolicy.exceedsUmvLimit(uivMax, uivMax));
-        assertTrue(EligibilityPolicy.exceedsUmvLimit(uivMax + 1, uivMax));
+        long umvMax = 134217728L;
+        assertFalse(EligibilityPolicy.isUxvClass(uvMax, uvMax));
+        assertTrue(EligibilityPolicy.isUxvClass(uvMax + 1, uvMax));
+        assertTrue(EligibilityPolicy.isUxvClass(1966080, uvMax));
+        assertFalse(EligibilityPolicy.exceedsUxvLimit(umvMax, umvMax));
+        assertTrue(EligibilityPolicy.exceedsUxvLimit(umvMax + 1, umvMax));
     }
 
 }

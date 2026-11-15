@@ -43,18 +43,18 @@ public final class AdvanceItemSource implements IItemSource {
         for (ItemStack item : world.markedItems()) {
             if (remaining <= 0) break;
             if (!predicate.test(item.copy()) || !RecipeIndex.eligible(item, world)) continue;
-            boolean umv = RecipeIndex.classify(item, world);
+            boolean uxv = RecipeIndex.classify(item, world);
             String key = WorldProtocol.key(item);
-            String reservationKey = key + (umv ? "#UMV" : "#UHV");
+            String reservationKey = key + (uxv ? "#UXV" : "#UHV");
             long reserved = simulate ? simulatedReservations.getOrDefault(reservationKey, 0L) : 0;
             int low = 0, high = remaining;
             while (low < high) {
                 int mid = low + (int) (((long) high - low + 1) / 2);
-                if (world.canRecord(key, umv, reserved + mid)) low = mid;
+                if (world.canRecord(key, uxv, reserved + mid)) low = mid;
                 else high = mid - 1;
             }
             if (low <= 0) continue;
-            if (!simulate) world.advance(key, umv, low);
+            if (!simulate) world.advance(key, uxv, low);
             else simulatedReservations.put(reservationKey, reserved + low);
             result.put(item.copy(), low);
             remaining -= low;
@@ -64,7 +64,7 @@ public final class AdvanceItemSource implements IItemSource {
                 key,
                 low,
                 simulate,
-                umv ? "UMV" : "UHV");
+                uxv ? "UXV" : "UHV");
         }
         return result;
     }

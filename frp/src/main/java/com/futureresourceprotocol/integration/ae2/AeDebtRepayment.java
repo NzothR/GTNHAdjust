@@ -88,7 +88,7 @@ public final class AeDebtRepayment {
                     if (paid > 0) items++;
                     available -= Math.min(available, actual);
                     FutureResourceProtocol.debug(
-                        "AE repayment player={} key={} requested={} extracted={} settled={} UHV={} UMV={}",
+                        "AE repayment player={} key={} requested={} extracted={} settled={} UHV={} UXV={}",
                         player.getCommandSenderName(),
                         key,
                         wanted,

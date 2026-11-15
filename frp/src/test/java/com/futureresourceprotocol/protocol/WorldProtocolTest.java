@@ -16,7 +16,6 @@ public class WorldProtocolTest {
         assertFalse(ledger.canAdvance(true));
         ledger.advance(key, false, 8);
         assertFalse(ledger.permitsHull(9));
-        assertFalse(ledger.permitsHull(12));
         assertFalse(ledger.permitsHull(13));
         assertFalse(ledger.completeUhv());
         assertEquals(5, ledger.settle(key, 5));
@@ -28,7 +27,7 @@ public class WorldProtocolTest {
         assertEquals(6, ledger.settle(key, 6));
         assertEquals(0, ledger.debt(key, false));
         assertEquals(5, ledger.debt(key, true));
-        assertFalse(ledger.completeUmv());
+        assertFalse(ledger.completeUxv());
         NBTTagCompound tag = new NBTTagCompound();
         ledger.writeToNBT(tag);
         WorldProtocol loaded = new WorldProtocol();
@@ -36,7 +35,7 @@ public class WorldProtocolTest {
         assertEquals(5, loaded.debt(key, true));
         assertEquals(Boolean.FALSE, loaded.cachedClass(key));
         assertEquals(5, loaded.settle(key, 100));
-        assertTrue(loaded.completeUmv());
+        assertTrue(loaded.completeUxv());
         assertTrue(loaded.permitsHull(13));
         assertFalse(loaded.canAdvance(false));
     }
@@ -65,28 +64,27 @@ public class WorldProtocolTest {
     }
 
     @Test
-    public void hullPermissionFollowsBothDebtClassesAndFinalMilestone() {
+    public void hullPermissionFollowsBothDebtClasses() {
         WorldProtocol ledger = new WorldProtocol();
         assertTrue(ledger.permitsHull(9));
-        assertTrue(ledger.permitsHull(12));
-        assertFalse(ledger.permitsHull(13));
+        assertTrue(ledger.permitsHull(13));
         assertTrue(ledger.completeUhv());
-        ledger.advance("example:umv@0", true, 1);
+        ledger.advance("example:uxv@0", true, 1);
         assertTrue(ledger.permitsHull(9));
-        assertFalse(ledger.permitsHull(12));
+        assertFalse(ledger.permitsHull(13));
         ledger.advance("example:uhv@0", false, 1);
         assertFalse(ledger.permitsHull(9));
         ledger.settle("example:uhv@0", 1);
-        ledger.settle("example:umv@0", 1);
-        assertTrue(ledger.permitsHull(12));
-        assertTrue(ledger.completeUmv());
+        ledger.settle("example:uxv@0", 1);
+        assertTrue(ledger.permitsHull(13));
+        assertTrue(ledger.completeUxv());
         assertTrue(ledger.permitsHull(13));
     }
 
     @Test
     public void worldMarkLimitAndPersistence() {
         NBTTagCompound tag = new NBTTagCompound();
-        tag.setInteger("version", 1);
+        tag.setInteger("version", 2);
         NBTTagList marks = new NBTTagList();
         for (int i = 0; i < WorldProtocol.MAX_MARKS; i++) {
             NBTTagCompound mark = new NBTTagCompound();
@@ -124,9 +122,9 @@ public class WorldProtocolTest {
     }
 
     @Test
-    public void bypassAllowsEarlyUmvDebtAndPersistsPerWorld() {
+    public void bypassAllowsEarlyUxvDebtAndPersistsPerWorld() {
         WorldProtocol ledger = new WorldProtocol();
-        String key = "example:umv@0";
+        String key = "example:uxv@0";
         assertFalse(ledger.canAdvance(true));
         assertTrue(ledger.setAllowAllItems(true));
         assertTrue(ledger.canRecord(key, true, 64));
@@ -148,7 +146,7 @@ public class WorldProtocolTest {
     @Test
     public void removeDebtFreeMarksRespectsSharedDebtAcrossVariants() {
         NBTTagCompound tag = new NBTTagCompound();
-        tag.setInteger("version", 1);
+        tag.setInteger("version", 2);
         NBTTagList marks = new NBTTagList();
         for (int i = 0; i < 3; i++) {
             NBTTagCompound mark = new NBTTagCompound();

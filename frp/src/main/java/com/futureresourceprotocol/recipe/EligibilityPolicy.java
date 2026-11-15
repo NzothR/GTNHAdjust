@@ -5,16 +5,16 @@ public final class EligibilityPolicy {
 
     private EligibilityPolicy() {}
 
-    public static boolean isUmvClass(long voltage, long belowUhvMax) {
+    public static boolean isUxvClass(long voltage, long belowUhvMax) {
         return voltage > belowUhvMax;
     }
 
-    public static boolean exceedsUmvLimit(long voltage, long belowUmvMax) {
-        return voltage > belowUmvMax;
+    public static boolean exceedsUxvLimit(long voltage, long belowUxvMax) {
+        return voltage > belowUxvMax;
     }
 
     public static boolean allows(boolean hasIdentity, boolean forbidden, boolean hasRecipe, boolean allowAll,
-        boolean atOrAboveUmv) {
-        return hasIdentity && !forbidden && !atOrAboveUmv && (hasRecipe || allowAll);
+        boolean atOrAboveUxv) {
+        return hasIdentity && !forbidden && !atOrAboveUxv && (hasRecipe || allowAll);
     }
 }

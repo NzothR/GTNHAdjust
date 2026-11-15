@@ -104,17 +104,17 @@ public final class TerminalMessage implements IMessage {
                 world.allowAllItems());
             if (message.action == 0 && container.marking) {
                 boolean eligible = RecipeIndex.eligible(requested, world);
-                boolean umv = eligible && RecipeIndex.classify(requested, world);
-                if (!eligible || !world.canAdvance(umv) || marked || world.markCount() >= WorldProtocol.MAX_MARKS) {
+                boolean uxv = eligible && RecipeIndex.classify(requested, world);
+                if (!eligible || !world.canAdvance(uxv) || marked || world.markCount() >= WorldProtocol.MAX_MARKS) {
                     String reason = marked ? "frp.chat.mark_duplicate"
                         : world.markCount() >= WorldProtocol.MAX_MARKS ? "frp.chat.mark_full"
                             : !eligible ? "frp.chat.mark_ineligible" : "frp.chat.mark_locked";
                     player.addChatMessage(new ChatComponentTranslation(reason));
                     FutureResourceProtocol.debug(
-                        "mark rejected eligible={} umv={} permission={} duplicate={} size={}",
+                        "mark rejected eligible={} uxv={} permission={} duplicate={} size={}",
                         eligible,
-                        umv,
-                        world.canAdvance(umv),
+                        uxv,
+                        world.canAdvance(uxv),
                         marked,
                         world.markCount());
                     return;
@@ -125,12 +125,12 @@ public final class TerminalMessage implements IMessage {
                     return;
                 }
                 world.addMark(requested);
-                FutureResourceProtocol.debug("marked {} class={} size={}", key, umv ? "UMV" : "UHV", world.markCount());
+                FutureResourceProtocol.debug("marked {} class={} size={}", key, uxv ? "UXV" : "UHV", world.markCount());
             } else if (message.action == 1 && container.marking && marked) {
                 if (!world.removeMark(requested)) {
                     player.addChatMessage(new ChatComponentTranslation("frp.chat.mark_has_debt"));
                     FutureResourceProtocol.debug(
-                        "remove mark rejected key={} UHV={} UMV={}",
+                        "remove mark rejected key={} UHV={} UXV={}",
                         key,
                         world.debt(key, false),
                         world.debt(key, true));
@@ -155,7 +155,7 @@ public final class TerminalMessage implements IMessage {
                         cursor.stackSize);
                 } else if (AdvanceInteraction.isAdvance(message.action) && !container.marking && marked) {
                     boolean eligible = RecipeIndex.eligible(requested, world);
-                    boolean umv = eligible && RecipeIndex.classify(requested, world);
+                    boolean uxv = eligible && RecipeIndex.classify(requested, world);
                     int amount = AdvanceInteraction.amount(message.action, requested.getMaxStackSize());
                     ItemStack cursor = player.inventory.getItemStack();
                     if (AdvanceInteraction.toCursor(message.action) && cursor != null) {
@@ -169,10 +169,10 @@ public final class TerminalMessage implements IMessage {
                         player.addChatMessage(new ChatComponentTranslation("frp.chat.cursor_full"));
                         return;
                     }
-                    if (!eligible || !world.canRecord(key, umv, amount)) {
+                    if (!eligible || !world.canRecord(key, uxv, amount)) {
                         player.addChatMessage(new ChatComponentTranslation("frp.chat.advance_locked"));
                         FutureResourceProtocol
-                            .debug("advance rejected eligible={} umv={} requested={}", eligible, umv, amount);
+                            .debug("advance rejected eligible={} uxv={} requested={}", eligible, uxv, amount);
                         return;
                     }
                     int delivered;
@@ -188,7 +188,7 @@ public final class TerminalMessage implements IMessage {
                         player.inventory.addItemStackToInventory(requested);
                         delivered = (int) Math.max(0, Math.min(amount, inventoryCount(player, requested) - before));
                     }
-                    if (delivered > 0) world.advance(key, umv, delivered);
+                    if (delivered > 0) world.advance(key, uxv, delivered);
                     if (AdvanceInteraction.toCursor(message.action)) player.playerNetServerHandler
                         .sendPacket(new S2FPacketSetSlot(-1, -1, player.inventory.getItemStack()));
                     FutureResourceProtocol.debug(

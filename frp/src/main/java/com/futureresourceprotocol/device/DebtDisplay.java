@@ -9,10 +9,10 @@ public final class DebtDisplay {
 
     private DebtDisplay() {}
 
-    public static BigInteger total(long uhv, long umv) {
-        if (uhv < 0 || umv < 0) throw new IllegalArgumentException("Negative debt");
+    public static BigInteger total(long uhv, long uxv) {
+        if (uhv < 0 || uxv < 0) throw new IllegalArgumentException("Negative debt");
         return BigInteger.valueOf(uhv)
-            .add(BigInteger.valueOf(umv));
+            .add(BigInteger.valueOf(uxv));
     }
 
     public static String format(BigInteger amount) {

@@ -37,7 +37,7 @@ public final class RecipeIndex {
             "allowAllItems",
             "recipes",
             false,
-            "Default for recipe and stage bypass; world command may override. UMV and higher voltage and blacklist remain forbidden. Restart to change default.");
+            "Default for recipe and stage bypass; world command may override. UXV and higher voltage and blacklist remain forbidden. Restart to change default.");
         allowed = config.getStringList(
             "additionalEligible",
             "recipes",
@@ -47,16 +47,16 @@ public final class RecipeIndex {
             "classOverrides",
             "recipes",
             new String[0],
-            "Class overrides as modid:item@meta=UHV or =UMV. Restart required; only future advances change class.");
+            "Class overrides as modid:item@meta=UHV or =UXV. Restart required; only future advances change class.");
     }
 
     private static void add(ItemStack stack, long voltage) {
-        Boolean umv = voltage > 0 ? Boolean.valueOf(EligibilityPolicy.isUmvClass(voltage, GTValues.V[8])) : null;
+        Boolean uxv = voltage > 0 ? Boolean.valueOf(EligibilityPolicy.isUxvClass(voltage, GTValues.V[8])) : null;
         String key = WorldProtocol.key(stack);
         if (key == null) return;
         if (voltage > 0) VOLTAGES.putIfAbsent(key, voltage);
-        if (!QUALIFIED.containsKey(key)) QUALIFIED.put(key, umv);
-        else if (QUALIFIED.get(key) == null && umv != null) QUALIFIED.put(key, umv);
+        if (!QUALIFIED.containsKey(key)) QUALIFIED.put(key, uxv);
+        else if (QUALIFIED.get(key) == null && uxv != null) QUALIFIED.put(key, uxv);
     }
 
     public static void rebuild() {
@@ -127,14 +127,14 @@ public final class RecipeIndex {
             }
             String stage = value.substring(equals + 1)
                 .trim();
-            if (!stage.equalsIgnoreCase("UHV") && !stage.equalsIgnoreCase("UMV")) {
+            if (!stage.equalsIgnoreCase("UHV") && !stage.equalsIgnoreCase("UXV")) {
                 FutureResourceProtocol.LOG.warn("Invalid FRP class override {}", value);
                 continue;
             }
             OVERRIDES.put(
                 value.substring(0, equals)
                     .trim(),
-                stage.equalsIgnoreCase("UMV"));
+                stage.equalsIgnoreCase("UXV"));
         }
         FutureResourceProtocol.LOG.info(
             "FRP recipe index: {} outputs, {} GT maps, {} GT recipes, {} overrides",
@@ -159,7 +159,6 @@ public final class RecipeIndex {
         return stack != null && ((FutureResourceProtocol.hullLockToken != null
             && stack.getItem() == FutureResourceProtocol.hullLockToken)
             || ItemList.Hull_MAX.isStackEqual(stack, false, true)
-            || ItemList.Hull_UMV.isStackEqual(stack, false, true)
             || ItemList.Hull_UXV.isStackEqual(stack, false, true));
     }
 
@@ -171,11 +170,11 @@ public final class RecipeIndex {
         String key = WorldProtocol.key(stack);
         Long voltage = VOLTAGES.get(key);
         boolean blocked = forbidden(stack);
-        boolean aboveLimit = voltage != null && EligibilityPolicy.exceedsUmvLimit(voltage, GTValues.V[11]);
+        boolean aboveLimit = voltage != null && EligibilityPolicy.exceedsUxvLimit(voltage, GTValues.V[12]);
         boolean allowed = EligibilityPolicy
             .allows(key != null, blocked, QUALIFIED.containsKey(key), world.allowAllItems(), aboveLimit);
         if (!allowed) FutureResourceProtocol.debug(
-            "eligibility denied key={} recipe={} voltage={} aboveUmvLimit={} blacklist={} bypass={}",
+            "eligibility denied key={} recipe={} voltage={} aboveUxvLimit={} blacklist={} bypass={}",
             key,
             QUALIFIED.containsKey(key),
             voltage,

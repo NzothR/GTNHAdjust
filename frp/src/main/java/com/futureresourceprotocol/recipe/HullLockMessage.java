@@ -28,7 +28,8 @@ public final class HullLockMessage implements IMessage {
     public void fromBytes(ByteBuf buf) {
         enabled = buf.readBoolean();
         mask = buf.readUnsignedByte();
-        if ((mask & ~7) != 0) throw new IllegalArgumentException("Invalid hull lock state");
+        if ((mask & ~(HullRecipeLocks.UHV | HullRecipeLocks.UXV)) != 0)
+            throw new IllegalArgumentException("Invalid hull lock state");
     }
 
     public static final class Handler implements IMessageHandler<HullLockMessage, IMessage> {
