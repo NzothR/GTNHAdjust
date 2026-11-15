@@ -1,6 +1,7 @@
 package com.futureresourceprotocol.recipe;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,12 +18,15 @@ import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.RecipeMapBackend;
 import gregtech.api.util.GTRecipe;
 
-/** Temporarily remove exact hull outputs according to the world-start snapshot. */
+/** Temporarily remove exact hull outputs according to the current world's permissions. */
 public final class HullRecipeLocks {
 
     public static final int UHV = 1, UMV = 2, UXV = 4;
     private static final RecipeListSnapshot<IRecipe> CRAFT_REMOVED = new RecipeListSnapshot<>();
     private static final Map<RecipeMapBackend, List<GTRecipe>> GT_REMOVED = new LinkedHashMap<>();
+    // Machines may retain recipe objects after the backend removes them from its lookup structures.
+    private static final Map<GTRecipe, Boolean> GT_ENABLED = new IdentityHashMap<>();
+    private static WorldProtocol serverWorld;
     private static int serverMask;
 
     private HullRecipeLocks() {}
@@ -49,6 +53,7 @@ public final class HullRecipeLocks {
     }
 
     public static void apply(WorldProtocol world) {
+        serverWorld = world;
         serverMask = snapshot(world);
         applyMask(serverMask);
         FutureResourceProtocol.LOG.info(
@@ -57,6 +62,22 @@ public final class HullRecipeLocks {
             world.stageDebt(true),
             world.isTerminated(),
             serverMask);
+    }
+
+    /** Update production and every connected client before a ledger mutation returns. */
+    public static void refresh(WorldProtocol world) {
+        if (world != serverWorld) return;
+        int mask = snapshot(world);
+        if (mask == serverMask) return;
+        apply(world);
+        FutureResourceProtocol.NETWORK.sendToAll(new HullLockMessage(true, serverMask));
+    }
+
+    /** Release the server ledger so another single-player world starts with its own permissions. */
+    public static void stop() {
+        serverWorld = null;
+        serverMask = 0;
+        restore();
     }
 
     private static List<IRecipe> craftingRecipes() {
@@ -112,6 +133,10 @@ public final class HullRecipeLocks {
                 }
                 if (!matched.isEmpty()) {
                     GT_REMOVED.put(backend, matched);
+                    for (GTRecipe recipe : matched) {
+                        GT_ENABLED.putIfAbsent(recipe, recipe.mEnabled);
+                        recipe.mEnabled = false;
+                    }
                     backend.removeRecipes(matched);
                     machine += matched.size();
                 }
@@ -125,6 +150,8 @@ public final class HullRecipeLocks {
 
     public static void restore() {
         CRAFT_REMOVED.restore(craftingRecipes());
+        GT_ENABLED.forEach((recipe, enabled) -> recipe.mEnabled = enabled);
+        GT_ENABLED.clear();
         int count = 0;
         for (Map.Entry<RecipeMapBackend, List<GTRecipe>> pair : GT_REMOVED.entrySet()) {
             for (GTRecipe recipe : pair.getValue()) {

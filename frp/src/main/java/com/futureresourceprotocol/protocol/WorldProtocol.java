@@ -15,6 +15,7 @@ import net.minecraft.world.WorldServer;
 
 import com.futureresourceprotocol.FutureResourceProtocol;
 import com.futureresourceprotocol.device.TerminalData;
+import com.futureresourceprotocol.recipe.HullRecipeLocks;
 import com.futureresourceprotocol.recipe.RecipeIndex;
 
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -259,6 +260,7 @@ public final class WorldProtocol extends WorldSavedData {
         e.events++;
         debtRevision++;
         markDirty();
+        HullRecipeLocks.refresh(this);
         FutureResourceProtocol.debug(
             "advance key={} class={} count={} outstanding={}/{} events={}",
             key,
@@ -281,6 +283,7 @@ public final class WorldProtocol extends WorldSavedData {
         if (first + second > 0) {
             debtRevision++;
             markDirty();
+            HullRecipeLocks.refresh(this);
         }
         FutureResourceProtocol.debug(
             "settle key={} offered={} consumed={} remaining={}/{}",
@@ -304,6 +307,7 @@ public final class WorldProtocol extends WorldSavedData {
         if (invalid || terminated || !uhvMilestone || stageDebt(false) != 0 || stageDebt(true) != 0) return false;
         terminated = true;
         markDirty();
+        HullRecipeLocks.refresh(this);
         FutureResourceProtocol.debug("UMV milestone completed, protocol terminated");
         return true;
     }

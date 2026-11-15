@@ -89,7 +89,7 @@ public class FutureResourceProtocol {
             "hullRecipeLocks",
             "features",
             true,
-            "Apply hull recipe restrictions from the world state when the server starts. Restart required.");
+            "Update hull recipe restrictions on world start and when debt or final milestone permissions change. Restart to change this option.");
         RecipeIndex.configure(config);
         if (config.hasChanged()) config.save();
         if (!enabled) {
@@ -139,7 +139,7 @@ public class FutureResourceProtocol {
 
     @Mod.EventHandler
     public void serverStopped(FMLServerStoppedEvent event) {
-        if (enabled && hullRecipeLocksEnabled) HullRecipeLocks.restore();
+        if (enabled && hullRecipeLocksEnabled) HullRecipeLocks.stop();
     }
 
     @Mod.EventHandler

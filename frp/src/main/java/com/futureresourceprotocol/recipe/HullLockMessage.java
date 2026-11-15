@@ -5,7 +5,7 @@ import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
 
-/** The recipe state applied at world start, not a live debt balance. */
+/** Server-authoritative hull permissions, sent on login and whenever the lock state changes. */
 public final class HullLockMessage implements IMessage {
 
     public boolean enabled;
