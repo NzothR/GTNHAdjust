@@ -104,3 +104,9 @@ gtnhadjust.proxy.status.source_failure=样板%s(产物%s) 所需的结构 %s %s
 gtnhadjust.proxy.status.unknown_output=未知产物
 gtnhadjust.proxy.status.unformed=未成型
 GT5U.gui.text.recipe_result.gtnhadjust_proxy_waiting_recipe=缺少原料或没有输入、产物均匹配的配方
+
+gt.blockmachines.gtnhadjust.recipe_pool_debugger.name=配方池调试主机
+gtnhadjust.debugger.type=配方池调试
+gtnhadjust.debugger.info=在主机物品上按 U 浏览所有已注册 GT 配方池及总目录
+gtnhadjust.debugger.read_only=仅供查询，无需放置或成型，不执行配方；从创造或 NEI 获取
+gtnhadjust.debugger.catalog=全部注册配方池目录

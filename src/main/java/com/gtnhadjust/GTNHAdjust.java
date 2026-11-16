@@ -8,6 +8,8 @@ import org.apache.logging.log4j.Logger;
 import com.gtnhadjust.machine.collector.SuperFragmentRecipes;
 import com.gtnhadjust.machine.collector.SuperFragmentRegistration;
 import com.gtnhadjust.machine.collector.TierDimensionItem;
+import com.gtnhadjust.machine.debug.RecipePoolCatalog;
+import com.gtnhadjust.machine.debug.RecipePoolDebugger;
 import com.gtnhadjust.machine.loot.LootSimulatorRegistration;
 import com.gtnhadjust.machine.proxy.ProxyFactoryRegistration;
 import com.gtnhadjust.machine.threadedproxy.ThreadedProxyRegistration;
@@ -54,6 +56,8 @@ public class GTNHAdjust {
     private int lootSimulatorMteId = 31992;
     private int proxyFactoryMteId = 31993;
     private int threadedProxyMteId = 31994;
+    private boolean recipePoolDebuggerEnabled;
+    private int recipePoolDebuggerMteId;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -176,6 +180,18 @@ public class GTNHAdjust {
             2048,
             32766,
             "Stable threaded joint proxy controller ID. Restart required; clients and servers must match.");
+        recipePoolDebuggerEnabled = config.getBoolean(
+            "enabled",
+            "recipePoolDebugger",
+            true,
+            "Register the read-only recipe pool debugger and NEI directory. Restart required; client and server must match.");
+        recipePoolDebuggerMteId = config.getInt(
+            "mteId",
+            "recipePoolDebugger",
+            31995,
+            2048,
+            32766,
+            "Recipe pool debugger controller ID. Restart required; client and server must match.");
         if (config.hasChanged()) config.save();
         tierDimension = new TierDimensionItem();
         GameRegistry.registerItem(tierDimension, "tier_dimension");
@@ -189,6 +205,8 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
+        if (recipePoolDebuggerEnabled && Loader.isModLoaded("gregtech"))
+            RecipePoolDebugger.register(recipePoolDebuggerMteId);
         if (FeatureConfig.get().threadedJointProxy && Loader.isModLoaded("gtneverreset")
             && Loader.isModLoaded("sciencenotleisure")
             && Loader.isModLoaded("gregtech")) ThreadedProxyRegistration.registerMachine(threadedProxyMteId);
@@ -207,6 +225,8 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void loadComplete(FMLLoadCompleteEvent event) {
+        if (recipePoolDebuggerEnabled && event.getSide()
+            .isClient() && Loader.isModLoaded("NotEnoughItems")) RecipePoolCatalog.register();
         if (FeatureConfig.get().threadedJointProxy && Loader.isModLoaded("gtneverreset")
             && Loader.isModLoaded("sciencenotleisure")
             && Loader.isModLoaded("gregtech")) ThreadedProxyRegistration.registerCrafting();

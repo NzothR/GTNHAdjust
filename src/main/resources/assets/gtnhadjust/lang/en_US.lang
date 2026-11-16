@@ -104,3 +104,9 @@ gtnhadjust.proxy.status.source_failure=Pattern %s (output %s): required structur
 gtnhadjust.proxy.status.unknown_output=unknown output
 gtnhadjust.proxy.status.unformed=not formed
 GT5U.gui.text.recipe_result.gtnhadjust_proxy_waiting_recipe=Waiting for ingredients or a recipe matching both inputs and outputs
+
+gt.blockmachines.gtnhadjust.recipe_pool_debugger.name=Recipe Pool Debugger
+gtnhadjust.debugger.type=Recipe Pool Debugging
+gtnhadjust.debugger.info=Press U on the controller to browse registered GT recipe pools and their directory
+gtnhadjust.debugger.read_only=Read-only; no placement or structure required. Obtain through creative mode or NEI
+gtnhadjust.debugger.catalog=Registered Recipe Pool Directory
