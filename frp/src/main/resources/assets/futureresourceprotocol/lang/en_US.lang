@@ -62,3 +62,7 @@ frp.button.sort_1=Sort: Quantity ascending (larger debts last); click for quanti
 frp.button.sort_2=Sort: Quantity descending (larger debts first); click for mark time ascending
 frp.button.sort_3=Sort: Mark time ascending (earlier marks last); click for mark time descending
 frp.button.sort_4=Sort: Mark time descending (earlier marks first); click for NEI order
+frp.button.bookmark_import=Import all item bookmarks from the current NEI page (excluding fluids)
+frp.chat.bookmark_import_disabled=[FRP] NEI bookmark import is disabled in the configuration.
+frp.chat.bookmark_import_empty=[FRP] The current NEI bookmark page has no importable items.
+frp.chat.bookmark_imported=[FRP] Bookmark import: %s marks added; %s duplicate, ineligible or over-capacity entries skipped.

@@ -20,6 +20,7 @@ public final class TerminalContainer extends Container {
     public static final String SESSION_TAG = "frpSession";
     public boolean marking;
     public final int heldSlot;
+    int importAdded, importSkipped;
     private final String session;
     private final InventoryPlayer inventory;
     private WorldProtocol lastWorld;

@@ -62,3 +62,7 @@ frp.button.sort_1=排序：数量正序（欠款多的在后）；点击切换�
 frp.button.sort_2=排序：数量倒序（欠款多的在前）；点击切换标记时间正序
 frp.button.sort_3=排序：标记时间正序（早标记的在后）；点击切换标记时间倒序
 frp.button.sort_4=排序：标记时间倒序（早标记的在前）；点击切换 NEI
+frp.button.bookmark_import=将当前 NEI 收藏页的全部物品导入标记（排除流体）
+frp.chat.bookmark_import_disabled=[FRP] NEI 收藏导入已在配置中关闭。
+frp.chat.bookmark_import_empty=[FRP] 当前 NEI 收藏页没有可导入的物品。
+frp.chat.bookmark_imported=[FRP] 收藏导入：新增 %s 个标记，跳过 %s 个重复、不符合条件或超出容量的条目。

@@ -43,6 +43,7 @@ import codechicken.nei.bookmark.BookmarkItem;
 import codechicken.nei.guihook.GuiContainerManager;
 import codechicken.nei.guihook.IContainerObjectHandler;
 import codechicken.nei.guihook.IContainerTooltipHandler;
+import codechicken.nei.recipe.StackInfo;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -179,7 +180,7 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
 
     private int sideButton(int x, int y) {
         int rx = x - (guiLeft - 19), ry = y - (guiTop + 3);
-        if (rx < 0 || rx >= 16 || ry < 0 || ry >= 126 || ry % 18 >= 16) return -1;
+        if (rx < 0 || rx >= 16 || ry < 0 || ry >= (container.marking ? 144 : 126) || ry % 18 >= 16) return -1;
         return ry / 18;
     }
 
@@ -194,7 +195,42 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
 
     @Override
     public boolean hideItemPanelSlot(GuiContainer gui, int x, int y, int w, int h) {
-        return gui == this && x < guiLeft - 3 && x + w > guiLeft - 19 && y < guiTop + 129 && y + h > guiTop + 3;
+        return gui == this && x < guiLeft - 3
+            && x + w > guiLeft - 19
+            && y < guiTop + (container.marking ? 147 : 129)
+            && y + h > guiTop + 3;
+    }
+
+    /** Snapshot the selected bookmark namespace, including groups beyond the visible scroll area. */
+    private void importBookmarks() {
+        if (!FutureResourceProtocol.neiBookmarkImportEnabled) {
+            mc.thePlayer.addChatMessage(new ChatComponentTranslation("frp.chat.bookmark_import_disabled"));
+            return;
+        }
+        BookmarkGrid grid = ItemPanels.bookmarkPanel.getGrid();
+        List<ItemStack> items = new ArrayList<>();
+        java.util.Set<net.minecraft.nbt.NBTTagCompound> seen = new java.util.HashSet<>();
+        for (int i = 0; i < grid.size(); i++) {
+            ItemStack item = grid.getBookmarkItem(i).itemStack;
+            if (StackInfo.getFluid(item) != null || !TerminalData.safeTag(item)) continue;
+            ItemStack copy = item.copy();
+            copy.stackSize = 1;
+            if (seen.add(copy.writeToNBT(new net.minecraft.nbt.NBTTagCompound()))) items.add(copy);
+        }
+        if (items.isEmpty()) {
+            mc.thePlayer.addChatMessage(new ChatComponentTranslation("frp.chat.bookmark_import_empty"));
+            return;
+        }
+        for (int start = 0; start < items.size(); start += BookmarkImportMessage.BATCH_SIZE) {
+            int end = Math.min(items.size(), start + BookmarkImportMessage.BATCH_SIZE);
+            FutureResourceProtocol.NETWORK.sendToServer(
+                new BookmarkImportMessage(
+                    container.windowId,
+                    marksSession,
+                    start == 0,
+                    end == items.size(),
+                    new ArrayList<>(items.subList(start, end))));
+        }
     }
 
     private List<ItemStack> visible() {
@@ -468,6 +504,11 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
             drawTexturedModalRect(x, y, 240, 240, 16, 16);
             if (i < 5) drawTexturedModalRect(x, y, (icons[i] % 16) * 16, (icons[i] / 16) * 16, 16, 16);
         }
+        if (container.marking) {
+            int x = guiLeft - 19, y = guiTop + 129;
+            drawTexturedModalRect(x, y, 240, 240, 16, 16);
+            drawTexturedModalRect(x, y, 51 % 16 * 16, 51 / 16 * 16, 16, 16);
+        }
         GL11.glPopAttrib();
         String[] labels = { new String[] { "ALL", "UHV", "UXV" }[stageFilter],
             new String[] { "NEI", "Q+", "Q-", "T+", "T-" }[sortMode] };
@@ -549,6 +590,7 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
             tooltip.add(I18n.format(container.marking ? "frp.button.to_advance" : "frp.button.to_mark"));
         else if (button == 5) tooltip.add(I18n.format("frp.button.filter_" + stageFilter));
         else if (button == 6) tooltip.add(I18n.format("frp.button.sort_" + sortMode));
+        else if (button == 7) tooltip.add(I18n.format("frp.button.bookmark_import"));
         return tooltip;
     }
 
@@ -568,13 +610,15 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
         search.mouseClicked(x, y, button);
         if (button == 0 && sideButton(x, y) >= 0) {
             int target = sideButton(x, y);
-            if ((target == 3 || target == 4) && (!marksValid || !sameOpenSession(marksSession))) {
+            if ((target == 3 || target == 4 || target == 7) && (!marksValid || !sameOpenSession(marksSession))) {
                 mc.thePlayer.addChatMessage(new ChatComponentTranslation("frp.chat.terminal_syncing"));
                 return;
             }
             if (target == 0) {
                 rememberSearch = !rememberSearch;
                 savedSearch = rememberSearch ? search.getText() : "";
+            } else if (target == 7) {
+                importBookmarks();
             } else if (target == 5 || target == 6) {
                 if (target == 5) stageFilter = (stageFilter + 1) % 3;
                 else sortMode = (sortMode + 1) % 5;

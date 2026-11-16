@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.futureresourceprotocol.device.BookmarkExportMessage;
+import com.futureresourceprotocol.device.BookmarkImportMessage;
 import com.futureresourceprotocol.device.DebtSyncMessage;
 import com.futureresourceprotocol.device.MarkSyncMessage;
 import com.futureresourceprotocol.device.PortableTerminal;
@@ -51,6 +52,7 @@ public class FutureResourceProtocol {
     public static boolean portableRepaymentEnabled;
     public static boolean aeRepaymentEnabled;
     public static boolean neiBookmarkExportEnabled;
+    public static boolean neiBookmarkImportEnabled;
     public static boolean hullRecipeLocksEnabled;
     public static SimpleNetworkWrapper NETWORK;
     public static PortableTerminal terminal;
@@ -85,6 +87,11 @@ public class FutureResourceProtocol {
             "features",
             true,
             "Allow exporting world marks to NEI bookmarks. Restart required; client and server must match.");
+        neiBookmarkImportEnabled = config.getBoolean(
+            "neiBookmarkImport",
+            "features",
+            true,
+            "Allow importing item bookmarks from the current NEI page. Restart required; client and server must match.");
         hullRecipeLocksEnabled = config.getBoolean(
             "hullRecipeLocks",
             "features",
@@ -110,6 +117,7 @@ public class FutureResourceProtocol {
         NETWORK.registerMessage(BookmarkExportMessage.Handler.class, BookmarkExportMessage.class, 4, Side.CLIENT);
         NETWORK.registerMessage(TerminalModeMessage.Handler.class, TerminalModeMessage.class, 5, Side.CLIENT);
         NETWORK.registerMessage(HullLockMessage.Handler.class, HullLockMessage.class, 6, Side.CLIENT);
+        NETWORK.registerMessage(BookmarkImportMessage.Handler.class, BookmarkImportMessage.class, 7, Side.SERVER);
         FMLCommonHandler.instance()
             .bus()
             .register(new HullLockEvents());
