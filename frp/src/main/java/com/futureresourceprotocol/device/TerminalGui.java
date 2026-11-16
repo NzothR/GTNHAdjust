@@ -1,5 +1,6 @@
 package com.futureresourceprotocol.device;
 
+import java.io.File;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,9 +16,11 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.launchwrapper.Launch;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.config.Configuration;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -79,6 +82,9 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
 
     private static boolean rememberSearch;
     private static String savedSearch = "";
+    // Client-wide view preferences survive closing terminals and restarting the game.
+    private static final Configuration VIEW_SETTINGS = new Configuration(
+        new File(Launch.minecraftHome, "config/frp-client.cfg"));
     private static final ResourceLocation AE_BUTTONS = new ResourceLocation(
         "appliedenergistics2",
         "textures/guis/states.png");
@@ -123,6 +129,20 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
         super(container);
         this.container = container;
         this.inventory = inventory;
+        stageFilter = VIEW_SETTINGS.getInt(
+            "stageFilter",
+            "terminal",
+            0,
+            0,
+            2,
+            "Debt filter: 0=All, 1=UHV, 2=UXV. Saved when changed in the terminal.");
+        sortMode = VIEW_SETTINGS.getInt(
+            "sortMode",
+            "terminal",
+            0,
+            0,
+            4,
+            "Sort: 0=NEI, 1=Quantity ascending, 2=Quantity descending, 3=Newer marks first, 4=Earlier marks first.");
         xSize = 195;
         ySize = 223;
     }
@@ -161,6 +181,15 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
         int rx = x - (guiLeft - 19), ry = y - (guiTop + 3);
         if (rx < 0 || rx >= 16 || ry < 0 || ry >= 126 || ry % 18 >= 16) return -1;
         return ry / 18;
+    }
+
+    /** Save only local view choices; world debt and item data remain server-owned. */
+    private void saveViewSettings() {
+        VIEW_SETTINGS.get("terminal", "stageFilter", 0)
+            .set(stageFilter);
+        VIEW_SETTINGS.get("terminal", "sortMode", 0)
+            .set(sortMode);
+        VIEW_SETTINGS.save();
     }
 
     @Override
@@ -549,6 +578,7 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
             } else if (target == 5 || target == 6) {
                 if (target == 5) stageFilter = (stageFilter + 1) % 3;
                 else sortMode = (sortMode + 1) % 5;
+                saveViewSettings();
                 sortedMarks = null;
                 scroll = 0;
             } else if (target == 3) {
