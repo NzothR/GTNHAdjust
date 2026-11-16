@@ -41,7 +41,7 @@ public final class ClientHullLocks {
             }
             GTMod.proxy.reloadNEICache();
             FutureResourceProtocol.debug(
-                "client hull snapshot enabled={} mask={} integrated={}",
+                "client stargate-base snapshot enabled={} mask={} integrated={}",
                 message.enabled,
                 mask,
                 mc.isIntegratedServerRunning());
@@ -50,9 +50,9 @@ public final class ClientHullLocks {
 
     @SubscribeEvent
     public void onTooltip(ItemTooltipEvent event) {
-        int tier = HullRecipeLocks.tier(event.itemStack);
+        int tier = HullRecipeLocks.targetMask(event.itemStack);
         if ((tier & mask) == 0) return;
-        event.toolTip.add(EnumChatFormatting.RED + I18n.format("frp.tooltip.hull_debt_locked"));
+        event.toolTip.add(EnumChatFormatting.RED + I18n.format("frp.tooltip.stargate_debt_locked"));
     }
 
     @SubscribeEvent
@@ -64,7 +64,7 @@ public final class ClientHullLocks {
                     HullRecipeLocks.restore();
                     remoteApplied = false;
                     GTMod.proxy.reloadNEICache();
-                    FutureResourceProtocol.debug("restored client hull recipes on disconnect");
+                    FutureResourceProtocol.debug("restored client stargate-base recipes on disconnect");
                 }
             });
     }

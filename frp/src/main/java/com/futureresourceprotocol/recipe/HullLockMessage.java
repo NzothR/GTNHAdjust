@@ -5,7 +5,7 @@ import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
 
-/** Server-authoritative hull permissions, sent on login and whenever the lock state changes. */
+/** Server-authoritative stargate-base permissions, sent on login and whenever the lock state changes. */
 public final class HullLockMessage implements IMessage {
 
     public boolean enabled;
@@ -28,8 +28,7 @@ public final class HullLockMessage implements IMessage {
     public void fromBytes(ByteBuf buf) {
         enabled = buf.readBoolean();
         mask = buf.readUnsignedByte();
-        if ((mask & ~(HullRecipeLocks.UHV | HullRecipeLocks.UXV)) != 0)
-            throw new IllegalArgumentException("Invalid hull lock state");
+        if ((mask & ~HullRecipeLocks.STARGATE) != 0) throw new IllegalArgumentException("Invalid stargate lock state");
     }
 
     public static final class Handler implements IMessageHandler<HullLockMessage, IMessage> {

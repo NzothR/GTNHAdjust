@@ -16,7 +16,6 @@ import com.futureresourceprotocol.FutureResourceProtocol;
 import com.futureresourceprotocol.protocol.WorldProtocol;
 
 import gregtech.api.enums.GTValues;
-import gregtech.api.enums.ItemList;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.util.GTRecipe;
 
@@ -37,7 +36,7 @@ public final class RecipeIndex {
             "allowAllItems",
             "recipes",
             false,
-            "Default for recipe and stage bypass; world command may override. UXV and higher voltage and blacklist remain forbidden. Restart to change default.");
+            "Default for recipe, stage and voltage-limit bypass; world command may override. Stargate bases and internal lock tokens remain forbidden. Restart to change default.");
         allowed = config.getStringList(
             "additionalEligible",
             "recipes",
@@ -157,9 +156,7 @@ public final class RecipeIndex {
 
     public static boolean forbidden(ItemStack stack) {
         return stack != null && ((FutureResourceProtocol.hullLockToken != null
-            && stack.getItem() == FutureResourceProtocol.hullLockToken)
-            || ItemList.Hull_MAX.isStackEqual(stack, false, true)
-            || ItemList.Hull_UXV.isStackEqual(stack, false, true));
+            && stack.getItem() == FutureResourceProtocol.hullLockToken) || HullRecipeLocks.isStargateBase(stack));
     }
 
     public static boolean defaultAllowAll() {

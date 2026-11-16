@@ -70,3 +70,5 @@ frp.chat.bookmark_imported=[FRP] Bookmark import: %s marks added; %s duplicate, 
 frp.chat.structure_imported=[FRP] Structure marks imported: %s added, %s existing or ineligible.
 frp.chat.structure_import_disabled=[FRP] Structure overlay marking is disabled.
 frp.chat.structure_import_empty=[FRP] This structure has no non-hatch blocks to import.
+
+frp.tooltip.stargate_debt_locked=Outstanding world debt; stargate base recipes are locked

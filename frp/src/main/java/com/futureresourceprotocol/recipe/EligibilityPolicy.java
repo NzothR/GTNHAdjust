@@ -13,8 +13,9 @@ public final class EligibilityPolicy {
         return voltage > belowUxvMax;
     }
 
+    /** Unrestricted mode bypasses recipe and voltage checks while identity and blacklist rules remain in force. */
     public static boolean allows(boolean hasIdentity, boolean forbidden, boolean hasRecipe, boolean allowAll,
         boolean atOrAboveUxv) {
-        return hasIdentity && !forbidden && !atOrAboveUxv && (hasRecipe || allowAll);
+        return hasIdentity && !forbidden && (allowAll || !atOrAboveUxv && hasRecipe);
     }
 }

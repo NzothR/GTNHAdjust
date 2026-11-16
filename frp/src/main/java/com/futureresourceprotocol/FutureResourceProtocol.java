@@ -98,7 +98,7 @@ public class FutureResourceProtocol {
             "hullRecipeLocks",
             "features",
             true,
-            "Update hull recipe restrictions on world start and when debt or final milestone permissions change. Restart to change this option.");
+            "Lock stargate-base recipes while either debt class is unpaid. The legacy hullRecipeLocks key is retained. Restart required.");
         RecipeIndex.configure(config);
         if (config.hasChanged()) config.save();
         if (!enabled) {

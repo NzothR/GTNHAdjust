@@ -16,7 +16,10 @@ public final class HullLockEvents {
         boolean enabled = FutureResourceProtocol.hullRecipeLocksEnabled;
         int mask = enabled ? HullRecipeLocks.serverMask() : 0;
         FutureResourceProtocol.NETWORK.sendTo(new HullLockMessage(enabled, mask), player);
-        FutureResourceProtocol
-            .debug("hull snapshot sent player={} enabled={} mask={}", player.getCommandSenderName(), enabled, mask);
+        FutureResourceProtocol.debug(
+            "stargate-base snapshot sent player={} enabled={} mask={}",
+            player.getCommandSenderName(),
+            enabled,
+            mask);
     }
 }

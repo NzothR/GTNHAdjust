@@ -13,16 +13,19 @@ import net.minecraft.item.crafting.IRecipe;
 import com.futureresourceprotocol.FutureResourceProtocol;
 import com.futureresourceprotocol.protocol.WorldProtocol;
 
-import gregtech.api.enums.ItemList;
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.registry.GameRegistry;
+import fox.spiteful.avaritia.crafting.ExtremeCraftingManager;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.RecipeMapBackend;
 import gregtech.api.util.GTRecipe;
 
-/** Temporarily remove exact hull outputs according to the current world's permissions. */
+/** Temporarily remove stargate-base recipes while either world debt class remains unpaid. */
 public final class HullRecipeLocks {
 
-    public static final int UHV = 1, UXV = 2;
+    public static final int STARGATE = 1;
     private static final RecipeListSnapshot<IRecipe> CRAFT_REMOVED = new RecipeListSnapshot<>();
+    private static final RecipeListSnapshot<IRecipe> EXTREME_REMOVED = new RecipeListSnapshot<>();
     private static final Map<RecipeMapBackend, List<GTRecipe>> GT_REMOVED = new LinkedHashMap<>();
     // Machines may retain recipe objects after the backend removes them from its lookup structures.
     private static final Map<GTRecipe, Boolean> GT_ENABLED = new IdentityHashMap<>();
@@ -31,20 +34,19 @@ public final class HullRecipeLocks {
 
     private HullRecipeLocks() {}
 
-    private static boolean sameItem(ItemStack stack, ItemStack target) {
-        return stack != null && target != null
-            && HullIdentity.matches(stack.getItem(), stack.getItemDamage(), target.getItem(), target.getItemDamage());
+    /** Match the GTNH 2.9.0 base block exactly, leaving other stargate components unaffected. */
+    public static boolean isStargateBase(ItemStack stack) {
+        return stack != null && stack.getItemDamage() == 0
+            && stack.getItem() == GameRegistry.findItem("SGCraft", "stargateBase");
     }
 
-    public static int tier(ItemStack stack) {
-        if (stack == null) return 0;
-        if (sameItem(stack, ItemList.Hull_MAX.get(1))) return UHV;
-        if (sameItem(stack, ItemList.Hull_UXV.get(1))) return UXV;
-        return 0;
+    public static int targetMask(ItemStack stack) {
+        return isStargateBase(stack) ? STARGATE : 0;
     }
 
+    /** Derive the lock from existing ledger fields without migrating or modifying saved world data. */
     public static int snapshot(WorldProtocol world) {
-        return (world.permitsHull(9) ? 0 : UHV) | (world.permitsHull(13) ? 0 : UXV);
+        return world.isValid() && world.stageDebt(false) == 0 && world.stageDebt(true) == 0 ? 0 : STARGATE;
     }
 
     public static int serverMask() {
@@ -56,7 +58,7 @@ public final class HullRecipeLocks {
         serverMask = snapshot(world);
         applyMask(serverMask);
         FutureResourceProtocol.LOG.info(
-            "FRP hull snapshot UHV debt={} UXV debt={} terminated={} mask={}",
+            "FRP stargate-base snapshot UHV debt={} UXV debt={} terminated={} mask={}",
             world.stageDebt(false),
             world.stageDebt(true),
             world.isTerminated(),
@@ -90,10 +92,10 @@ public final class HullRecipeLocks {
             if (recipe == null) return false;
             try {
                 ItemStack output = recipe.getRecipeOutput();
-                int tier = tier(output);
+                int tier = targetMask(output);
                 if ((tier & mask) == 0) return false;
                 FutureResourceProtocol.debug(
-                    "removing hull crafting tier={} recipe={} output={}",
+                    "removing stargate-base crafting tier={} recipe={} output={}",
                     tier,
                     recipe.getClass()
                         .getName(),
@@ -108,6 +110,11 @@ public final class HullRecipeLocks {
                 return false;
             }
         });
+        int extreme = 0;
+        if (Loader.isModLoaded("Avaritia")) extreme = EXTREME_REMOVED.remove(
+            ExtremeCraftingManager.getInstance()
+                .getRecipeList(),
+            recipe -> recipe != null && (targetMask(recipe.getRecipeOutput()) & mask) != 0);
         int machine = 0;
         for (Map.Entry<String, ? extends RecipeMap<?>> pair : RecipeMap.ALL_RECIPE_MAPS.entrySet()) {
             try {
@@ -118,11 +125,11 @@ public final class HullRecipeLocks {
                 for (GTRecipe recipe : backend.getAllRecipes()) {
                     if (recipe.mOutputs == null) continue;
                     for (ItemStack output : recipe.mOutputs) {
-                        int tier = tier(output);
+                        int tier = targetMask(output);
                         if ((tier & mask) != 0) {
                             matched.add(recipe);
                             FutureResourceProtocol.debug(
-                                "removing hull machine recipe map={} tier={} output={}",
+                                "removing stargate-base machine recipe map={} tier={} output={}",
                                 pair.getKey(),
                                 tier,
                                 WorldProtocol.key(output));
@@ -140,15 +147,23 @@ public final class HullRecipeLocks {
                     machine += matched.size();
                 }
             } catch (RuntimeException | LinkageError ex) {
-                FutureResourceProtocol.LOG.error("FRP failed to remove hull recipes from {}", pair.getKey(), ex);
+                FutureResourceProtocol.LOG
+                    .error("FRP failed to remove stargate-base recipes from {}", pair.getKey(), ex);
             }
         }
-        FutureResourceProtocol.LOG
-            .info("FRP temporarily removed hull recipes: mask={} crafting={} GT={}", mask, craft, machine);
+        FutureResourceProtocol.LOG.info(
+            "FRP temporarily removed stargate-base recipes: mask={} crafting={} extreme={} GT={}",
+            mask,
+            craft,
+            extreme,
+            machine);
     }
 
     public static void restore() {
         CRAFT_REMOVED.restore(craftingRecipes());
+        if (Loader.isModLoaded("Avaritia")) EXTREME_REMOVED.restore(
+            ExtremeCraftingManager.getInstance()
+                .getRecipeList());
         GT_ENABLED.forEach((recipe, enabled) -> recipe.mEnabled = enabled);
         GT_ENABLED.clear();
         int count = 0;
@@ -162,11 +177,11 @@ public final class HullRecipeLocks {
                         .compileRecipe(recipe);
                     count++;
                 } catch (RuntimeException | LinkageError ex) {
-                    FutureResourceProtocol.LOG.error("FRP failed to restore a hull recipe", ex);
+                    FutureResourceProtocol.LOG.error("FRP failed to restore a stargate-base recipe", ex);
                 }
             }
         }
         GT_REMOVED.clear();
-        FutureResourceProtocol.debug("restored temporarily removed GT hull recipes={}", count);
+        FutureResourceProtocol.debug("restored temporarily removed GT stargate-base recipes={}", count);
     }
 }

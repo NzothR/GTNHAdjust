@@ -8,13 +8,14 @@ import org.junit.Test;
 public class EligibilityPolicyTest {
 
     @Test
-    public void bypassPreservesBlacklistAndVoltageCeiling() {
+    public void bypassPreservesBlacklistAndIgnoresVoltageCeiling() {
         assertFalse(EligibilityPolicy.allows(true, false, false, false, false));
         assertTrue(EligibilityPolicy.allows(true, false, true, false, false));
         assertTrue(EligibilityPolicy.allows(true, false, false, true, false));
         assertFalse(EligibilityPolicy.allows(true, true, true, true, false));
         assertFalse(EligibilityPolicy.allows(false, false, true, true, false));
-        assertFalse(EligibilityPolicy.allows(true, false, true, true, true));
+        assertTrue(EligibilityPolicy.allows(true, false, true, true, true));
+        assertTrue(EligibilityPolicy.allows(true, false, false, true, true));
         assertFalse(EligibilityPolicy.allows(true, false, true, false, true));
     }
 

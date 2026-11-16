@@ -1,6 +1,7 @@
 def versions = project.extensions.getByName("elytraModpackVersion")
 dependencies {
     compileOnly(versions.gtnhdev("GT5-Unofficial") as String) { transitive = false }
+    compileOnly(versions.gtnhdev("Avaritia") as String) { transitive = false }
     compileOnly(files("../ref/libs/nei-instance.jar"))
     compileOnly(files("../ref/libs/ae2-instance.jar"))
     compileOnly(versions.gtnhdev("StructureLib") as String) { transitive = false }
