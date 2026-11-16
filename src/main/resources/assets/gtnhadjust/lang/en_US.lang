@@ -110,3 +110,8 @@ gtnhadjust.debugger.type=Recipe Pool Debugging
 gtnhadjust.debugger.info=Press U on the controller to browse registered GT recipe pools and their directory
 gtnhadjust.debugger.read_only=Read-only; no placement or structure required. Obtain through creative mode or NEI
 gtnhadjust.debugger.catalog=Registered Recipe Pool Directory
+
+gtnhadjust.bookmark.sorted=Processed %s controllers; %s unknown structures moved to a separate group
+gtnhadjust.bookmark.classified=Checked %s controllers; created %s groups for shared recipe pools
+gtnhadjust.bookmark.sort_key=Sort by structure short side, long side, height, name
+gtnhadjust.bookmark.classify_key=Group by shared recipe pool (controllers may repeat)

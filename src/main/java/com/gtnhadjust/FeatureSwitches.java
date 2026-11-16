@@ -46,6 +46,7 @@ final class FeatureSwitches {
     private static final String SOUL_VIAL = "soulVialExpandedCapture";
     private static final String STRUCTURELIB_AE_AUTOPLACE = "structureLibAeAutoPlace";
 
+    boolean bookmarkMachineGroups;
     final boolean hologramImprovements;
     final boolean gtnlQuickTerminalCraftFix;
     final boolean grandAssemblyAutoMaintenance;
@@ -118,6 +119,7 @@ final class FeatureSwitches {
 
     static FeatureSwitches load(Path file) {
         Properties defaults = new Properties();
+        defaults.setProperty("bookmarkMachineGroups", "true");
         defaults.setProperty(HOLOGRAM, "true");
         defaults.setProperty(YSMU_ARMS, "true");
         defaults.setProperty(LOOT_SIMULATOR, "true");
@@ -192,6 +194,7 @@ final class FeatureSwitches {
                 read(values, THREADED_PROXY),
                 read(values, HIDE_SHIMMER),
                 read(values, HIDE_DISASSEMBLER));
+            result.bookmarkMachineGroups = read(values, "bookmarkMachineGroups");
             LOG.info(
                 "Feature switches: lootSimulator=" + result.lootSimulator
                     + ", proxyFactory="
@@ -297,6 +300,13 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (client && bookmarkMachineGroups
+            && loadedMods.contains("NotEnoughItems")
+            && loadedMods.contains("gregtech")) {
+            mixins.add("terminal.BookmarkGridAccessor");
+            mixins.add("terminal.BookmarkMachineKeysMixin");
+            mixins.add("terminal.BookmarkStructureCaptureMixin");
+        }
         if (client && loadedMods.contains("gregtech")) {
             if (hideGtnlShimmerRecipes && loadedMods.contains("sciencenotleisure"))
                 mixins.add("nei.HideGtnlShimmerRecipesMixin");
