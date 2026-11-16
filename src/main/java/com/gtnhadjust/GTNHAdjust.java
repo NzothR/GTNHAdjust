@@ -124,7 +124,7 @@ public class GTNHAdjust {
             "blackHoleRendering",
             "collector",
             true,
-            "Render the GregTech black hole and outward decompression effects in the formed matter decompressor. Server setting; restart required.");
+            "Render the custom black hole, rotating confinement sphere and outward jets in the formed matter decompressor. Server setting; restart required.");
         collectorWirelessPower = config.getBoolean(
             "wirelessPower",
             "collector",
