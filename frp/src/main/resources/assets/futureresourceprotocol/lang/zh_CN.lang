@@ -66,3 +66,7 @@ frp.button.bookmark_import=将当前 NEI 收藏页的全部物品导入标记（
 frp.chat.bookmark_import_disabled=[FRP] NEI 收藏导入已在配置中关闭。
 frp.chat.bookmark_import_empty=[FRP] 当前 NEI 收藏页没有可导入的物品。
 frp.chat.bookmark_imported=[FRP] 收藏导入：新增 %s 个标记，跳过 %s 个重复、不符合条件或超出容量的条目。
+
+frp.chat.structure_imported=[FRP] 结构标记完成：新增 %s 项，已存在或不符合标记条件 %s 项。
+frp.chat.structure_import_disabled=[FRP] 结构覆盖标记已关闭。
+frp.chat.structure_import_empty=[FRP] 当前结构没有可导入的非舱室方块。

@@ -24,16 +24,24 @@ public final class BookmarkImportMessage implements IMessage {
     private int windowId;
     private String session;
     private boolean first, last;
+    private boolean structure;
     private List<ItemStack> items;
 
     public BookmarkImportMessage() {}
 
     public BookmarkImportMessage(int windowId, String session, boolean first, boolean last, List<ItemStack> items) {
+        this(windowId, session, first, last, items, false);
+    }
+
+    /** The source flag applies independent feature/mode rules to the same bounded mark-only transport. */
+    public BookmarkImportMessage(int windowId, String session, boolean first, boolean last, List<ItemStack> items,
+        boolean structure) {
         this.windowId = windowId;
         this.session = session;
         this.first = first;
         this.last = last;
         this.items = items;
+        this.structure = structure;
     }
 
     @Override
@@ -42,6 +50,7 @@ public final class BookmarkImportMessage implements IMessage {
         ByteBufUtils.writeUTF8String(buf, session);
         buf.writeBoolean(first);
         buf.writeBoolean(last);
+        buf.writeBoolean(structure);
         buf.writeByte(items.size());
         for (ItemStack item : items) {
             ItemStack identity = item.copy();
@@ -57,6 +66,7 @@ public final class BookmarkImportMessage implements IMessage {
         session = ByteBufUtils.readUTF8String(buf);
         first = buf.readBoolean();
         last = buf.readBoolean();
+        structure = buf.readBoolean();
         int count = buf.readUnsignedByte();
         if (count > BATCH_SIZE) throw new IllegalArgumentException("Invalid FRP bookmark import batch");
         items = new ArrayList<>();
@@ -84,8 +94,9 @@ public final class BookmarkImportMessage implements IMessage {
         private void importMarks(EntityPlayerMP player, BookmarkImportMessage message) {
             if (!(player.openContainer instanceof TerminalContainer)) return;
             TerminalContainer container = (TerminalContainer) player.openContainer;
-            if (!FutureResourceProtocol.neiBookmarkImportEnabled || !container.marking
-                || container.windowId != message.windowId
+            boolean allowed = message.structure ? FutureResourceProtocol.structureOverlayMarksEnabled
+                : FutureResourceProtocol.neiBookmarkImportEnabled && container.marking;
+            if (!allowed || container.windowId != message.windowId
                 || !container.session()
                     .equals(message.session)
                 || !container.canInteractWith(player)) return;
@@ -103,7 +114,7 @@ public final class BookmarkImportMessage implements IMessage {
             if (message.last) {
                 player.addChatMessage(
                     new ChatComponentTranslation(
-                        "frp.chat.bookmark_imported",
+                        message.structure ? "frp.chat.structure_imported" : "frp.chat.bookmark_imported",
                         container.importAdded,
                         container.importSkipped));
                 FutureResourceProtocol.debug(

@@ -53,6 +53,7 @@ public class FutureResourceProtocol {
     public static boolean aeRepaymentEnabled;
     public static boolean neiBookmarkExportEnabled;
     public static boolean neiBookmarkImportEnabled;
+    public static boolean structureOverlayMarksEnabled;
     public static boolean hullRecipeLocksEnabled;
     public static SimpleNetworkWrapper NETWORK;
     public static PortableTerminal terminal;
@@ -67,6 +68,7 @@ public class FutureResourceProtocol {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
+        structureOverlayMarksEnabled = LateMixinsLoader.structureOverlayMarksEnabled();
         Configuration config = new Configuration(event.getSuggestedConfigurationFile());
         enabled = config
             .getBoolean("enabled", "general", true, "Enable FRP. Restart required; client and server must match.");

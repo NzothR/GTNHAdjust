@@ -66,3 +66,7 @@ frp.button.bookmark_import=Import all item bookmarks from the current NEI page (
 frp.chat.bookmark_import_disabled=[FRP] NEI bookmark import is disabled in the configuration.
 frp.chat.bookmark_import_empty=[FRP] The current NEI bookmark page has no importable items.
 frp.chat.bookmark_imported=[FRP] Bookmark import: %s marks added; %s duplicate, ineligible or over-capacity entries skipped.
+
+frp.chat.structure_imported=[FRP] Structure marks imported: %s added, %s existing or ineligible.
+frp.chat.structure_import_disabled=[FRP] Structure overlay marking is disabled.
+frp.chat.structure_import_empty=[FRP] This structure has no non-hatch blocks to import.

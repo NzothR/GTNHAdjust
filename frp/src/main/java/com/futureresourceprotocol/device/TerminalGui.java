@@ -233,6 +233,41 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
         }
     }
 
+    /** Mark current structure block identities in either terminal mode; quantities never become advances. */
+    public void importStructureMarks(List<ItemStack> ingredients) {
+        if (!FutureResourceProtocol.structureOverlayMarksEnabled) {
+            mc.thePlayer.addChatMessage(new ChatComponentTranslation("frp.chat.structure_import_disabled"));
+            return;
+        }
+        if (!marksValid || !sameOpenSession(marksSession)) {
+            mc.thePlayer.addChatMessage(new ChatComponentTranslation("frp.chat.terminal_syncing"));
+            return;
+        }
+        List<ItemStack> items = new ArrayList<>();
+        java.util.Set<net.minecraft.nbt.NBTTagCompound> seen = new java.util.HashSet<>();
+        for (ItemStack item : ingredients) {
+            if (item == null || !TerminalData.safeTag(item) || StackInfo.getFluid(item) != null) continue;
+            ItemStack copy = item.copy();
+            copy.stackSize = 1;
+            if (seen.add(copy.writeToNBT(new net.minecraft.nbt.NBTTagCompound()))) items.add(copy);
+        }
+        if (items.isEmpty()) {
+            mc.thePlayer.addChatMessage(new ChatComponentTranslation("frp.chat.structure_import_empty"));
+            return;
+        }
+        for (int start = 0; start < items.size(); start += BookmarkImportMessage.BATCH_SIZE) {
+            int end = Math.min(items.size(), start + BookmarkImportMessage.BATCH_SIZE);
+            FutureResourceProtocol.NETWORK.sendToServer(
+                new BookmarkImportMessage(
+                    container.windowId,
+                    marksSession,
+                    start == 0,
+                    end == items.size(),
+                    new ArrayList<>(items.subList(start, end)),
+                    true));
+        }
+    }
+
     private List<ItemStack> visible() {
         List<ItemStack> filtered = new ArrayList<>();
         String term = search == null ? ""
