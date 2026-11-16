@@ -114,6 +114,10 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
     private String debtSession;
     private boolean debtsValid;
     private Map<String, long[]> debts;
+    private int stageFilter;
+    private int sortMode;
+    private Map<ItemStack, Long> markTimes = new IdentityHashMap<>();
+    private Map<ItemStack, Long> receivingTimes;
 
     public TerminalGui(TerminalContainer container, InventoryPlayer inventory) {
         super(container);
@@ -155,13 +159,13 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
 
     private int sideButton(int x, int y) {
         int rx = x - (guiLeft - 19), ry = y - (guiTop + 3);
-        if (rx < 0 || rx >= 16 || ry < 0 || ry >= 90 || ry % 18 >= 16) return -1;
+        if (rx < 0 || rx >= 16 || ry < 0 || ry >= 126 || ry % 18 >= 16) return -1;
         return ry / 18;
     }
 
     @Override
     public boolean hideItemPanelSlot(GuiContainer gui, int x, int y, int w, int h) {
-        return gui == this && x < guiLeft - 3 && x + w > guiLeft - 19 && y < guiTop + 93 && y + h > guiTop + 3;
+        return gui == this && x < guiLeft - 3 && x + w > guiLeft - 19 && y < guiTop + 129 && y + h > guiTop + 3;
     }
 
     private List<ItemStack> visible() {
@@ -172,6 +176,10 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
                 .trim();
         ItemFilter neiFilter = term.isEmpty() ? null : SearchField.getFilter(term);
         for (ItemStack item : sortedMarks()) {
+            if (stageFilter != 0) {
+                BigInteger amount = debt(item);
+                if (amount == null || amount.signum() == 0) continue;
+            }
             String key = WorldProtocol.key(item);
             if (term.isEmpty() || itemName(item).toLowerCase(Locale.ROOT)
                 .contains(term)
@@ -225,6 +233,8 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
         if (sortedMarks == null) {
             sortedMarks = new ArrayList<>(worldMarks);
             sortedMarks.sort((a, b) -> {
+                int selected = compareSelected(a, b);
+                if (selected != 0) return selected;
                 int byRank = Integer.compare(rank(a), rank(b));
                 return byRank != 0 ? byRank : ItemSorter.instance.compare(a, b);
             });
@@ -232,9 +242,25 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
         return sortedMarks;
     }
 
+    /** Quantity uses the selected debt class; time ascending places newer marks first. */
+    private int compareSelected(ItemStack a, ItemStack b) {
+        if (sortMode == 1 || sortMode == 2) {
+            BigInteger first = debt(a), second = debt(b);
+            if (first == null) first = BigInteger.ZERO;
+            if (second == null) second = BigInteger.ZERO;
+            return sortMode == 1 ? first.compareTo(second) : second.compareTo(first);
+        }
+        if (sortMode == 3 || sortMode == 4) {
+            long first = markTimes.get(a), second = markTimes.get(b);
+            return sortMode == 3 ? Long.compare(second, first) : Long.compare(first, second);
+        }
+        return 0;
+    }
+
     void receiveMarks(MarkSyncMessage message) {
         if (message.part == 0) {
             receivingMarks = new ArrayList<>();
+            receivingTimes = new IdentityHashMap<>();
             receivingSession = message.session;
             receivingRevision = message.revision;
             receivingParts = message.parts;
@@ -245,9 +271,12 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
             || message.parts != receivingParts
             || message.part != receivingNextPart) return;
         receivingMarks.addAll(message.items);
+        for (int i = 0; i < message.items.size(); i++) receivingTimes.put(message.items.get(i), message.times.get(i));
         receivingNextPart++;
         if (receivingNextPart == receivingParts) {
             worldMarks = receivingMarks;
+            markTimes = receivingTimes;
+            receivingTimes = null;
             receivingMarks = null;
             marksSession = message.session;
             marksValid = message.valid;
@@ -357,10 +386,10 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
     }
 
     void receiveDebts(DebtSyncMessage message) {
-        if (container.marking) return;
         debtSession = message.session;
         debtsValid = message.valid;
         debts = message.debts;
+        sortedMarks = null;
     }
 
     private BigInteger debt(ItemStack item) {
@@ -374,7 +403,8 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
                     .getString(TerminalContainer.SESSION_TAG)))
             return null;
         long[] values = debts.get(WorldProtocol.key(item));
-        return values == null ? null : DebtDisplay.total(values[0], values[1]);
+        return values == null ? null
+            : stageFilter == 0 ? DebtDisplay.total(values[0], values[1]) : BigInteger.valueOf(values[stageFilter - 1]);
     }
 
     private void send(int action, ItemStack item) {
@@ -403,13 +433,22 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
         GL11.glColor4f(1F, 1F, 1F, 1F);
         mc.getTextureManager()
             .bindTexture(AE_BUTTONS);
-        int[] icons = { rememberSearch ? 215 : 214, 50, 6, 64, 51 };
+        int[] icons = { rememberSearch ? 215 : 214, 50, 6, 64, 51, 0, 0 };
         for (int i = 0; i < icons.length; i++) {
             int x = guiLeft - 19, y = guiTop + 3 + i * 18;
             drawTexturedModalRect(x, y, 240, 240, 16, 16);
-            drawTexturedModalRect(x, y, (icons[i] % 16) * 16, (icons[i] / 16) * 16, 16, 16);
+            if (i < 5) drawTexturedModalRect(x, y, (icons[i] % 16) * 16, (icons[i] / 16) * 16, 16, 16);
         }
         GL11.glPopAttrib();
+        String[] labels = { new String[] { "ALL", "UHV", "UXV" }[stageFilter],
+            new String[] { "NEI", "Q+", "Q-", "T+", "T-" }[sortMode] };
+        for (int i = 0; i < labels.length; i++) {
+            GL11.glPushMatrix();
+            GL11.glTranslatef(guiLeft - 17, guiTop + 97 + i * 18, 0);
+            GL11.glScalef(0.65F, 0.65F, 1F);
+            fontRendererObj.drawString(labels[i], 0, 0, 0x202020);
+            GL11.glPopMatrix();
+        }
     }
 
     @Override
@@ -479,6 +518,8 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
         else if (button == 3) tooltip.add(I18n.format("frp.button.bookmark"));
         else if (button == 4)
             tooltip.add(I18n.format(container.marking ? "frp.button.to_advance" : "frp.button.to_mark"));
+        else if (button == 5) tooltip.add(I18n.format("frp.button.filter_" + stageFilter));
+        else if (button == 6) tooltip.add(I18n.format("frp.button.sort_" + sortMode));
         return tooltip;
     }
 
@@ -505,6 +546,11 @@ public final class TerminalGui extends GuiContainer implements INEIGuiHandler, I
             if (target == 0) {
                 rememberSearch = !rememberSearch;
                 savedSearch = rememberSearch ? search.getText() : "";
+            } else if (target == 5 || target == 6) {
+                if (target == 5) stageFilter = (stageFilter + 1) % 3;
+                else sortMode = (sortMode + 1) % 5;
+                sortedMarks = null;
+                scroll = 0;
             } else if (target == 3) {
                 exportRequest++;
                 exportGrid = ItemPanels.bookmarkPanel.getGrid();

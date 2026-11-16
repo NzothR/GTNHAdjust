@@ -32,6 +32,7 @@ public final class WorldProtocol extends WorldSavedData {
     private Boolean allowAllOverride;
     private long debtRevision;
     private long markRevision;
+    private long lastMarkTime;
     private NBTTagList worldMarks = new NBTTagList();
     public static final int MAX_MARKS = 900;
 
@@ -93,6 +94,11 @@ public final class WorldProtocol extends WorldSavedData {
 
     /** Invalid or missing mod items remain in world NBT and still occupy a mark slot. */
     public List<ItemStack> markedItems() {
+        return markedItems(null);
+    }
+
+    /** Return mark times alongside resolved stacks, keeping missing-mod entries out of both lists. */
+    public List<ItemStack> markedItems(List<Long> times) {
         List<ItemStack> items = new ArrayList<>();
         if (invalid) return items;
         for (int i = 0; i < worldMarks.tagCount(); i++) {
@@ -107,6 +113,7 @@ public final class WorldProtocol extends WorldSavedData {
                 (NBTTagCompound) entry.getCompoundTag("tag")
                     .copy());
             items.add(stack);
+            if (times != null) times.add(entry.getLong("markedAt"));
         }
         return items;
     }
@@ -129,8 +136,16 @@ public final class WorldProtocol extends WorldSavedData {
         if (invalid || stack == null) return false;
         NBTTagCompound target = markEntry(stack);
         if (target == null) return false;
-        for (int i = 0; i < worldMarks.tagCount(); i++) if (target.equals(worldMarks.getCompoundTagAt(i))) return true;
+        for (int i = 0; i < worldMarks.tagCount(); i++)
+            if (sameMark(target, worldMarks.getCompoundTagAt(i))) return true;
         return false;
+    }
+
+    /** Mark identity excludes the timestamp and preserves the full item NBT comparison. */
+    private static boolean sameMark(NBTTagCompound target, NBTTagCompound entry) {
+        return target.getString("item")
+            .equals(entry.getString("item")) && target.getInteger("meta") == entry.getInteger("meta")
+            && java.util.Objects.equals(target.getTag("tag"), entry.getTag("tag"));
     }
 
     public boolean addMark(ItemStack stack) {
@@ -140,6 +155,8 @@ public final class WorldProtocol extends WorldSavedData {
             || hasMark(stack)) return false;
         NBTTagCompound entry = markEntry(stack);
         if (entry == null) return false;
+        lastMarkTime = Math.max(System.currentTimeMillis(), lastMarkTime + 1);
+        entry.setLong("markedAt", lastMarkTime);
         worldMarks.appendTag(entry);
         markRevision++;
         markDirty();
@@ -155,7 +172,7 @@ public final class WorldProtocol extends WorldSavedData {
         NBTTagCompound target = markEntry(stack);
         if (target == null) return false;
         for (int i = 0; i < worldMarks.tagCount(); i++) {
-            if (target.equals(worldMarks.getCompoundTagAt(i))) {
+            if (sameMark(target, worldMarks.getCompoundTagAt(i))) {
                 worldMarks.removeTag(i);
                 markRevision++;
                 markDirty();
@@ -351,6 +368,23 @@ public final class WorldProtocol extends WorldSavedData {
                 || e.uxvPaid > e.uxvAdvanced
                 || entries.put(key, e) != null) {
                 invalid = true;
+            }
+        }
+        // Version 2 ledgers gain optional timestamps without changing debt or mark identity.
+        if (!invalid) {
+            long migrationTime = System.currentTimeMillis();
+            int migrated = 0;
+            for (int i = 0; i < worldMarks.tagCount(); i++) {
+                NBTTagCompound mark = worldMarks.getCompoundTagAt(i);
+                if (!mark.hasKey("markedAt", 4)) {
+                    mark.setLong("markedAt", migrationTime);
+                    migrated++;
+                }
+                lastMarkTime = Math.max(lastMarkTime, mark.getLong("markedAt"));
+            }
+            if (migrated > 0) {
+                markDirty();
+                FutureResourceProtocol.debug("assigned mark timestamps to {} legacy marks", migrated);
             }
         }
         if (invalid) FutureResourceProtocol.LOG.error("Invalid FRP ledger; protocol locked; restore a backup");

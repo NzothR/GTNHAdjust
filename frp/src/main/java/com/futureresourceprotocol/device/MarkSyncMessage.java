@@ -23,6 +23,7 @@ public final class MarkSyncMessage implements IMessage {
     public String session;
     public boolean valid;
     public List<ItemStack> items = new ArrayList<>();
+    public List<Long> times = new ArrayList<>();
 
     public MarkSyncMessage() {}
 
@@ -48,11 +49,13 @@ public final class MarkSyncMessage implements IMessage {
         buf.writeShort(total);
         buf.writeBoolean(valid);
         buf.writeByte(items.size());
-        for (ItemStack stack : items) {
+        for (int i = 0; i < items.size(); i++) {
+            ItemStack stack = items.get(i);
             GameRegistry.UniqueIdentifier id = GameRegistry.findUniqueIdentifierFor(stack.getItem());
             ByteBufUtils.writeUTF8String(buf, id.toString());
             buf.writeInt(stack.getItemDamage());
             ByteBufUtils.writeTag(buf, stack.getTagCompound());
+            buf.writeLong(times.isEmpty() ? 0 : times.get(i));
         }
     }
 
@@ -71,10 +74,12 @@ public final class MarkSyncMessage implements IMessage {
             || total > TerminalData.MAX
             || count > PER_PART) throw new IllegalArgumentException("Invalid FRP mark snapshot");
         items = new ArrayList<>();
+        times = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             String id = ByteBufUtils.readUTF8String(buf);
             int meta = buf.readInt();
             NBTTagCompound tag = ByteBufUtils.readTag(buf);
+            long time = buf.readLong();
             int colon = id.indexOf(':');
             Item item = colon > 0 && colon < id.length() - 1
                 ? GameRegistry.findItem(id.substring(0, colon), id.substring(colon + 1))
@@ -83,6 +88,7 @@ public final class MarkSyncMessage implements IMessage {
                 ItemStack stack = new ItemStack(item, 1, meta);
                 if (tag != null) stack.setTagCompound(tag);
                 items.add(stack);
+                times.add(time);
             }
         }
     }

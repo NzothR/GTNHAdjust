@@ -58,26 +58,27 @@ public final class TerminalContainer extends Container {
         if (!canInteractWith(player)) return;
         WorldProtocol world = WorldProtocol.get();
         boolean marksChanged = world != lastWorld || world.markRevision() != lastMarkRevision;
-        if (!marksChanged && (marking || world.debtRevision() == lastRevision)) return;
+        if (!marksChanged && world.debtRevision() == lastRevision) return;
         long tick = player.worldObj.getTotalWorldTime();
         if (lastSyncTick >= 0 && tick >= lastSyncTick && tick - lastSyncTick < 5) return;
-        java.util.List<ItemStack> marks = world.markedItems();
+        java.util.List<Long> times = new java.util.ArrayList<>();
+        java.util.List<ItemStack> marks = world.markedItems(times);
         if (marksChanged) {
             int parts = Math.max(1, (marks.size() + MarkSyncMessage.PER_PART - 1) / MarkSyncMessage.PER_PART);
             for (int part = 0; part < parts; part++) {
                 int start = part * MarkSyncMessage.PER_PART;
                 int end = Math.min(marks.size(), start + MarkSyncMessage.PER_PART);
-                FutureResourceProtocol.NETWORK.sendTo(
-                    new MarkSyncMessage(
-                        windowId,
-                        session,
-                        world.markRevision(),
-                        part,
-                        parts,
-                        Math.min(world.markCount(), TerminalData.MAX),
-                        world.isValid(),
-                        new java.util.ArrayList<>(marks.subList(start, end))),
-                    player);
+                MarkSyncMessage message = new MarkSyncMessage(
+                    windowId,
+                    session,
+                    world.markRevision(),
+                    part,
+                    parts,
+                    Math.min(world.markCount(), TerminalData.MAX),
+                    world.isValid(),
+                    new java.util.ArrayList<>(marks.subList(start, end)));
+                message.times = new java.util.ArrayList<>(times.subList(start, end));
+                FutureResourceProtocol.NETWORK.sendTo(message, player);
             }
             FutureResourceProtocol.debug(
                 "world marks sync player={} visible={} stored={} revision={} parts={}",
@@ -88,12 +89,12 @@ public final class TerminalContainer extends Container {
                 parts);
         }
         Map<String, long[]> snapshot = new LinkedHashMap<>();
-        if (world.isValid() && !marking) for (ItemStack item : marks) {
+        if (world.isValid()) for (ItemStack item : marks) {
             String key = WorldProtocol.key(item);
             if (key != null && !snapshot.containsKey(key))
                 snapshot.put(key, new long[] { world.debt(key, false), world.debt(key, true) });
         }
-        boolean changed = !marking && (lastDebts == null || lastWorld != world
+        boolean changed = (lastDebts == null || lastWorld != world
             || lastValid != world.isValid()
             || !sameDebts(lastDebts, snapshot)
             || marksChanged);
