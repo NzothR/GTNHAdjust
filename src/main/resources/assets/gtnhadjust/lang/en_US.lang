@@ -1,5 +1,5 @@
-gt.blockmachines.gtnhadjust.super_fragment_collector.name=Super Fragment World Collector
-gtnhadjust.recipe.super_fragment_collection=Super Fragment World Collection
+gt.blockmachines.gtnhadjust.super_fragment_collector.name=Matter Decompressor
+gtnhadjust.recipe.super_fragment_collection=Matter Decompression
 gt.blockmachines.gtnhadjust.loot_simulator.name=Loot Simulation Chamber
 gt.blockmachines.gtnhadjust.proxy_factory.name=Proxy Joint Factory
 item.gtnhadjust.machine_locator.name=Multiblock Controller Locator
@@ -56,11 +56,11 @@ gtnhadjust.recipe.super_fragment_dust=Dimension Resources: Dusts
 gtnhadjust.recipe.super_fragment_ingot=Dimension Resources: Ingots
 gtnhadjust.recipe.super_fragment_fluid=Dimension Resources: Fluids
 
-gtnhadjust.collector.mode.20=Ore collection
-gtnhadjust.collector.mode.21=Gem collection
-gtnhadjust.collector.mode.22=Dust collection
-gtnhadjust.collector.mode.23=Ingot collection
-gtnhadjust.collector.mode.24=Fluid collection
+gtnhadjust.collector.mode.20=Ore decompression
+gtnhadjust.collector.mode.21=Gem decompression
+gtnhadjust.collector.mode.22=Dust decompression
+gtnhadjust.collector.mode.23=Ingot decompression
+gtnhadjust.collector.mode.24=Fluid decompression
 gtnhadjust.collector.parallel_limit=Parallel (0 = automatic)
 gtnhadjust.collector.wireless_oc=Wireless overclock limit
 gtnhadjust.collector.wireless_mode=Wireless power mode

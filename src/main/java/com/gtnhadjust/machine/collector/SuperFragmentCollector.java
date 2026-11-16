@@ -10,6 +10,7 @@ import static gregtech.api.enums.HatchElement.OutputBus;
 import static gregtech.api.enums.HatchElement.OutputHatch;
 import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
 import static gregtech.api.util.GTStructureUtility.chainAllGlasses;
+import static gregtech.api.util.GTStructureUtility.ofFrame;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.GTValues;
-import gregtech.api.enums.Textures;
+import gregtech.api.enums.Materials;
 import gregtech.api.gui.modularui.GTUITextures;
 import gregtech.api.interfaces.IIconContainer;
 import gregtech.api.interfaces.ITexture;
@@ -76,7 +77,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     implements ISurvivalConstructable, IMTERenderer {
 
     private static final String PIECE = "main";
-    private static final short[] GOLD = { 255, 205, 75, 255 };
+    private static final short[] FIELD_BLUE = { 125, 225, 255, 255 };
     private static final String THREADS_NBT = "gtnhadjustCollectorThreads";
     private final CollectorThreadLedger threads = new CollectorThreadLedger();
     private int wirelessOverclockLimit;
@@ -668,19 +669,18 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     public IStructureDefinition<SuperFragmentCollector> getStructureDefinition() {
         if (structure == null) structure = StructureDefinition.<SuperFragmentCollector>builder()
             .addShape(PIECE, CollectorStructureShape.create())
-            .addElement('S', ofBlock(GregTechAPI.sBlockCasings2, 0))
-            .addElement('R', ofBlock(GregTechAPI.sBlockCasings2, 13))
-            .addElement('B', ofBlock(GregTechAPI.sBlockCasings2, 1))
+            .addElement('B', ofBlock(GregTechAPI.sBlockCasings10, 12))
+            .addElement('D', ofFrame(Materials.NaquadahAlloy))
             .addElement(
-                'G',
+                'A',
                 chainAllGlasses(-1, (SuperFragmentCollector t, Integer tier) -> t.glass = tier, t -> t.glass))
             .addElement(
                 'C',
                 buildHatchAdder(SuperFragmentCollector.class)
                     .atLeast(InputBus, OutputBus, InputHatch, OutputHatch, Energy.or(ExoticEnergy), Maintenance)
-                    .casingIndex(Casings.CleanStainlessSteelMachineCasing.getTextureId())
+                    .casingIndex(Casings.ExtremeDensitySpaceBendingCasing.getTextureId())
                     .hint(1)
-                    .buildAndChain(ofBlock(GregTechAPI.sBlockCasings4, 1)))
+                    .buildAndChain(ofBlock(GregTechAPI.sBlockCasings10, 11)))
             .build();
         return structure;
     }
@@ -691,7 +691,13 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
 
     @Override
     public void construct(ItemStack stack, boolean hintsOnly) {
-        buildPiece(PIECE, stack, hintsOnly, CollectorStructureShape.CONTROLLER_X, verticalOffset(), 0);
+        buildPiece(
+            PIECE,
+            stack,
+            hintsOnly,
+            CollectorStructureShape.CONTROLLER_X,
+            verticalOffset(),
+            CollectorStructureShape.CONTROLLER_Z);
     }
 
     @Override
@@ -702,7 +708,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             stack,
             CollectorStructureShape.CONTROLLER_X,
             verticalOffset(),
-            0,
+            CollectorStructureShape.CONTROLLER_Z,
             budget,
             env,
             false,
@@ -712,8 +718,12 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     @Override
     public void checkMachine(IGregTechTileEntity tile, ItemStack stack, List<StructureError> errors) {
         glass = -1;
-        if (checkPiece(PIECE, CollectorStructureShape.CONTROLLER_X, verticalOffset(), 0, errors))
-            collectTooltipStructureRequirements(errors);
+        if (checkPiece(
+            PIECE,
+            CollectorStructureShape.CONTROLLER_X,
+            verticalOffset(),
+            CollectorStructureShape.CONTROLLER_Z,
+            errors)) collectTooltipStructureRequirements(errors);
     }
 
     @Override
@@ -752,15 +762,16 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         getExtendedFacing().getWorldOffset(
             new int[] { CollectorStructureShape.BLACK_HOLE_X - CollectorStructureShape.CONTROLLER_X,
                 CollectorStructureShape.CONTROLLER_Y - CollectorStructureShape.BLACK_HOLE_Y,
-                CollectorStructureShape.BLACK_HOLE_Z },
+                CollectorStructureShape.BLACK_HOLE_Z - CollectorStructureShape.CONTROLLER_Z },
             offset);
         if (blackHoleRenderer == null) blackHoleRenderer = new CollectorBlackHoleRenderer(tile.getWorld());
-        blackHoleRenderer.render(x + offset[0], y + offset[1], z + offset[2], partialTick);
+        blackHoleRenderer.render(x + offset[0], y + offset[1], z + offset[2], partialTick, getExtendedFacing());
     }
 
     @Override
     public AxisAlignedBB getRenderBoundingBox(int x, int y, int z) {
-        return IMTERenderer.super.getRenderBoundingBox(x, y, z).expand(28, 28, 28);
+        return IMTERenderer.super.getRenderBoundingBox(x, y, z)
+            .expand(CollectorStructureShape.WIDTH, CollectorStructureShape.HEIGHT, CollectorStructureShape.DEPTH);
     }
 
     @Override
@@ -780,27 +791,18 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     @Override
     public ITexture[] getTexture(IGregTechTileEntity tile, ForgeDirection side, ForgeDirection facing, int color,
         boolean active, boolean redstone) {
-        IIconContainer icon = side == facing
-            ? (active ? BlockIcons.FragmentCollectorFrontActive : BlockIcons.FragmentCollectorFront)
-            : side == ForgeDirection.UP ? BlockIcons.FragmentCollectorTop
-                : side == ForgeDirection.DOWN ? BlockIcons.FragmentCollectorBottom
-                    : side == facing.getOpposite() ? BlockIcons.FragmentCollectorBack
-                        : BlockIcons.FragmentCollectorSide;
-        return new ITexture[] {
-            TextureFactory.of(
-                Textures.BlockIcons.MACHINECASINGS_BOTTOM[0],
-                Textures.BlockIcons.MACHINECASINGS_TOP[0],
-                Textures.BlockIcons.MACHINECASINGS_SIDE[0],
-                GOLD),
-            TextureFactory.builder()
-                .addIcon(icon)
-                .setRGBA(GOLD)
-                .build() };
+        ITexture casing = Casings.ExtremeDensitySpaceBendingCasing.getCasingTexture();
+        if (side != facing) return new ITexture[] { casing };
+        IIconContainer icon = active ? BlockIcons.FragmentCollectorFrontActive : BlockIcons.FragmentCollectorFront;
+        return new ITexture[] { casing, TextureFactory.builder()
+            .addIcon(icon)
+            .setRGBA(FIELD_BLUE)
+            .build() };
     }
 
     @Override
     public MultiblockTooltipBuilder createTooltip() {
-        return new MultiblockTooltipBuilder().addMachineType("超级碎片世界采集")
+        return new MultiblockTooltipBuilder().addMachineType("物质解压器")
             .addInfo("输入维度标记与 20–24 号电路采集对应维度资源")
             .addInfo("20 矿石、21 宝石、22 粉末、23 锭、24 流体")
             .addInfo("标记和电路不消耗；不同配方可同时运行")
@@ -814,17 +816,22 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             .addInfo("LV 电压与 HV 玻璃提供 " + GTNHAdjust.collectorBaseThreads + " 线程")
             .addInfo("电压每升一级增加 " + GTNHAdjust.collectorVoltageThreads + " 线程，玻璃每升一级增加 4 线程")
             .addInfo("HV 玻璃耗能及耗时为 100%，每升一级减少 15%，最低 1%")
-            .beginStructureBlock(28, 25, 28, true)
-            .addController("正面控制台中，离地一格")
-            .addCasing("主体及装饰", "坚固钢制、防霜与钢制管道机械方块", false)
-            .addCasing("结构与舱室", "洁净不锈钢机械方块", false)
-            .addCasing("玻璃", "同一等级的等级玻璃", false)
-            .addInputBus("1+", "洁净不锈钢机械方块", 1)
-            .addOutputBus("1+", "洁净不锈钢机械方块", 1)
-            .addInputHatch("0+", "洁净不锈钢机械方块", 1)
-            .addOutputHatch("1+", "洁净不锈钢机械方块", 1)
-            .addEnergyHatch("0+", "洁净不锈钢机械方块；无能源仓时使用无线电网", 1)
-            .addMaintenanceHatch("1+", "洁净不锈钢机械方块", 1)
+            .beginStructureBlock(
+                CollectorStructureShape.WIDTH,
+                CollectorStructureShape.HEIGHT,
+                CollectorStructureShape.DEPTH,
+                true)
+            .addController("与原版亚稳态黑洞遏制场主机位置相同，底部第六层")
+            .addCasing("最多 3671", Casings.ExtremeDensitySpaceBendingCasing.getLocalizedName(), false)
+            .addCasing("988", Casings.BackgroundRadiationAbsorbentCasing.getLocalizedName(), false)
+            .addCasing("144", "硅岩合金框架", false)
+            .addCasing("64", "同一等级的等级玻璃，替换原霍金辐射重组焦点", false)
+            .addInputBus("1+", "任意超高密度弯曲机械方块", 1)
+            .addOutputBus("1+", "任意超高密度弯曲机械方块", 1)
+            .addInputHatch("0+", "任意超高密度弯曲机械方块", 1)
+            .addOutputHatch("1+", "任意超高密度弯曲机械方块", 1)
+            .addEnergyHatch("0+", "任意超高密度弯曲机械方块；无能源仓时使用无线电网", 1)
+            .addMaintenanceHatch("1+", "任意超高密度弯曲机械方块", 1)
             .addAir("黑洞核心空间")
             .toolTipFinisher();
     }

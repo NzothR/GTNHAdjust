@@ -17,10 +17,8 @@ public final class SuperFragmentRegistration {
     public static void registerMachine(int id) {
         if (id < 0 || id >= GregTechAPI.METATILEENTITIES.length || GregTechAPI.METATILEENTITIES[id] != null)
             throw new IllegalStateException("Super fragment collector MTE ID is already in use: " + id);
-        controller = new SuperFragmentCollector(
-            id,
-            "gtnhadjust.super_fragment_collector",
-            "Super Fragment World Collector").getStackForm(1);
+        controller = new SuperFragmentCollector(id, "gtnhadjust.super_fragment_collector", "Matter Decompressor")
+            .getStackForm(1);
     }
 
     public static ItemStack controller() {
