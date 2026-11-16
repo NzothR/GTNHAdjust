@@ -62,20 +62,29 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
             : inventory instanceof MTEHatchCraftingInputME.PatternSlot<?>slot ? slot.getPatternDetails() : null;
         patternRecipeMap = null;
         patternFailure = null;
-        if (!(inventory instanceof RecipeMapPatternInventory mapped) || mapped.getRecipeMapName() == null
-            || mapped.getRecipeMapName()
-                .isEmpty()) {
+        String requestedName = inventory instanceof RecipeMapPatternInventory mapped ? mapped.getRecipeMapName() : null;
+        RecipeMap<?> requested = PatternRecipeMap.resolve(requestedName);
+        if (requested == null) requested = ProxyExtremeCrafting.resolve(controller, requestedName, pattern);
+        if (requested == null && (requestedName == null || requestedName.isEmpty())) {
             patternFailure = gregtech.api.recipe.check.SimpleCheckRecipeResult
                 .ofFailure("gtnhadjust_proxy_missing_map");
             return true;
         }
-        RecipeMap<?> requested = PatternRecipeMap.resolve(mapped.getRecipeMapName());
         if (requested == null || !controller.isRecipeMapUnlocked(requested)) {
             patternFailure = gregtech.api.recipe.check.SimpleCheckRecipeResult
                 .ofFailure("gtnhadjust_proxy_missing_locator");
             return true;
         }
+        if (ProxyExtremeCrafting.isMap(requested) && !GTNHAdjust.proxyExtremeCrafting) {
+            patternFailure = CheckRecipeResultRegistry.NO_RECIPE;
+            return true;
+        }
         patternRecipeMap = requested;
+        if (GTNHAdjust.debug && ProxyExtremeCrafting.isMap(requested)) GTNHAdjust.LOG.info(
+            "[proxy-extreme] pattern map={} inferred={} outputs={}",
+            requested.unlocalizedName,
+            requestedName == null,
+            pattern == null ? "none" : Arrays.toString(pattern.getCondensedAEOutputs()));
         tracePattern = pattern == null ? "none" : Arrays.toString(pattern.getCondensedAEOutputs());
         // Match current accumulated inputs, including virtual tools and fractional AE deliveries.
         // The native input-only cache cannot distinguish recipes with identical inputs in different maps.
@@ -149,6 +158,11 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
         RecipeMap<?> map = controller.getRecipeMap();
         double factor = ProxyRecipeDuration
             .factor(map == null ? null : map.unlocalizedName, controller.getRecipeGlassTier());
+        // TST conversion recipes are zero-EU work: voltage must not create free electrical overclocks or undertick
+        // parallels.
+        if (ProxyExtremeCrafting.isMap(map) && recipe.mEUt == 0)
+            return super.createOverclockCalculator(recipe).setDurationModifier(speedBoost * factor)
+                .setNoOverclock(true);
         if (!controller.isWirelessMode())
             return super.createOverclockCalculator(recipe).setDurationModifier(speedBoost * factor);
         planWirelessOverclocks(recipe, factor);
@@ -223,7 +237,9 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
         double reduction = controller.getOverclockTimeReduction();
         double increase = controller.getOverclockPowerIncrease();
         int overclocks = 0;
-        while (overclocks < controller.getWirelessMaxOverclocks() && time >= 2 && reduction > 1) {
+        int limit = ProxyExtremeCrafting.isMap(patternRecipeMap) && recipe.mEUt == 0 ? 0
+            : controller.getWirelessMaxOverclocks();
+        while (overclocks < limit && time >= 2 && reduction > 1) {
             double nextModifier = modifier * increase;
             if (Math.ceil(recipe.mEUt * nextModifier) > controller.availableThreadPower()) break;
             modifier = nextModifier;
@@ -320,6 +336,7 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     }
 
     private boolean matchesPatternOutputs(GTRecipe recipe) {
+        if (ProxyExtremeCrafting.isMap(patternRecipeMap)) return ProxyExtremeCrafting.matches(recipe, pattern);
         if (pattern == null) return true;
         IAEStack<?>[] outputs = pattern.getAEOutputs();
         if (outputs == null || outputs.length == 0) return false;

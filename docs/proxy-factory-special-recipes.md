@@ -11,6 +11,6 @@
 | 热解炉 `gt.recipe.pyro` | 原机器速度随线圈等级变化。 | 不使用原热解炉线圈速度，仍使用代理工厂玻璃和通用超频。 |
 | TST 炼金塔、注魔矩阵 | 源质要求存于特殊槽展示物品及配方元数据。 | 要求主机槽有创造源质元件；不执行原机器源质网络消耗。 |
 | GTNL 坩埚、注魔、奥术装配 | 配方元数据记录源质或魔力与研究；NEI 展示源质。 | 要求主机槽有创造源质元件，不执行原机器的源质和研究检查。 |
-| 梦魇转换 `tst.common.recipe.VisualExtremeCraftRecipeMap.name`（TST 0.8.1：`tst.recipe.VisualExtremeCraftRecipeMap.name`） | 从终极工作台配方转换为 GT 配方，转换器有自己的跳过列表；配方 EU/t 为 0。 | 只读取转换后的池，按代理工厂的通用匹配、并行及超频执行。 |
+| 梦魇转换 `tst.common.recipe.VisualExtremeCraftRecipeMap.name`（TST 0.8.1：`tst.recipe.VisualExtremeCraftRecipeMap.name`） | 从终极工作台配方转换为 GT 配方，转换器有自己的跳过列表；配方 EU/t 为 0。 | 0.2.9：读取已注册转换池；有有效定位来源时支持无配方池标记的处理样板。检查输入/输出数量和整数倍，零 EU/t 禁止免费电气超频，保留代理玻璃速度、并行、批处理和原料事务。开关 `proxyFactory.extremeCrafting`，重启两端生效。 |
 
 参考：`ref/gtnl-snapshot` 中配方构建代码，`ref/Twist-Space-Technology` 的配方转换和机器代码，`ref/GT5-Unofficial` 的聚变堆及热解炉实现。仓库中的参考源码可能与实际服务端版本存在差异。

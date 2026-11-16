@@ -40,6 +40,7 @@ public class GTNHAdjust {
     public static boolean collectorBlackHole;
     public static boolean collectorWirelessPower;
     public static boolean proxyFactoryWirelessPower;
+    public static boolean proxyExtremeCrafting;
     public static int proxyFactoryLocatorSlots = 128;
     public static boolean collectorMarkerOutputMultiplier;
     public static int collectorRecipeTicks = 128;
@@ -139,6 +140,11 @@ public class GTNHAdjust {
             "proxyFactory",
             true,
             "Allow UEV+ glass proxy factories without energy hatches to use their owner's wireless EU network. Restart required; client and server must match.");
+        proxyExtremeCrafting = config.getBoolean(
+            "extremeCrafting",
+            "proxyFactory",
+            true,
+            "Support TST extreme crafting conversion processing patterns, including patterns without recipe-map tags. Restart required; client and server must match.");
         // Vanilla slot IDs are signed shorts; reserve 36 player slots and the controller slot.
         proxyFactoryLocatorSlots = config.getInt(
             "locatorSlots",
