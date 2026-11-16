@@ -21,10 +21,14 @@ import java.util.List;
 import java.util.UUID;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
+import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
@@ -62,6 +66,8 @@ import gregtech.api.util.GTModHandler;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.common.misc.WirelessNetworkManager;
+import mcp.mobius.waila.api.IWailaConfigHandler;
+import mcp.mobius.waila.api.IWailaDataAccessor;
 
 @IMetaTileEntity.SkipGenerateDescription
 public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
@@ -76,6 +82,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     private static final double EU_MULTIPLIER_PER_GLASS_TIER = 0.9;
     private static final int CASING_TEXTURE_ID = 16;
     private static final String STRUCTURE_PIECE = "main";
+    private static final String AE_CONNECTED_NBT = "gtnhadjustProxyAeConnected";
     private static final int OFFSET_X = 24, OFFSET_Y = 15, OFFSET_Z = 0;
     private static final int RUN = 0, INPUT = 1;
 
@@ -127,6 +134,37 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
                     .getPlayerEntityByName(tile.getOwnerName()));
         }
         return gridProxy;
+    }
+
+    /** Report the same powered, channel-ready AE node state required by output delivery. */
+    public boolean isAeNetworkConnected() {
+        return gridProxy != null && gridProxy.isActive();
+    }
+
+    /** Localize and color the shared GUI/Waila status without recoloring subsequent tooltip lines. */
+    static String aeNetworkStatusText(boolean connected) {
+        return (connected ? EnumChatFormatting.GREEN : EnumChatFormatting.RED)
+            + StatCollector.translateToLocal("gtnhadjust.proxy.ae." + (connected ? "connected" : "disconnected"))
+            + EnumChatFormatting.RESET;
+    }
+
+    /** Synchronize the server's AE availability with the existing multiblock Waila payload. */
+    @Override
+    public void getWailaNBTData(EntityPlayerMP player, TileEntity tile, NBTTagCompound tag, World world, int x, int y,
+        int z) {
+        super.getWailaNBTData(player, tile, tag, world, x, y, z);
+        tag.setBoolean(AE_CONNECTED_NBT, isAeNetworkConnected());
+    }
+
+    /** Add connection status to the controller's block tooltip in both operation modes. */
+    @Override
+    public void getWailaBody(ItemStack stack, List<String> currentTip, IWailaDataAccessor accessor,
+        IWailaConfigHandler config) {
+        super.getWailaBody(stack, currentTip, accessor, config);
+        currentTip.add(
+            aeNetworkStatusText(
+                accessor.getNBTData()
+                    .getBoolean(AE_CONNECTED_NBT)));
     }
 
     @Override

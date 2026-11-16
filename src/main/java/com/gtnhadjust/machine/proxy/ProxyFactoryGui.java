@@ -97,6 +97,7 @@ final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
     protected void registerSyncValues(PanelSyncManager syncManager) {
         super.registerSyncValues(syncManager);
         syncManager.syncValue("proxyWirelessMode", new BooleanSyncValue(multiblock::isWirelessMode));
+        syncManager.syncValue("proxyAeConnected", new BooleanSyncValue(multiblock::isAeNetworkConnected));
         syncManager.syncValue("itemOutput", new GenericListSyncHandler<>(() -> {
             List<ItemStack> values = new ArrayList<>();
             for (ProxyThreadTask task : multiblock.getProxyThreadTasks()) task.getOutputs()
@@ -137,6 +138,7 @@ final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
     @Override
     protected ListWidget<IWidget, ?> createTerminalTextWidget(PanelSyncManager manager, ModularPanel parent) {
         BooleanSyncValue wireless = manager.findSyncHandler("proxyWirelessMode", BooleanSyncValue.class);
+        BooleanSyncValue aeConnected = manager.findSyncHandler("proxyAeConnected", BooleanSyncValue.class);
         GenericListSyncHandler<ProxyFactoryStatus.Output> outputs = new GenericListSyncHandler<>(
             this::outputSnapshot,
             value -> clientOutputs = value,
@@ -187,6 +189,10 @@ final class ProxyFactoryGui extends GTNRMultiBlockBaseGui<ProxyFactory> {
                 IKey.dynamic(
                     () -> StatCollector
                         .translateToLocal("gtnhadjust.proxy.power." + (wireless.getValue() ? "wireless" : "wired")))
+                    .asWidget()
+                    .fullWidth())
+            .child(
+                IKey.dynamic(() -> ProxyFactory.aeNetworkStatusText(aeConnected.getValue()))
                     .asWidget()
                     .fullWidth());
     }
