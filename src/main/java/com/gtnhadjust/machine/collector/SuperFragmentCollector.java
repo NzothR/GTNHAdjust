@@ -12,7 +12,9 @@ import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
 import static gregtech.api.util.GTStructureUtility.chainAllGlasses;
 import static gregtech.api.util.GTStructureUtility.ofFrame;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -32,6 +34,7 @@ import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructa
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.gtnewhorizons.modularui.api.math.Alignment;
 import com.gtnewhorizons.modularui.api.screen.ModularWindow;
 import com.gtnewhorizons.modularui.common.widget.DynamicPositionedColumn;
 import com.gtnewhorizons.modularui.common.widget.FakeSyncWidget;
@@ -88,6 +91,8 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     private final String[] displayedThreads = new String[256];
     private boolean clientBlackHole;
     private boolean clientWirelessMode;
+    // Actual aggregate EU/t after maintenance efficiency, synchronized for the green GUI power line.
+    private long clientTotalPower;
     private boolean lastBlackHoleSent;
     @SideOnly(Side.CLIENT)
     private CollectorBlackHoleRenderer blackHoleRenderer;
@@ -552,6 +557,12 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         return false;
     }
 
+    /** Replace the native running label with total power while retaining idle and failure messages below. */
+    @Override
+    public boolean showMachineStatusInGUI() {
+        return false;
+    }
+
     @Override
     public ModularWindow createPowerPanel(EntityPlayer player) {
         return ModularWindow.builder(160, 110)
@@ -590,6 +601,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             .build();
     }
 
+    /** Display aggregate power in place of the native running label, followed by the existing thread rows. */
     @Override
     protected void drawTexts(DynamicPositionedColumn screenElements, SlotWidget inventorySlot) {
         screenElements.widget(
@@ -599,6 +611,26 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         screenElements
             .widget(new FakeSyncWidget.BooleanSyncer(this::wirelessMode, value -> clientWirelessMode = value));
         super.drawTexts(screenElements, inventorySlot);
+        screenElements.widget(new FakeSyncWidget.IntegerSyncer(this::getErrorDisplayID, this::setErrorDisplayID))
+            .widget(
+                new FakeSyncWidget.BooleanSyncer(
+                    () -> getBaseMetaTileEntity().isActive(),
+                    value -> getBaseMetaTileEntity().setActive(value)))
+            .widget(new FakeSyncWidget.LongSyncer(this::getActualEnergyUsage, value -> clientTotalPower = value));
+        screenElements.widget(
+            TextWidget.dynamicString(
+                () -> StatCollector
+                    .translateToLocalFormatted("gtnhadjust.collector.total_power", formatTotalPower(clientTotalPower)))
+                .setSynced(false)
+                .setTextAlignment(Alignment.CenterLeft)
+                .setDefaultColor(0x55FF55)
+                .setEnabled(widget -> getErrorDisplayID() == 0 && getBaseMetaTileEntity().isActive()));
+        for (int i = 1; i <= 3; i++) {
+            screenElements.widget(
+                TextWidget.localised("gt.interact.desc.mb.idle." + i)
+                    .setDefaultColor(0xFFFFFF)
+                    .setEnabled(widget -> getErrorDisplayID() == 0 && !getBaseMetaTileEntity().isActive()));
+        }
         for (int i = 0; i < displayedThreads.length; i++) {
             final int row = i;
             screenElements.widget(
@@ -609,6 +641,18 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             screenElements.widget(
                 new FakeSyncWidget.StringSyncer(() -> threadDisplayData(row), value -> displayedThreads[row] = value));
         }
+    }
+
+    /** Promote only after a full amp of the next GT voltage tier; truncate fractional amps to three decimals. */
+    private static String formatTotalPower(long power) {
+        int tier = 0;
+        // V[15] is GT's error tier, so values beyond MAX remain expressed as amps of MAX.
+        while (tier < 14 && power >= GTValues.V[tier + 1]) tier++;
+        String amps = BigDecimal.valueOf(power)
+            .divide(BigDecimal.valueOf(GTValues.V[tier]), 3, RoundingMode.DOWN)
+            .stripTrailingZeros()
+            .toPlainString();
+        return amps + "A " + GTValues.VN[tier];
     }
 
     private String displayedThreadData(int row) {
