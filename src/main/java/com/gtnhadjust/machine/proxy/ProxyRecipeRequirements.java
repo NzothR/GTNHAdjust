@@ -15,6 +15,7 @@ import gregtech.api.recipe.check.SimpleCheckRecipeResult;
 import gregtech.api.util.GTRecipe;
 import gregtech.api.util.GTUtility;
 import gregtech.common.tileentities.machines.multi.MTEElectricBlastFurnace;
+import tectech.thing.metaTileEntity.multi.godforge.MTESmeltingModule;
 
 /** Additional admission rules run after physical source validation and before any input transaction commits. */
 public final class ProxyRecipeRequirements {
@@ -63,8 +64,15 @@ public final class ProxyRecipeRequirements {
         return rule == null ? CheckRecipeResultRegistry.SUCCESSFUL : rule.check(proxy, source, recipe);
     }
 
-    /** Only the physical coil comes from the source; voltage heat is supplied by the proxy, including wireless MAX. */
+    /** Godforge uses its computed process heat; coil furnaces use physical coil heat plus proxy voltage heat. */
     private static CheckRecipeResult checkBlastHeat(ProxyFactory proxy, MTEMultiBlockBase source, GTRecipe recipe) {
+        if (source instanceof MTESmeltingModule module) {
+            int heat = module.getHeat();
+            if (com.gtnhadjust.GTNHAdjust.debug) com.gtnhadjust.GTNHAdjust.LOG
+                .info("[proxy-heat] godforge effectiveHeat={} requiredHeat={}", heat, recipe.mSpecialValue);
+            return heat >= recipe.mSpecialValue ? CheckRecipeResultRegistry.SUCCESSFUL
+                : CheckRecipeResultRegistry.insufficientHeat(recipe.mSpecialValue);
+        }
         Optional<Field> field = COILS.get(source.getClass());
         if (!field.isPresent()) return SimpleCheckRecipeResult.ofFailure("gtnhadjust_proxy_coil_unavailable");
         HeatingCoilLevel coil;
