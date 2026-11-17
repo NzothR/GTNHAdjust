@@ -52,6 +52,7 @@ public class GTNHAdjust {
     public static int collectorVoltageThreads = 4;
     public static boolean terminalDebug;
     public static boolean patternDeduplication;
+    public static boolean gtnrVirtualTools;
     public static boolean proxyFactoryEnabled;
     public static boolean machineLocatorsEnabled;
     public static boolean hologramAeMaterials;
@@ -68,6 +69,10 @@ public class GTNHAdjust {
         if (FeatureConfig.get().soulVialExpandedCapture && Loader.isModLoaded("EnderIO"))
             net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new SoulVialMultipartHandler());
         patternDeduplication = FeatureConfig.get().patternDeduplication;
+        gtnrVirtualTools = FeatureConfig.get().gtnrVirtualTools && Loader.isModLoaded("gtneverreset")
+            && Loader.isModLoaded("appliedenergistics2");
+        if (gtnrVirtualTools)
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new com.gtnhadjust.compat.GtnrToolPatterns());
         proxyFactoryEnabled = FeatureConfig.get().proxyFactory;
         machineLocatorsEnabled = proxyFactoryEnabled || FeatureConfig.get().threadedJointProxy;
         hologramAeMaterials = FeatureConfig.get().structureLibAeAutoPlace;

@@ -1,6 +1,6 @@
 # GTNR 非机器功能对照
 
-对照 GT-Never-Reset 0.1.47 发行源码及主分支 `b2d00e4`，GTNH 基线为 2.9.0。此表记录静态代码与上游提交的对照，实际交互需在游戏内验证。机器与其专属调整不在本表范围。
+对照 GT-Never-Reset 0.1.48 正式包及最新参考源码 `5938ab0`（上游主分支版本 0.1.50），GTNH 基线为 2.9.0。此表记录静态代码与上游提交的对照，实际交互需在游戏内验证。机器与其专属调整不在本表范围。
 
 | 本模组功能 | GTNR 对照 |
 | --- | --- |
@@ -12,4 +12,20 @@
 | 全息投影替换与 AE 取料、任务 AE 检索、灵魂瓶捕获扩展、GTNL 大型装配线自动维护、蒸汽温室调整、木工机配方、NEI 页面隐藏 | 面向 StructureLib、BetterQuesting、Ender IO、GTNL、Forestry 或 NEI 的调整；本次上游变更中未发现同范围功能。 |
 | YSMU 第一人称手臂兼容 | GTNRLib 提供自身第一人称动画并新增副手及工具箱动画；本模组让动画使用 YSMU 模型手臂，作用不同。 |
 
-GTNR 0.1.47 发布后的主分支修复了切换 NEI 候选材料时的客户端预测顺序；该修复尚不包含在 0.1.47 正式包内。测试候选切换时应留意这一版本差异。
+## 本次上游核查
+
+本地 `ref/GT-Never-Reset` 已从 `b2d00e4` 更新到 `5938ab002e28851cc7a72c5759fec80d5f3f9d92`，工作区保持干净。最新源码为 0.1.50；编译依赖使用游戏实例中的 0.1.48 正式包，并保持 GTNH 2.9.0 基线。参考源码和本地依赖均不提交。
+
+静态比较现有及新增 Mixin 源码直接引用的 28 个 GTNR 类，0.1.47→0.1.48 有三个类的字节码发生变化：`QuickEncodingTerminalContainer`、`CircuitMEPatternBuffer`、`CircuitMEPatternBuffer$CircuitSlot`。未发现既有注入所用方法或字段被移除。终端改动为先发材料替换请求、再做客户端预测；不与本模组现有注入冲突。
+
+0.1.48 的 `CircuitMEPatternBuffer.getSharedItems()` 将实际共享工具暴露为零数量催化剂视图。本模组多线程代理原来按数量大于零过滤，会丢失这些工具；现已只对匹配配方 NC 的共享视图生成一件非消耗匹配副本，不把它当作消耗原料。上游 0.1.50 相关工具编解码、终端和矩阵注入目标签名保持一致；新增的大部分内容是独立的瓶中混沌系统，不自动移植到本模组。
+
+## 工具目录与 PH 联动
+
+独立开关 `gtnrVirtualTools` 默认开启，关闭时不加载本功能六个 Mixin。目录保持 GTNR 原顺序并在末尾添加缺失的 GT 模具、切削刀具、挤出模头，保留已有透镜、蜂群和其他工具；TST 注册的白矮星锭模具单独纳入。PH 0.2.1p7 的旧白矮星模头组本身为空，不创建当前版本未注册的物品。
+
+新处理样板继续保留 GTNR 原电路和模具 NBT，并追加完整 `gtnhadjustPatternNonConsumed` 列表，按物品、meta、NBT 记录目录内外的所有物品 NC。目录内工具内置提供；目录外工具通过共享槽、实际输入或该总成同一网络的物品／PH 编程器电路库存及可合成状态证明可用，不调用 AE 合成任务或提取 API。网络查询按同一代理及 tick 缓存。目录外工具会显示独立提示，重新编辑时还原全部 NC。
+
+配方识别复用完整原料数量、整数批次和产物匹配，再记录该配方的 NC；这避免原解析器将目录外光刻掩模等 NC 算作消耗输入而连带丢失刀刃等目录内工具。代理联合工厂、多线程代理以及 GTNR 通用联合工厂核对新记录的全部 NC，并检查运行时实际可用工具。旧样板没有新字段时维持兼容匹配，不删除或原地改写旧样板。
+
+对照源码：[GTNR 本次提交](https://github.com/ikkkkkkkuuu/GT-Never-Reset/commit/5938ab002e28851cc7a72c5759fec80d5f3f9d92)、[PH 0.2.1p7 预构提供器](https://github.com/reobf/Programmable-Hatches-Mod/blob/f30f721302/src/main/java/reobf/proghatches/gt/metatileentity/ProgrammingCircuitProviderPrefabricated.java)。详细开关、重启要求与游戏内验证项目见 [配置说明](configuration.md)。

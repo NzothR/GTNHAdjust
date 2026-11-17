@@ -70,7 +70,14 @@ public abstract class NeiAlwaysShowPresenceMixin {
             List<ItemOverlayState> states = ((NeiOverlayButtonAccessor) overlay).gtnhadjust$ingredientsOverlay();
             NEIClientUtils.gl2DRenderContext(() -> {
                 for (ItemOverlayState state : states) {
-                    state.draw(ItemOverlayFormat.ICON);
+                    // NEI and NEE use 8px status icons on 16px slots; reserve the right side for stack counts.
+                    GL11.glPushMatrix();
+                    try {
+                        GL11.glTranslatef(-8.0F, 0.0F, 0.0F);
+                        state.draw(ItemOverlayFormat.ICON);
+                    } finally {
+                        GL11.glPopMatrix();
+                    }
                     PositionedStack slot = state.getSlot();
                     if (slot != null && gtnhadjust$isCraftable(terminal, slot.item)) gtnhadjust$drawPattern(slot);
                 }

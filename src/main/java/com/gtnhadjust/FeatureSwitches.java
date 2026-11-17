@@ -47,6 +47,7 @@ final class FeatureSwitches {
     private static final String STRUCTURELIB_AE_AUTOPLACE = "structureLibAeAutoPlace";
 
     boolean bookmarkMachineGroups;
+    boolean gtnrVirtualTools;
     final boolean hologramImprovements;
     final boolean gtnlQuickTerminalCraftFix;
     final boolean grandAssemblyAutoMaintenance;
@@ -120,6 +121,7 @@ final class FeatureSwitches {
     static FeatureSwitches load(Path file) {
         Properties defaults = new Properties();
         defaults.setProperty("bookmarkMachineGroups", "true");
+        defaults.setProperty("gtnrVirtualTools", "true");
         defaults.setProperty(HOLOGRAM, "true");
         defaults.setProperty(YSMU_ARMS, "true");
         defaults.setProperty(LOOT_SIMULATOR, "true");
@@ -195,6 +197,7 @@ final class FeatureSwitches {
                 read(values, HIDE_SHIMMER),
                 read(values, HIDE_DISASSEMBLER));
             result.bookmarkMachineGroups = read(values, "bookmarkMachineGroups");
+            result.gtnrVirtualTools = read(values, "gtnrVirtualTools");
             LOG.info(
                 "Feature switches: lootSimulator=" + result.lootSimulator
                     + ", proxyFactory="
@@ -300,6 +303,16 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (gtnrVirtualTools && loadedMods.contains("gtneverreset")
+            && loadedMods.contains("gregtech")
+            && loadedMods.contains("appliedenergistics2")) {
+            mixins.add("gtnr.VirtualToolCatalogMixin");
+            mixins.add("gtnr.PatternToolResolverMixin");
+            mixins.add("gtnr.PatternToolsMixin");
+            mixins.add("gtnr.PatternHostAccessor");
+            mixins.add("gtnr.RequiredToolsMixin");
+            mixins.add("gtnr.JointFactoryToolsMixin");
+        }
         if (client && bookmarkMachineGroups
             && loadedMods.contains("NotEnoughItems")
             && loadedMods.contains("gregtech")) {

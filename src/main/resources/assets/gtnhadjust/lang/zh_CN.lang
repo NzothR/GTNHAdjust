@@ -158,3 +158,5 @@ gtnhadjust.threaded_proxy.tooltip.19=顶部：输出总线与输出仓
 gtnhadjust.threaded_proxy.tooltip.20=至少需要 §b1§7 个超级跨配方类型样板输入总成 (ME)
 gtnhadjust.threaded_proxy.tooltip.21=输入模式：编辑主机定位器
 gtnhadjust.threaded_proxy.tooltip.22=运行模式：锁定定位器库存并执行加工
+
+gtnhadjust.pattern.external_tool=所需不消耗工具：%s（实物或同网 PH 编程器电路，不向 ME 索取）

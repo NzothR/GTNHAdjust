@@ -36,7 +36,7 @@
 def elytraModpackVersion = project.extensions.getByName("elytraModpackVersion")
 dependencies {
     compileOnly("com.github.GTNewHorizons:Mobs-Info:0.6.0-GTNH:dev") { transitive = false }
-    compileOnly(files("ref/libs/gtneverreset-0.1.47.jar"))
+    compileOnly(files("ref/libs/gtneverreset-0.1.48.jar"))
     compileOnly(files("ref/libs/gtnrlib-0.1.35.jar"))
     compileOnly(files("ref/libs/ysmu-1.9.jar"))
     compileOnly(files("ref/libs/gtnl-instance.jar"))
@@ -57,6 +57,6 @@ dependencies {
     compileOnly(elytraModpackVersion.gtnhdev("BetterQuesting") as String) { transitive = false }
     compileOnly(elytraModpackVersion.gtnhdev("waila") as String) { transitive = false }
     compileOnly(elytraModpackVersion.gtnhdev("Baubles-Expanded") as String) { transitive = false }
-    testImplementation(rfg.deobf(project.files("ref/libs/gtneverreset-0.1.47.jar")))
+    testImplementation(rfg.deobf(project.files("ref/libs/gtneverreset-0.1.48.jar")))
     testImplementation("junit:junit:4.13.2")
 }

@@ -1,6 +1,6 @@
 # 配置说明
 
-当前基线为 GTNH 2.9.0、GTNR 0.1.47、GTNRLib 0.1.35。功能按目标模组是否安装加载；目标版本与本基线一致。所有启动开关修改后重启，跨端玩法功能保持客户端与服务端一致。纯客户端功能仅在客户端启停。
+当前基线为 GTNH 2.9.0、GTNR 0.1.48、GTNRLib 0.1.35。功能按目标模组是否安装加载；目标版本与本基线一致。所有启动开关修改后重启，跨端玩法功能保持客户端与服务端一致。纯客户端功能仅在客户端启停。
 
 ## 功能开关
 
@@ -8,6 +8,7 @@
 
 | 开关 | 功能 | 范围 |
 | --- | --- | --- |
+| `gtnrVirtualTools` | 完整 NC 元数据、虚拟工具目录与 PH 可用状态桥接 | 两端；默认开启，关闭不加载本组六个 Mixin |
 | `proxyFactory` | 代理联合工厂 | 两端 |
 | `threadedJointProxy` | 多线程联合代理 | 两端 |
 | `lootSimulator` | 战利品模拟室 | 两端 |
@@ -20,7 +21,7 @@
 | `terminalCraftingRefreshFix` | 样板修改后的合成状态刷新 | 两端 |
 | `patternRecipeMapPreservation` | 修改加工样板时保留来源配方池 | 两端 |
 | `terminalInventoryFix` | 终端库存同步及 NEI 状态 | 客户端 |
-| `terminalNeiAlwaysShowPresence` | NEI 网络材料状态与覆盖按钮提示 | 客户端；依赖库存修复及 NEE |
+| `terminalNeiAlwaysShowPresence` | NEI 左下角常驻材料状态与覆盖按钮提示 | 客户端；依赖库存修复及 NEE |
 | `terminalSmartIngredients` | 收藏、电路和网络材料选择优先级 | 两端；依赖 `quickTerminal` |
 | `gtnlQuickTerminalCraftFix` | GTNL NEI 请求合成的终端槽位修复 | 两端 |
 | `matrixPatternLoadFix` | 装配矩阵读档样板失效修复 | 两端 |
@@ -71,3 +72,13 @@
 ## 验证范围
 
 构建和静态检查由开发流程执行，游戏内容测试在实际 GTNH 实例中完成。无线更新重点检查无能源仓、普通／特殊能源仓、余额不足和保存恢复；提示更新检查两种机器、中英文客户端、GTNH 分段与颜色，确认未附加模块或线程仓说明。
+
+## GTNR 不消耗物品扩展
+
+`gtnrVirtualTools=true` 是此功能的独立总开关，旧配置缺省也开启，可手动添加后设为 `false`。两端一致并重启生效。兼容 GTNH 2.9.0、GTNR 0.1.48、PH 0.2.1p7；PH 与 TST 为可选联动，不增加它们的硬依赖。
+
+新编码的处理样板追加 `gtnhadjustPatternNonConsumed`，完整保存所有 NC 的物品、meta 和 NBT，继续写入原有 `gtnrPatternCircuit`、`gtnrPatternMolds`。目录内工具免费内置；目录外工具从样板总成共享槽、机器实际输入或同一 AE 网络的实物库存取得存在性证明，也可用同网中对应 PH `prog_circuit` 的库存／可合成状态满足。不提取 NC，不提交 PH 合成任务。两种代理和 GTNR 通用联合工厂使用完整输入与 NC、整批产物数量校验新样板，避免相同消耗原料、不同工具的配方冲突。
+
+旧样板没有新字段时保留旧格式和兼容匹配，不删除物品或改写原样板。重新编辑、编码后追加完整清单。关闭扩展会恢复 GTNR 原目录与处理流程；含新增目录物品或外部工具字段的新样板需要在重新开启扩展后使用，或按原 GTNR 规则重新编码。原生 AE 处理样板仍需要实际输入需求，纯 NC 配方保留既有样板形态。
+
+`general.debug` 默认关闭，开启时可查看 `[gtnr-virtual-tools]` 目录扩展数量和样板匹配诊断。游戏内验证多个 NC 同时记录、目录外实物／PH 库存／PH 可合成状态、断网后停止启动、不产生 PH 合成任务、编辑后工具还原、仅 NC 配方的多线程代理加工，以及旧样板不重编码仍能继续运行。

@@ -24,9 +24,10 @@ import gregtech.api.util.GTRecipe.RecipeItemInput;
 import gregtech.api.util.GTUtility;
 
 /** Resolves a definition independently of the real inventory, preferring all known non-consumed tools. */
-final class ProxyPatternRecipe {
+public final class ProxyPatternRecipe {
 
     final GTRecipe recipe;
+    final ItemStack pattern;
     final ItemStack[] consumedItems;
     final FluidStack[] consumedFluids;
     final ItemStack[] virtualTools;
@@ -36,6 +37,8 @@ final class ProxyPatternRecipe {
     private ProxyPatternRecipe(GTRecipe recipe, ItemStack[] items, FluidStack[] fluids, ItemStack[] tools,
         boolean exact, ICraftingPatternDetails details) {
         this.recipe = recipe;
+        pattern = details.getPattern()
+            .copy();
         consumedItems = items;
         consumedFluids = fluids;
         virtualTools = tools;
@@ -50,6 +53,29 @@ final class ProxyPatternRecipe {
 
     /** Scans only when the controller or encoded patterns change; partial output lists are accepted. */
     static ProxyPatternRecipe find(RecipeMap<?> map, ICraftingPatternDetails details) {
+        return find(map, details, true);
+    }
+
+    /** Resolve complete NC metadata without recursion or guessing omitted legacy catalysts. */
+    public static GTRecipe identify(RecipeMap<?> map, ICraftingPatternDetails details) {
+        ProxyPatternRecipe match = find(map, details, false);
+        return match == null || !match.exact ? null : match.recipe;
+    }
+
+    /** New metadata makes recipe identity complete: validate its consumed quantities, NCs and encoded output batch. */
+    public static boolean matchesRecordedPattern(GTRecipe recipe, ICraftingPatternDetails details) {
+        List<ItemStack> items = new ArrayList<>();
+        List<FluidStack> fluids = new ArrayList<>();
+        for (IAEStack<?> input : details.getAEInputs()) {
+            if (input instanceof IAEItemStack item) items.add(item.getItemStack());
+            else if (input instanceof IAEFluidStack fluid) fluids.add(fluid.getFluidStack());
+        }
+        for (ItemStack tool : com.gtnhadjust.compat.GtnrToolPatterns.recorded(details.getPattern())) if (items.stream()
+            .noneMatch(item -> GTUtility.areStacksEqual(item, tool, false))) items.add(tool.copy());
+        return match(recipe, items.toArray(new ItemStack[0]), fluids.toArray(new FluidStack[0]), details) != null;
+    }
+
+    private static ProxyPatternRecipe find(RecipeMap<?> map, ICraftingPatternDetails details, boolean inferTools) {
         if (details == null || details.isCraftable() || details.isInputOnly()) {
             if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
                 "[threaded-proxy] invalid processing definition in {}: details={}, craftable={}, inputOnly={}",
@@ -60,7 +86,8 @@ final class ProxyPatternRecipe {
             return null;
         }
         int circuit = CircuitPatternCodec.circuit(details);
-        ItemStack[] molds = CircuitPatternCodec.molds(details);
+        ItemStack[] molds = inferTools ? CircuitPatternCodec.molds(details)
+            : CircuitPatternCodec.storedMolds(details.getPattern());
         if (circuit == -2 || CircuitPatternCodec.storedMolds(details.getPattern()) == null) {
             if (GTNHAdjust.debug) GTNHAdjust.LOG
                 .info("[threaded-proxy] invalid tool metadata in {}: circuit={}", map.unlocalizedName, circuit);
@@ -74,6 +101,8 @@ final class ProxyPatternRecipe {
         }
         if (circuit >= 0 && items.stream()
             .noneMatch(GTUtility::isAnyIntegratedCircuit)) items.add(GTUtility.getIntegratedCircuit(circuit));
+        for (ItemStack tool : com.gtnhadjust.compat.GtnrToolPatterns.recorded(details.getPattern())) if (items.stream()
+            .noneMatch(item -> GTUtility.areStacksEqual(item, tool, false))) items.add(tool.copy());
         for (ItemStack mold : molds) if (items.stream()
             .noneMatch(item -> GTUtility.areStacksEqual(item, mold, false))) items.add(mold.copy());
         ItemStack[] inputs = items.toArray(new ItemStack[0]);
@@ -141,6 +170,7 @@ final class ProxyPatternRecipe {
             simulation.add(tool);
             if (isVirtual(tool)) virtual.add(tool);
         }
+        if (com.gtnhadjust.compat.GtnrToolPatterns.hasRecord(details.getPattern()) && !exact) return null;
         List<FluidStack> consumedLiquid = new ArrayList<>();
         List<FluidStack> simulationLiquid = new ArrayList<>();
         for (FluidStack fluid : fluids) {

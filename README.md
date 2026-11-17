@@ -8,12 +8,12 @@
 | --- | --- |
 | Minecraft / Forge | GTNH 2.9.0 使用的 1.7.10 环境 |
 | GregTech | 5.09.54.265，包含 GT++ 与 TecTech |
-| GT-Never-Reset / GTNRLib | **0.1.47 / 0.1.35**，机器、终端和样板功能 |
+| GT-Never-Reset / GTNRLib | **0.1.48 / 0.1.35**，机器、终端和样板功能 |
 | GT-Not-Leisure / GTNLLib | GTNH 实例的 **dev-290 / 1.1.5**，机器制作、温室及兼容功能 |
 | AE2 / NEI / ModularUI2 / StructureLib | 使用 GTNH 2.9.0 及上述扩展模组对应版本 |
 | 按功能使用的模组 | BetterQuesting、Forestry、Ender IO、KubaTech、MobsInfo、RemoteIO、NotEnoughEnergistics、NECH、GTSteamReborn、YSMU、TST 等 |
 
-将构建产物 `gtnhadjust-*.jar` 放入客户端与服务端的 `mods`，安装对应扩展模组及其依赖，再启动游戏。二合一终端适配 GTNR 0.1.47，不支持旧版终端实现；这不是一个独立于 GTNH 的通用模组。
+将构建产物 `gtnhadjust-*.jar` 放入客户端与服务端的 `mods`，安装对应扩展模组及其依赖，再启动游戏。二合一终端适配 GTNR 0.1.48，不支持旧版终端实现；这不是一个独立于 GTNH 的通用模组。
 
 客户端与服务端应使用相同模组版本、玩法开关及机器 ID。NEI 隐藏、书签整理和第一人称动画等纯客户端功能按客户端配置生效。更新或修改启动配置后重启。
 
@@ -38,8 +38,9 @@
 
 | 目标 | 修改内容 |
 | --- | --- |
+| GTNR 样板与跨配方总成 | 扩展电路、模具、刀具、模头、透镜及 TST 白矮星锭模具目录；新样板同时保存目录内／外不消耗物品。目录外工具需实物或同网 PH 编程器电路可用状态，旧样板继续可用。 |
 | GTNR 二合一无线终端 | NEI 导入后自动编码／上传、产物集合去重、保留加工样板配方池、保存接口面板偏好，修复库存和可合成状态同步。 |
-| NEI 材料查看与选择 | 显示网络库存／可合成／缺失状态；导入时优先选择收藏、电路及网络可用材料。 |
+| NEI 材料查看与选择 | 在物品左下角常驻显示网络库存／可合成／缺失状态，避开右下角数量；导入时优先选择收藏、电路及网络可用材料。 |
 | NEI 机器书签组 | 指向组左侧竖线按 **V**，按实际结构的水平短边、长边、高度和名称排序，未知尺寸另组；**Shift+V** 按共同配方池建组，同一主机可出现在多个组。 |
 | 全息投影仪 / StructureLib | 生存建造可通过无线终端从 AE 取料，放置结构要求的流体源，并按已选等级信道替换可识别的结构方块。 |
 | BetterQuesting | 任务详情页手动点击“检索AE网络/交付”，从无线 AE 网络查找或提取任务物品；支持可识别容器的流体折算。 |
@@ -72,7 +73,7 @@
 
 `config/gtnhadjust-features.properties` 控制各项 Mixin、代理机器和独立功能。关闭 Mixin 功能时，不把对应 Mixin 加入加载列表。`config/gtnhadjust.cfg` 设置机器 ID、容量、无线供电、资源配方与特效等参数。
 
-多数玩法功能默认开启。常用开关包括 `proxyFactory`、`threadedJointProxy`、`lootSimulator`、`quickTerminal`、`bookmarkMachineGroups`、`hologramImprovements`、`questAeRetrieval`、`carpenterRecipes`。多线程代理无线开关为 `threadedJointProxy.wirelessPower`，默认开启；日志总开关 `general.debug` 默认关闭。
+多数玩法功能默认开启。常用开关包括 `gtnrVirtualTools`、`proxyFactory`、`threadedJointProxy`、`lootSimulator`、`quickTerminal`、`bookmarkMachineGroups`、`hologramImprovements`、`questAeRetrieval`、`carpenterRecipes`。多线程代理无线开关为 `threadedJointProxy.wirelessPower`，默认开启；日志总开关 `general.debug` 默认关闭。
 
 完整开关与默认值见 [配置说明](docs/configuration.md)。
 

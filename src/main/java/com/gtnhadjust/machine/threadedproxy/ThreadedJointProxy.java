@@ -56,6 +56,7 @@ import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe;
 import gregtech.api.util.GTRecipe.RecipeItemInput;
+import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.OverclockCalculator;
 import gregtech.api.util.shutdown.ShutDownReason;
@@ -479,9 +480,24 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                     .anyMatch(encoded -> sameItem(encoded, item)) || isRequiredTool(match, item))
             .collect(Collectors.toCollection(ArrayList::new));
         for (CrossRecipeMEPatternBuffer hatch : patternHatches) for (ItemStack item : hatch.getSharedItems()) {
-            if (item.stackSize > 0 && isRequiredTool(match, item)) inputs.add(item);
+            // GTNR 0.1.48 exposes physical shared catalysts as zero-count views, never consumable inventory.
+            if (isRequiredTool(match, item)) inputs.add(GTUtility.copyAmount(1, item));
         }
         Collections.addAll(inputs, match.virtualTools);
+        if (GTNHAdjust.gtnrVirtualTools) {
+            for (ItemStack tool : com.gtnhadjust.compat.GtnrToolPatterns.recorded(match.pattern)) {
+                if (com.gtnhadjust.compat.GtnrToolPatterns.builtIn(tool) || inputs.stream()
+                    .anyMatch(item -> GTUtility.areStacksEqual(item, tool, false))) continue;
+                CrossRecipeMEPatternBuffer hatch = definition.hatch;
+                if (com.gtnhadjust.compat.GtnrToolNetwork.available(
+                    tool,
+                    hatch.getSharedItems(),
+                    hatch.getProxy(),
+                    hatch.getBaseMetaTileEntity()
+                        .getTimer()))
+                    inputs.add(GTUtility.copyAmount(1, tool));
+            }
+        }
         FluidStack[] fluids = ordinaryFluids.stream()
             .filter(fluid -> fluid != null && fluid.amount > 0)
             .filter(fluid -> !hasWaterReservoir || fluid.getFluid() != FluidRegistry.WATER)
@@ -637,7 +653,8 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                     new PatternSlot(
                         location + ":" + slot,
                         tile.getXCoord() + "," + tile.getYCoord() + "," + tile.getZCoord() + " #" + (slot + 1),
-                        pattern));
+                        pattern,
+                        hatch));
             }
         }
         boolean changed = definitionsDirty || previousWaterReservoir != hasWaterReservoir
@@ -674,7 +691,13 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 .decode(slot.pattern.copy(), getBaseMetaTileEntity().getWorld());
             ProxyPatternRecipe recipe = ProxyPatternRecipe.find(map, details);
             if (recipe != null) {
-                Definition definition = new Definition(slot.key, slot.label, map, recipe, hasWaterReservoir);
+                Definition definition = new Definition(
+                    slot.key,
+                    slot.label,
+                    map,
+                    recipe,
+                    hasWaterReservoir,
+                    slot.hatch);
                 resolved.add(definition);
                 definitionIndex.put(slot.key, definition);
                 if (tasks.containsKey(slot.key) && !runInfo.containsKey(slot.key)) {
@@ -972,13 +995,16 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         final RecipeMap<?> map;
         final ProxyPatternRecipe recipe;
         final GTRecipe execution;
+        final CrossRecipeMEPatternBuffer hatch;
 
-        Definition(String key, String label, RecipeMap<?> map, ProxyPatternRecipe recipe, boolean reservoir) {
+        Definition(String key, String label, RecipeMap<?> map, ProxyPatternRecipe recipe, boolean reservoir,
+            CrossRecipeMEPatternBuffer hatch) {
             this.key = key;
             this.label = label;
             this.map = map;
             this.recipe = recipe;
             execution = recipe.executionRecipe(reservoir);
+            this.hatch = hatch;
         }
     }
 
@@ -1001,11 +1027,13 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
 
         final String key, label;
         final ItemStack pattern;
+        final CrossRecipeMEPatternBuffer hatch;
 
-        PatternSlot(String key, String label, ItemStack pattern) {
+        PatternSlot(String key, String label, ItemStack pattern, CrossRecipeMEPatternBuffer hatch) {
             this.key = key;
             this.label = label;
             this.pattern = pattern.copy();
+            this.hatch = hatch;
         }
     }
 }

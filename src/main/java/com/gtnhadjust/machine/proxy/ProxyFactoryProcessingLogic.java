@@ -296,6 +296,7 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
 
     private boolean consumesPatternInputs(GTRecipe recipe, RecipeMap<?> map) {
         if (pattern == null) return true;
+        if (!com.gtnhadjust.compat.GtnrToolPatterns.supplied(recipe, pattern, inputItems)) return false;
         IAEStack<?>[] inputs = pattern.getAEInputs();
         if (inputs == null || inputs.length == 0) return true;
         GTRecipe.RecipeItemInput[] itemInputs = recipe.getCachedCombinedItemInputs();

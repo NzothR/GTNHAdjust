@@ -158,3 +158,5 @@ gtnhadjust.threaded_proxy.tooltip.19=Top: output buses and fluid output hatches
 gtnhadjust.threaded_proxy.tooltip.20=Requires at least §b1§7 Super Cross-Recipe ME Pattern Buffer
 gtnhadjust.threaded_proxy.tooltip.21=Input mode: edit machine locators
 gtnhadjust.threaded_proxy.tooltip.22=Run mode: lock locator inventory and process recipes
+
+gtnhadjust.pattern.external_tool=Required non-consumed tool: %s (physical or same-network PH programmer; not requested from ME)
