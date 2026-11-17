@@ -115,3 +115,11 @@ gtnhadjust.bookmark.sorted=Processed %s controllers; %s unknown structures moved
 gtnhadjust.bookmark.classified=Checked %s controllers; created %s groups for shared recipe pools
 gtnhadjust.bookmark.sort_key=Sort by structure short side, long side, height, name
 gtnhadjust.bookmark.classify_key=Group by shared recipe pool (controllers may repeat)
+
+gtnhadjust.locator.navigation=Air right-click: highlight; sneaking air right-click: teleport safely and highlight
+gtnhadjust.locator.other_dimension=Controller is in dimension %s; sneak-right-click air to teleport nearby
+gtnhadjust.locator.unavailable=Target dimension unavailable; teleport cancelled
+gtnhadjust.locator.target_missing=Recorded controller is missing or its identity has changed
+gtnhadjust.locator.no_safe_ground=No safe standing space near the controller; teleport cancelled
+gtnhadjust.locator.highlighted=Controller highlighted for 15 seconds: dimension %s, (%s, %s, %s)
+gtnhadjust.locator.teleported=Teleported safely and highlighted controller: dimension %s, (%s, %s, %s)

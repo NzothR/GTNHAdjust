@@ -12,6 +12,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IIcon;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
@@ -44,6 +45,18 @@ public final class MachineLocatorItem extends Item {
                     stack.getTagCompound()
                         .getCompoundTag(RECORD))
                     : null;
+    }
+
+    /** Air use only: block interactions retain their existing recording behavior. */
+    @Override
+    public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
+        if (world.isRemote || !GTNHAdjust.proxyFactoryEnabled || !GTNHAdjust.locatorNavigation) return stack;
+        MovingObjectPosition hit = getMovingObjectPositionFromPlayer(world, player, false);
+        if (hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) return stack;
+        MachineLocatorRecord record = read(stack);
+        if (record != null && player instanceof net.minecraft.entity.player.EntityPlayerMP serverPlayer)
+            MachineLocatorNavigation.use(serverPlayer, record, player.isSneaking());
+        return stack;
     }
 
     @Override
@@ -118,6 +131,7 @@ public final class MachineLocatorItem extends Item {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public void addInformation(ItemStack stack, EntityPlayer player, List lines, boolean advanced) {
         lines.add(StatCollector.translateToLocal("gtnhadjust.locator.usage"));
+        if (GTNHAdjust.locatorNavigation) lines.add(StatCollector.translateToLocal("gtnhadjust.locator.navigation"));
         MachineLocatorRecord record = read(stack);
         if (record == null) lines.add(StatCollector.translateToLocal("gtnhadjust.locator.empty"));
         else if (GuiScreen.isShiftKeyDown()) {

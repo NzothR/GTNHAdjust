@@ -41,6 +41,7 @@ public class GTNHAdjust {
     public static boolean collectorWirelessPower;
     public static boolean proxyFactoryWirelessPower;
     public static boolean proxyExtremeCrafting;
+    public static boolean locatorNavigation;
     public static int proxyFactoryLocatorSlots = 128;
     public static boolean collectorMarkerOutputMultiplier;
     public static int collectorRecipeTicks = 128;
@@ -145,6 +146,12 @@ public class GTNHAdjust {
             "proxyFactory",
             true,
             "Support TST extreme crafting conversion processing patterns, including patterns without recipe-map tags. Restart required; client and server must match.");
+        locatorNavigation = config.getBoolean(
+            "locatorNavigation",
+            "proxyFactory",
+            true,
+            "Allow recorded locators to highlight on air right-click and safely teleport on sneaking air right-click. Restart required.");
+        if (proxyFactoryEnabled && locatorNavigation) com.gtnhadjust.machine.proxy.MachineLocatorNavigation.init();
         // Vanilla slot IDs are signed shorts; reserve 36 player slots and the controller slot.
         proxyFactoryLocatorSlots = config.getInt(
             "locatorSlots",

@@ -115,3 +115,11 @@ gtnhadjust.bookmark.sorted=已处理 %s 台主机；%s 台无法读取尺寸，�
 gtnhadjust.bookmark.classified=已检查 %s 台主机；按共同配方池生成 %s 个书签组
 gtnhadjust.bookmark.sort_key=按结构短边、长边、高度、名称排序
 gtnhadjust.bookmark.classify_key=按共同配方池分类（允许重复主机）
+
+gtnhadjust.locator.navigation=对空气右键：高亮主机；潜行对空气右键：安全传送并高亮
+gtnhadjust.locator.other_dimension=主机位于维度 %s；潜行对空气右键可传送至附近
+gtnhadjust.locator.unavailable=主机所在维度不可用，未传送
+gtnhadjust.locator.target_missing=记录位置的主机已不存在或身份不符
+gtnhadjust.locator.no_safe_ground=主机附近未找到安全落脚点，未传送
+gtnhadjust.locator.highlighted=已高亮主机 15 秒：维度 %s，(%s, %s, %s)
+gtnhadjust.locator.teleported=已传送至安全落脚点并高亮主机：维度 %s，(%s, %s, %s)
