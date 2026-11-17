@@ -312,6 +312,7 @@ final class FeatureSwitches {
             mixins.add("gtnr.PatternHostAccessor");
             mixins.add("gtnr.RequiredToolsMixin");
             mixins.add("gtnr.JointFactoryToolsMixin");
+            if (client) mixins.add("gtnr.NonConsumedImportMixin");
         }
         if (client && bookmarkMachineGroups
             && loadedMods.contains("NotEnoughItems")

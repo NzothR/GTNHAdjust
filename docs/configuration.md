@@ -8,7 +8,7 @@
 
 | 开关 | 功能 | 范围 |
 | --- | --- | --- |
-| `gtnrVirtualTools` | 完整 NC 元数据、虚拟工具目录与 PH 可用状态桥接 | 两端；默认开启，关闭不加载本组六个 Mixin |
+| `gtnrVirtualTools` | 完整 NC 元数据、虚拟工具目录与 PH 可用状态桥接 | 两端；默认开启，关闭不加载本组六个共用 Mixin 和一个客户端导入 Mixin |
 | `proxyFactory` | 代理联合工厂 | 两端 |
 | `threadedJointProxy` | 多线程联合代理 | 两端 |
 | `lootSimulator` | 战利品模拟室 | 两端 |
@@ -77,7 +77,7 @@
 
 `gtnrVirtualTools=true` 是此功能的独立总开关，旧配置缺省也开启，可手动添加后设为 `false`。两端一致并重启生效。兼容 GTNH 2.9.0、GTNR 0.1.48、PH 0.2.1p7；PH 与 TST 为可选联动，不增加它们的硬依赖。
 
-新编码的处理样板追加 `gtnhadjustPatternNonConsumed`，完整保存所有 NC 的物品、meta 和 NBT，继续写入原有 `gtnrPatternCircuit`、`gtnrPatternMolds`。目录内工具免费内置；目录外工具从样板总成共享槽、机器实际输入或同一 AE 网络的实物库存取得存在性证明，也可用同网中对应 PH `prog_circuit` 的库存／可合成状态满足。不提取 NC，不提交 PH 合成任务。两种代理和 GTNR 通用联合工厂使用完整输入与 NC、整批产物数量校验新样板，避免相同消耗原料、不同工具的配方冲突。
+开启终端保留不消耗物品选项后，NEI 导入保留全部零数量 NC，包括目录外工具，供编码时按真实配方核对。新编码的处理样板追加 `gtnhadjustPatternNonConsumed`，完整保存所有 NC 的物品、meta 和 NBT，继续写入原有 `gtnrPatternCircuit`、`gtnrPatternMolds`；全部 NC 从 ME 原料请求中移除，目录外工具另有需求提示。目录内工具免费内置；目录外工具从样板总成共享槽、机器实际输入或同一 AE 网络的实物库存取得存在性证明，也可用同网中对应 PH `prog_circuit` 的库存／可合成状态满足。不提取 NC，不提交 PH 合成任务。两种代理和 GTNR 通用联合工厂使用完整输入与 NC、整批产物数量校验新样板，避免相同消耗原料、不同工具的配方冲突。
 
 旧样板没有新字段时保留旧格式和兼容匹配，不删除物品或改写原样板。重新编辑、编码后追加完整清单。关闭扩展会恢复 GTNR 原目录与处理流程；含新增目录物品或外部工具字段的新样板需要在重新开启扩展后使用，或按原 GTNR 规则重新编码。原生 AE 处理样板仍需要实际输入需求，纯 NC 配方保留既有样板形态。
 
