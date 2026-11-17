@@ -84,6 +84,7 @@ public class ProxyLocatorGui<T extends MTEExtendedPowerMultiBlockBase<?> & Proxy
             .addPage(super.createTerminalParentWidget(panel, manager))
             .addPage(createLocatorPage(manager));
         if (pageCount() == 3) pages.addPage(createPatternPage(panel, manager));
+        pages.onPageChange(index -> pages.scheduleResize());
         return new ParentWidget<>().size(getTerminalWidgetWidth(), getTerminalWidgetHeight())
             .child(pages);
     }

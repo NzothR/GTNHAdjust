@@ -75,6 +75,8 @@ GTNR 样板编码会跳过编码区的空槽，修复手动点击编码按钮时
 
 ## 配置
 
+样板栏与主机栏的动态槽位先完成原生网格尺寸计算，再排列搜索结果；切换页面时刷新布局，修复搜索框下方槽位区域空白的问题。修复沿用两种代理原有功能开关，适配 ModularUI2 2.3.94，更新后客户端与服务端重启。
+
 `config/gtnhadjust-features.properties` 控制各项 Mixin、代理机器和独立功能。关闭 Mixin 功能时，不把对应 Mixin 加入加载列表。`config/gtnhadjust.cfg` 设置机器 ID、容量、无线供电、资源配方与特效等参数。
 
 多数玩法功能默认开启。常用开关包括 `gtnrVirtualTools`、`proxyFactory`、`threadedJointProxy`、`lootSimulator`、`quickTerminal`、`bookmarkMachineGroups`、`hologramImprovements`、`questAeRetrieval`、`carpenterRecipes`。多线程代理无线开关为 `threadedJointProxy.wirelessPower`，默认开启；日志总开关 `general.debug` 默认关闭。

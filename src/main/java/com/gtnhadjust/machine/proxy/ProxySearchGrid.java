@@ -38,9 +38,12 @@ public final class ProxySearchGrid extends Grid {
         if (changed) scheduleResize();
     }
 
-    /** Layout existing widgets directly, keeping every hidden slot registered with its original sync handler. */
+    /** Finish native slot sizing before compacting results; hidden slots retain their original sync handlers. */
     @Override
     public boolean layoutWidgets() {
+        // Native Grid waits for child dimensions and prepares the scroll viewport. Reporting success before
+        // that pass completes leaves dynamically installed ItemSlots with no drawable area.
+        if (!super.layoutWidgets()) return false;
         int index = 0;
         for (ItemSlot slot : slots) {
             slot.getArea().rx = slot.isEnabled() ? index % 9 * 18 : 0;
