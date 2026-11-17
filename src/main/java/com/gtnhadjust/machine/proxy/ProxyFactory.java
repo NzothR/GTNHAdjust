@@ -64,6 +64,7 @@ import gregtech.api.render.TextureFactory;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.GTModHandler;
 import gregtech.api.util.GTUtility;
+import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.common.misc.WirelessNetworkManager;
 import mcp.mobius.waila.api.IWailaConfigHandler;
@@ -522,6 +523,29 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
                 .build() };
     }
 
+    /** Explicit GTNH-style item description; parameter-module introspection must not append unsupported claims. */
+    @Override
+    protected MultiblockTooltipBuilder createTooltip() {
+        MultiblockTooltipBuilder tooltip = new MultiblockTooltipBuilder()
+            .addMachineType(StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.type"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.0"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.1"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.2"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.3"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.4"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.5"));
+        tooltip.addSeparator();
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.7"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.8"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.9"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.10"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.11"));
+        tooltip.addSeparator();
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.13"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.14"));
+        return tooltip.toolTipFinisher();
+    }
+
     @Override
     public String getTooltipPath() {
         return "universal-joint-factory";
@@ -529,10 +553,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
 
     @Override
     public String getTooltipMachineType() {
-        // #tr gtnr.machine.universal_joint_factory.type
-        // # Universal processing / cross-recipe threads
-        // # zh_CN 通用加工 / 跨配方线程
-        return StatCollector.translateToLocal("gtnr.machine.universal_joint_factory.type");
+        return StatCollector.translateToLocal("gtnhadjust.proxy.tooltip.type");
     }
 
     @Override

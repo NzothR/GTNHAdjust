@@ -1,5 +1,6 @@
 package com.gtnhadjust.machine.threadedproxy;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -9,6 +10,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import net.minecraft.item.ItemStack;
@@ -32,8 +34,10 @@ import com.xyp.gtneverreset.common.me.CircuitPatternCodec;
 import com.xyp.gtneverreset.common.me.PatternRecipeMap;
 
 import appeng.api.networking.crafting.ICraftingPatternDetails;
+import gregtech.api.enums.GTValues;
 import gregtech.api.enums.Textures;
 import gregtech.api.enums.VoidingMode;
+import gregtech.api.enums.VoltageIndex;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -56,6 +60,7 @@ import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.OverclockCalculator;
 import gregtech.api.util.shutdown.ShutDownReason;
 import gregtech.api.util.shutdown.ShutDownReasonRegistry;
+import gregtech.common.misc.WirelessNetworkManager;
 import gregtech.common.tileentities.machines.IDualInputHatch;
 import gtPlusPlus.xmod.gregtech.api.metatileentity.implementations.MTEHatchReservoir;
 
@@ -80,6 +85,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     private boolean hasWaterReservoir;
     private boolean previousWaterReservoir;
     private int maxOverclocks;
+    private UUID wirelessOwner;
 
     public ThreadedJointProxy(int id, String name, String localizedName) {
         super(id, name, localizedName);
@@ -292,6 +298,40 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     @Override
     protected ProcessingLogic createProcessingLogic() {
         return new ThreadedProxyProcessingLogic().noRecipeCaching();
+    }
+
+    /** With no normal or exotic energy hatch, the optional wireless supply uses the owner's GT account. */
+    public boolean isWirelessMode() {
+        return GTNHAdjust.threadedProxyWirelessPower && mEnergyHatches.isEmpty() && mExoticEnergyHatches.isEmpty();
+    }
+
+    @Override
+    public long getMaxInputVoltage() {
+        return isWirelessMode() ? GTValues.V[VoltageIndex.MAX] : super.getMaxInputVoltage();
+    }
+
+    @Override
+    public long getMaxInputEu() {
+        return isWirelessMode() ? Long.MAX_VALUE - 1 : super.getMaxInputEu();
+    }
+
+    /** Debit actual aggregate EU/t once per tick; insufficient credit follows the existing power-loss policy. */
+    @Override
+    public boolean onRunningTick(ItemStack stack) {
+        if (!isWirelessMode()) return super.onRunningTick(stack);
+        UUID owner = getBaseMetaTileEntity().getOwnerUuid();
+        if (owner != null && !owner.equals(wirelessOwner)) {
+            WirelessNetworkManager.strongCheckOrAddUser(owner);
+            wirelessOwner = owner;
+        }
+        BigInteger cost = BigInteger.valueOf(-lEUt);
+        if (owner == null || !WirelessNetworkManager.addEUToGlobalEnergyMap(owner, cost.negate())) {
+            if (GTNHAdjust.debug)
+                GTNHAdjust.LOG.info("[threaded-proxy] wireless power loss: owner={}, requested={} EU/t", owner, cost);
+            stopMachine(ShutDownReasonRegistry.POWER_LOSS);
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -800,6 +840,18 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         return tasks.values();
     }
 
+    int patternCount() {
+        return snapshot.size();
+    }
+
+    int validPatternCount() {
+        return definitions.size();
+    }
+
+    boolean hasWaterReservoir() {
+        return hasWaterReservoir;
+    }
+
     /**
      * Every installed slot gets a row, including invalid or idle definitions; removed but unfinished tasks follow them.
      */
@@ -867,21 +919,35 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             .build() };
     }
 
+    /** GTNH-style processing, power and hatch summary for this controller. */
     @Override
     public MultiblockTooltipBuilder createTooltip() {
-        return new MultiblockTooltipBuilder().addMachineType("多线程联合代理")
-            .addInfo("定位器库存接入多个成型多方块，开放它们公开的全部配方池")
-            .addInfo("输入模式编辑定位器，运行模式锁定库存；按每张样板记录的配方池工作")
-            .addInfo("新线程要求目标已加载、身份一致且成型；高炉配方额外检查炉温")
-            .addInfo("一个样板一个线程，从输入总线和输入仓取料，产物送入输出舱室")
-            .addInfo("允许共享输入，同种原料按待启动线程平均分配")
-            .addInfo("安装蓄水仓后，配方用水免消耗；其他流体照常消耗")
-            .addInfo("GTNR 支持的不消耗工具虚拟提供，其他工具需放入共享槽或输入舱室")
-            .addInfo("线程和单线程并行上限均为 2,147,483,647；受材料和供电限制")
-            .addInfo("默认不超频，在电力设置面板调整超频次数上限；到达 1 tick 后停止超频")
-            .addInfo("默认启用 GT 批处理；输出受阻时保留线程产物等待输出")
-            .addInfo("调度顺序：更多线程 → 超频 → 共同并行 → 批处理")
-            .toolTipFinisher();
+        MultiblockTooltipBuilder tooltip = new MultiblockTooltipBuilder()
+            .addMachineType(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.type"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.0"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.1"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.2"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.3"));
+        tooltip.addSeparator();
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.5"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.6"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.7"));
+        tooltip.addSeparator();
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.9"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.10"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.11"));
+        tooltip.addSeparator();
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.13"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.14"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.15"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.16"));
+        tooltip.addSeparator();
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.18"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.19"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.20"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.21"));
+        tooltip.addInfo(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.tooltip.22"));
+        return tooltip.toolTipFinisher();
     }
 
     private static final class Failure {

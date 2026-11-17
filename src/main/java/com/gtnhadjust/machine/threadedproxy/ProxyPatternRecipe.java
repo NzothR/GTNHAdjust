@@ -158,7 +158,12 @@ final class ProxyPatternRecipe {
         }
         ItemStack[] consumedItems = consumed.toArray(new ItemStack[0]);
         FluidStack[] consumedFluids = consumedLiquid.toArray(new FluidStack[0]);
-        long batches = CircuitRecipeInputs.quantityBatches(recipe, consumedItems, consumedFluids);
+        boolean hasConsumables = Arrays.stream(required)
+            .anyMatch(input -> input.inputAmount > 0)
+            || Arrays.stream(recipe.mFluidInputs)
+                .anyMatch(input -> input != null && input.amount > 0);
+        long batches = hasConsumables ? CircuitRecipeInputs.quantityBatches(recipe, consumedItems, consumedFluids)
+            : outputBatches(recipe, details);
         if (batches <= 0 || batches > Integer.MAX_VALUE) return null;
         ItemStack[] copiedItems = simulation.stream()
             .map(ItemStack::copy)
@@ -192,6 +197,47 @@ final class ProxyPatternRecipe {
             virtual.toArray(new ItemStack[0]),
             exact,
             details);
+    }
+
+    /** With no consumed ingredients, infer whole encoded batches from products, then verify every encoded output. */
+    private static long outputBatches(GTRecipe recipe, ICraftingPatternDetails pattern) {
+        for (IAEStack<?> output : pattern.getCondensedAEOutputs()) {
+            if (output == null || output.getStackSize() <= 0) continue;
+            List<Long> units = new ArrayList<>();
+            long total = 0, guaranteed = 0;
+            if (output instanceof IAEItemStack item) {
+                for (int i = 0; i < recipe.mOutputs.length; i++) {
+                    ItemStack product = recipe.mOutputs[i];
+                    if (product == null || !GTUtility.areStacksEqual(product, item.getItemStack(), false)) continue;
+                    total += product.stackSize;
+                    if (recipe.getOutputChance(i) == 10000) guaranteed += product.stackSize;
+                    units.add((long) product.stackSize);
+                }
+            } else if (output instanceof IAEFluidStack fluid) {
+                for (int i = 0; i < recipe.mFluidOutputs.length; i++) {
+                    FluidStack product = recipe.mFluidOutputs[i];
+                    if (product == null || !product.isFluidEqual(fluid.getFluidStack())) continue;
+                    total += product.amount;
+                    if (recipe.getFluidOutputChance(i) == 10000) guaranteed += product.amount;
+                    units.add((long) product.amount);
+                }
+            }
+            units.add(0, total);
+            units.add(1, guaranteed);
+            for (long unit : units) {
+                if (unit <= 0 || output.getStackSize() % unit != 0) continue;
+                long batches = output.getStackSize() / unit;
+                if (batches <= Integer.MAX_VALUE && outputsMatch(recipe, pattern, batches)) {
+                    if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
+                        "[threaded-proxy] no-consumable pattern: batches={}, outputs={}",
+                        batches,
+                        Arrays.toString(pattern.getCondensedAEOutputs()));
+                    return batches;
+                }
+            }
+            return 0;
+        }
+        return 0;
     }
 
     /** Virtual support is the GTNR catalog, and only zero-quantity recipe requirements reach this method. */

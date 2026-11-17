@@ -40,6 +40,7 @@ public class GTNHAdjust {
     public static boolean collectorBlackHole;
     public static boolean collectorWirelessPower;
     public static boolean proxyFactoryWirelessPower;
+    public static boolean threadedProxyWirelessPower;
     public static boolean proxyExtremeCrafting;
     public static boolean locatorNavigation;
     public static int proxyFactoryLocatorSlots = 128;
@@ -143,6 +144,11 @@ public class GTNHAdjust {
             "proxyFactory",
             true,
             "Allow UEV+ glass proxy factories without energy hatches to use their owner's wireless EU network. Restart required; client and server must match.");
+        threadedProxyWirelessPower = config.getBoolean(
+            "wirelessPower",
+            "threadedJointProxy",
+            true,
+            "Use the owner's wireless EU network when no energy hatch is installed. Restart required; client and server must match.");
         proxyExtremeCrafting = config.getBoolean(
             "extremeCrafting",
             "proxyFactory",

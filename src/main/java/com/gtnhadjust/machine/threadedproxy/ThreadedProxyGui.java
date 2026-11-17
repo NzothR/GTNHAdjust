@@ -13,6 +13,7 @@ import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.network.NetworkUtils;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.utils.Alignment;
+import com.cleanroommc.modularui.value.sync.BooleanSyncValue;
 import com.cleanroommc.modularui.value.sync.DynamicSyncHandler;
 import com.cleanroommc.modularui.value.sync.GenericListSyncHandler;
 import com.cleanroommc.modularui.value.sync.IntSyncValue;
@@ -32,7 +33,6 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
 
     private List<ThreadedProxyDisplay.Row> clientRows = new ArrayList<>();
     private List<ThreadedProxyDisplay.Row> rowShape = new ArrayList<>();
-    private String clientStatus = "";
 
     ThreadedProxyGui(ThreadedJointProxy machine) {
         super(machine);
@@ -41,11 +41,16 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
     @Override
     protected void registerSyncValues(PanelSyncManager manager) {
         super.registerSyncValues(manager);
+        manager.syncValue("threadedWireless", new BooleanSyncValue(multiblock::isWirelessMode));
         manager.syncValue(
-            "threadedStatus",
-            new com.cleanroommc.modularui.value.sync.StringSyncValue(
-                multiblock::status,
-                value -> clientStatus = value));
+            "threadedTaskCount",
+            new IntSyncValue(
+                () -> multiblock.threadTasks()
+                    .size()));
+        manager.syncValue("threadedPatternCount", new IntSyncValue(multiblock::patternCount));
+        manager.syncValue("threadedValidCount", new IntSyncValue(multiblock::validPatternCount));
+        manager.syncValue("threadedOcLimit", new IntSyncValue(multiblock::getMaxOverclocks));
+        manager.syncValue("threadedReservoir", new BooleanSyncValue(multiblock::hasWaterReservoir));
         manager.syncValue("itemOutput", new GenericListSyncHandler<>(() -> {
             List<ItemStack> values = new ArrayList<>();
             multiblock.threadTasks()
@@ -77,6 +82,12 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
     /** Update row text in place; rebuilding is needed only when the number of installed or retained tasks changes. */
     @Override
     protected ListWidget<IWidget, ?> createTerminalTextWidget(PanelSyncManager manager, ModularPanel parent) {
+        BooleanSyncValue wireless = manager.findSyncHandler("threadedWireless", BooleanSyncValue.class);
+        IntSyncValue taskCount = manager.findSyncHandler("threadedTaskCount", IntSyncValue.class);
+        IntSyncValue patternCount = manager.findSyncHandler("threadedPatternCount", IntSyncValue.class);
+        IntSyncValue validCount = manager.findSyncHandler("threadedValidCount", IntSyncValue.class);
+        IntSyncValue ocLimit = manager.findSyncHandler("threadedOcLimit", IntSyncValue.class);
+        BooleanSyncValue reservoir = manager.findSyncHandler("threadedReservoir", BooleanSyncValue.class);
         GenericListSyncHandler<ThreadedProxyDisplay.Row> rows = new GenericListSyncHandler<>(
             multiblock::threadRows,
             values -> clientRows = values,
@@ -180,13 +191,26 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
                     .asWidget()
                     .fullWidth())
             .child(
-                IKey.lang("gtnhadjust.proxy.power.wired")
+                IKey.dynamic(
+                    () -> StatCollector
+                        .translateToLocal("gtnhadjust.proxy.power." + (wireless.getValue() ? "wireless" : "wired")))
                     .asWidget()
                     .fullWidth())
             .child(
-                IKey.dynamic(() -> clientStatus)
+                IKey.dynamic(
+                    () -> StatCollector.translateToLocalFormatted(
+                        "gtnhadjust.threaded_proxy.status",
+                        taskCount.getValue(),
+                        patternCount.getValue(),
+                        validCount.getValue(),
+                        ocLimit.getValue()))
                     .asWidget()
-                    .fullWidth());
+                    .fullWidth())
+            .child(
+                IKey.lang("gtnhadjust.threaded_proxy.reservoir")
+                    .asWidget()
+                    .fullWidth()
+                    .setEnabledIf(widget -> reservoir.getValue()));
     }
 
     @Override
