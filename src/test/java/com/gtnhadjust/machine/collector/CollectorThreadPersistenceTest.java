@@ -6,15 +6,15 @@ import net.minecraft.nbt.NBTTagList;
 
 import org.junit.Test;
 
-import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadOutputs;
-import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadTask;
+import com.gtnhadjust.machine.proxy.ProxyThreadOutputs;
+import com.gtnhadjust.machine.proxy.ProxyThreadTask;
 
 public class CollectorThreadPersistenceTest {
 
     @Test
     public void separateThreadsSurviveReloadAndClearTogether() {
-        RecipeThreadTask first = new RecipeThreadTask(0, 512, 20, 16, new RecipeThreadOutputs(null, null));
-        RecipeThreadTask second = new RecipeThreadTask(1, 1024, 50, 32, new RecipeThreadOutputs(null, null));
+        ProxyThreadTask first = new ProxyThreadTask(0, 512, 20, 16, new ProxyThreadOutputs(null, null));
+        ProxyThreadTask second = new ProxyThreadTask(1, 1024, 50, 32, new ProxyThreadOutputs(null, null));
         CollectorThreadLedger ledger = new CollectorThreadLedger();
         assertTrue(ledger.add("overworld|20", first, 8));
         assertTrue(ledger.add("overworld|21", second, 8));
@@ -27,7 +27,7 @@ public class CollectorThreadPersistenceTest {
         CollectorThreadLedger restored = new CollectorThreadLedger();
         restored.load(saved);
         assertEquals(2, restored.size());
-        RecipeThreadTask restoredFirst = restored.entries()
+        ProxyThreadTask restoredFirst = restored.entries()
             .stream()
             .filter(
                 entry -> entry.getKey()
@@ -35,7 +35,7 @@ public class CollectorThreadPersistenceTest {
             .findFirst()
             .get()
             .getValue();
-        RecipeThreadTask restoredSecond = restored.entries()
+        ProxyThreadTask restoredSecond = restored.entries()
             .stream()
             .filter(
                 entry -> entry.getKey()

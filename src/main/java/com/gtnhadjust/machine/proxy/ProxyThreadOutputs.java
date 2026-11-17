@@ -2,6 +2,7 @@
 package com.gtnhadjust.machine.proxy;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
@@ -20,7 +21,9 @@ import appeng.me.GridAccessException;
 import appeng.util.item.AEFluidStack;
 import appeng.util.item.AEItemStack;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
+import gregtech.api.util.FluidEjectionHelper;
 import gregtech.api.util.GTUtility;
+import gregtech.api.util.ItemEjectionHelper;
 
 /** Compact output ledger: stack objects describe types, while quantities never pass through int or long. */
 public final class ProxyThreadOutputs {
@@ -81,13 +84,13 @@ public final class ProxyThreadOutputs {
 
     /** Finished output stays in the ledger until the controller network accepts it. */
     public boolean flush(MTEMultiBlockBase machine) {
-        return machine instanceof ProxyFactory && flushAe((ProxyFactory) machine);
+        return machine instanceof ProxyFactory factory && flushAe(machine, factory.getProxy());
     }
 
-    private boolean flushAe(ProxyFactory machine) {
+    /** Commit long-sized AE transfers directly; reduce each balance only by the accepted amount. */
+    public boolean flushAe(MTEMultiBlockBase machine, appeng.me.helpers.AENetworkProxy network) {
         if (largest().signum() == 0) return true;
-        if (machine.getProxy() == null || !machine.getProxy()
-            .isActive()) return false;
+        if (network == null || !network.isActive()) return false;
         try {
             MachineSource source = new MachineSource((IActionHost) machine.getBaseMetaTileEntity());
             for (int i = 0; i < items.length; i++) {
@@ -96,8 +99,7 @@ public final class ProxyThreadOutputs {
                     .longValue();
                 IAEItemStack request = AEItemStack.create(items[i]);
                 request.setStackSize(amount);
-                IAEItemStack remaining = machine.getProxy()
-                    .getStorage()
+                IAEItemStack remaining = network.getStorage()
                     .getItemInventory()
                     .injectItems(request, Actionable.MODULATE, source);
                 long accepted = amount - (remaining == null ? 0 : remaining.getStackSize());
@@ -114,8 +116,7 @@ public final class ProxyThreadOutputs {
                     .longValue();
                 IAEFluidStack request = AEFluidStack.create(fluids[i]);
                 request.setStackSize(amount);
-                IAEFluidStack remaining = machine.getProxy()
-                    .getStorage()
+                IAEFluidStack remaining = network.getStorage()
                     .getFluidInventory()
                     .injectItems(request, Actionable.MODULATE, source);
                 long accepted = amount - (remaining == null ? 0 : remaining.getStackSize());
@@ -133,6 +134,67 @@ public final class ProxyThreadOutputs {
             if (GTNHAdjust.debug) GTNHAdjust.LOG.info("[proxy-ae] network unavailable during output");
         }
         return largest().signum() == 0;
+    }
+
+    /** Native transactional item/fluid bus fallback for machines without an active AE node. */
+    public boolean flushBuses(MTEMultiBlockBase machine) {
+        BigInteger largest = largest();
+        if (largest.signum() == 0) return true;
+        int high = largest.min(BigInteger.valueOf(Integer.MAX_VALUE))
+            .intValueExact();
+        if (transfer(machine, largest, high, false)) {
+            transfer(machine, largest, high, true);
+            return largest().signum() == 0;
+        }
+        if (high == 1 || !transfer(machine, largest, 1, false)) return false;
+        int low = 1;
+        high--;
+        while (low < high) {
+            int middle = (int) (((long) low + high + 1) / 2);
+            if (transfer(machine, largest, middle, false)) low = middle;
+            else high = middle - 1;
+        }
+        if (low > 0) transfer(machine, largest, low, true);
+        return largest().signum() == 0;
+    }
+
+    private static int slice(BigInteger amount, BigInteger largest, int units) {
+        if (amount.signum() == 0) return 0;
+        return amount.multiply(BigInteger.valueOf(units))
+            .divide(largest)
+            .max(BigInteger.ONE)
+            .intValueExact();
+    }
+
+    private boolean transfer(MTEMultiBlockBase machine, BigInteger largest, int units, boolean commit) {
+        ItemEjectionHelper itemHelper = new ItemEjectionHelper(machine.getOutputBusses(), machine.protectsExcessItem());
+        FluidEjectionHelper fluidHelper = new FluidEjectionHelper(
+            machine.getOutputHatches(),
+            machine.protectsExcessFluid());
+        int[] itemSlice = new int[items.length];
+        int[] fluidSlice = new int[fluids.length];
+        for (int i = 0; i < items.length; i++) {
+            itemSlice[i] = slice(itemAmounts[i], largest, units);
+            if (itemSlice[i] > 0
+                && itemHelper.ejectItems(Collections.singletonList(items[i]), itemSlice[i]) != itemSlice[i])
+                return false;
+        }
+        for (int i = 0; i < fluids.length; i++) {
+            fluidSlice[i] = slice(fluidAmounts[i], largest, units);
+            if (fluidSlice[i] > 0
+                && fluidHelper.ejectFluids(Collections.singletonList(fluids[i]), fluidSlice[i]) != fluidSlice[i])
+                return false;
+        }
+        if (commit) {
+            itemHelper.commit();
+            fluidHelper.commit();
+            for (int i = 0; i < items.length; i++)
+                itemAmounts[i] = itemAmounts[i].subtract(BigInteger.valueOf(itemSlice[i]));
+            for (int i = 0; i < fluids.length; i++)
+                fluidAmounts[i] = fluidAmounts[i].subtract(BigInteger.valueOf(fluidSlice[i]));
+            machine.markDirty();
+        }
+        return true;
     }
 
     public NBTTagCompound save() {

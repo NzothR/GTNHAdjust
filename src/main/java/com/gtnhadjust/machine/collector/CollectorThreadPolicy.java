@@ -14,6 +14,15 @@ final class CollectorThreadPolicy {
 
     private CollectorThreadPolicy() {}
 
+    /** Exponential interpolation anchored at LV and MAX; endpoints are exact despite floating-point rounding. */
+    static int parallelCurve(int voltageTier, int glassTier, int base, int maximum) {
+        if (voltageTier < LV_TIER || glassTier < HV_GLASS) return 0;
+        int start = Math.min(base, maximum);
+        if (voltageTier >= gregtech.api.enums.VoltageIndex.MAX) return maximum;
+        double progress = (double) (voltageTier - LV_TIER) / (gregtech.api.enums.VoltageIndex.MAX - LV_TIER);
+        return (int) Math.min(maximum, Math.round(start * Math.pow((double) maximum / start, progress)));
+    }
+
     static int parallel(int voltageTier, int glassTier, int base, int voltageMultiplier) {
         if (voltageTier < LV_TIER || glassTier < HV_GLASS) return 0;
         long value = base;

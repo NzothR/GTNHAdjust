@@ -61,7 +61,7 @@ gtnhadjust.collector.mode.21=Gem decompression
 gtnhadjust.collector.mode.22=Dust decompression
 gtnhadjust.collector.mode.23=Ingot decompression
 gtnhadjust.collector.mode.24=Fluid decompression
-gtnhadjust.collector.parallel_limit=Parallel (0 = automatic)
+gtnhadjust.collector.parallel_limit=Per-thread parallel (0 = auto)
 gtnhadjust.collector.wireless_oc=Wireless overclock limit
 gtnhadjust.collector.wireless_mode=Wireless power mode
 gtnhadjust.collector.total_power=Total power: %s
@@ -174,3 +174,5 @@ gtnhadjust.threaded_proxy.over_limit=Exceeds global limit %s; actual launches ob
 gtnhadjust.threaded_proxy.estimate=Recipe estimate: %s /s
 gtnhadjust.threaded_proxy.parameter_help=-1: default/unlimited. Target and budget edits calculate once; new launches only.
 gtnhadjust.threaded_proxy.pattern_slot=Pattern slot #%s; middle-click in input mode to edit thread parameters
+gtnhadjust.collector.effective_parallel=Effective per-thread limit: %s
+gtnhadjust.collector.batch_operations=batch operations x%d

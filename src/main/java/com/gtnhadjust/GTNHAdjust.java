@@ -41,6 +41,7 @@ public class GTNHAdjust {
     public static boolean singularityResourceRecipes;
     public static boolean collectorBlackHole;
     public static boolean collectorWirelessPower;
+    public static boolean collectorDirectAeOutput = true;
     public static boolean proxyFactoryWirelessPower;
     public static boolean threadedProxyWirelessPower;
     public static boolean proxyExtremeCrafting;
@@ -50,7 +51,7 @@ public class GTNHAdjust {
     public static int collectorRecipeTicks = 128;
     public static int collectorBaseParallel = 64;
     public static int collectorBaseThreads = 8;
-    public static int collectorVoltageParallelMultiplier = 2;
+    public static int collectorMaxVoltageParallel = Integer.MAX_VALUE;
     public static int collectorVoltageThreads = 4;
     public static boolean terminalDebug;
     public static boolean patternDeduplication;
@@ -122,13 +123,13 @@ public class GTNHAdjust {
             1,
             256,
             "Thread limit at LV voltage and HV glass, capped at 256. Restart required; client and server must match.");
-        collectorVoltageParallelMultiplier = config.getInt(
-            "voltageParallelMultiplier",
+        collectorMaxVoltageParallel = config.getInt(
+            "maxVoltageParallel",
             "collector",
-            2,
+            Integer.MAX_VALUE,
             1,
-            16,
-            "Multiply parallel limit by this for every voltage tier above LV. Restart required; client and server must match.");
+            Integer.MAX_VALUE,
+            "Per-thread parallel capability at MAX voltage. Exponential growth from baseParallel at LV; replaces voltageParallelMultiplier. Restart required; client and server must match.");
         collectorVoltageThreads = config.getInt(
             "voltageThreadsPerTier",
             "collector",
@@ -141,6 +142,11 @@ public class GTNHAdjust {
             "collector",
             true,
             "Render the custom black hole, rotating confinement sphere and outward jets in the formed matter decompressor. Server setting; restart required.");
+        collectorDirectAeOutput = config.getBoolean(
+            "directAeOutput",
+            "collector",
+            true,
+            "Connect the controller to AE for direct item/fluid output; fall back to output buses/hatches when inactive. Restart required.");
         collectorWirelessPower = config.getBoolean(
             "wirelessPower",
             "collector",

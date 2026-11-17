@@ -42,8 +42,8 @@ import com.gtnewhorizons.modularui.common.widget.SlotWidget;
 import com.gtnewhorizons.modularui.common.widget.TextWidget;
 import com.gtnewhorizons.modularui.common.widget.textfield.NumericWidget;
 import com.gtnhadjust.GTNHAdjust;
-import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadOutputs;
-import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadTask;
+import com.gtnhadjust.machine.proxy.ProxyThreadOutputs;
+import com.gtnhadjust.machine.proxy.ProxyThreadTask;
 import com.xyp.gtneverreset.utils.enums.BlockIcons;
 
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -77,7 +77,7 @@ import gregtech.common.render.IMTERenderer;
 import io.netty.buffer.ByteBuf;
 
 public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase<SuperFragmentCollector>
-    implements ISurvivalConstructable, IMTERenderer {
+    implements ISurvivalConstructable, IMTERenderer, appeng.me.helpers.IGridProxyable {
 
     private static final String PIECE = "main";
     private static final short[] FIELD_BLUE = { 125, 225, 255, 255 };
@@ -86,6 +86,10 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     private int wirelessOverclockLimit;
     private int parallelLimit;
     private UUID wirelessOwner;
+    private appeng.me.helpers.AENetworkProxy gridProxy;
+    private boolean clientAeConnected;
+    private int clientParallelLimit;
+    private static final String AE_CONNECTED_NBT = "gtnhadjustCollectorAeConnected";
     private IStructureDefinition<SuperFragmentCollector> structure;
     private int glass = -1;
     private final String[] displayedThreads = new String[256];
@@ -103,6 +107,79 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
 
     private SuperFragmentCollector(String name) {
         super(name);
+    }
+
+    /** The controller's own powered/channel-ready AE node is the sole direct-output destination. */
+    @Override
+    public appeng.me.helpers.AENetworkProxy getProxy() {
+        if (!GTNHAdjust.collectorDirectAeOutput) return null;
+        if (gridProxy == null && getBaseMetaTileEntity() instanceof appeng.me.helpers.IGridProxyable) {
+            gridProxy = new appeng.me.helpers.AENetworkProxy(this, "proxy", getStackForm(1), true);
+            gridProxy.setFlags(appeng.api.networking.GridFlags.REQUIRE_CHANNEL);
+            gridProxy.setIdlePowerUsage(0);
+            IGregTechTileEntity tile = getBaseMetaTileEntity();
+            if (tile.getWorld() != null) gridProxy.setOwner(
+                tile.getWorld()
+                    .getPlayerEntityByName(tile.getOwnerName()));
+        }
+        return gridProxy;
+    }
+
+    public boolean isAeNetworkConnected() {
+        return gridProxy != null && gridProxy.isActive();
+    }
+
+    private static String aeNetworkStatusText(boolean connected) {
+        return (connected ? "§a" : "§c")
+            + StatCollector.translateToLocal("gtnhadjust.proxy.ae." + (connected ? "connected" : "disconnected"))
+            + "§r";
+    }
+
+    @Override
+    public appeng.api.util.DimensionalCoord getLocation() {
+        IGregTechTileEntity tile = getBaseMetaTileEntity();
+        return new appeng.api.util.DimensionalCoord(
+            tile.getWorld(),
+            tile.getXCoord(),
+            tile.getYCoord(),
+            tile.getZCoord());
+    }
+
+    @Override
+    public appeng.api.networking.IGridNode getGridNode(ForgeDirection side) {
+        return getProxy() == null ? null : getProxy().getNode();
+    }
+
+    @Override
+    public appeng.api.util.AECableType getCableConnectionType(ForgeDirection side) {
+        return appeng.api.util.AECableType.SMART;
+    }
+
+    @Override
+    public void securityBreak() {}
+
+    @Override
+    public void onFirstTick(IGregTechTileEntity tile) {
+        super.onFirstTick(tile);
+        if (getProxy() != null) getProxy().onReady();
+    }
+
+    @Override
+    public void getWailaNBTData(net.minecraft.entity.player.EntityPlayerMP player,
+        net.minecraft.tileentity.TileEntity tile, NBTTagCompound tag, net.minecraft.world.World world, int x, int y,
+        int z) {
+        super.getWailaNBTData(player, tile, tag, world, x, y, z);
+        tag.setBoolean(AE_CONNECTED_NBT, isAeNetworkConnected());
+    }
+
+    @Override
+    public void getWailaBody(ItemStack stack, List<String> lines, mcp.mobius.waila.api.IWailaDataAccessor accessor,
+        mcp.mobius.waila.api.IWailaConfigHandler config) {
+        super.getWailaBody(stack, lines, accessor, config);
+        lines.add(
+            aeNetworkStatusText(
+                accessor.getNBTData()
+                    .getBoolean(AE_CONNECTED_NBT)));
     }
 
     @Override
@@ -140,12 +217,13 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         return CollectorThreadPolicy.cappedVoltage(sum, highest);
     }
 
+    /** Voltage growth defines each thread's capability; the manual field can lower that ceiling. */
     public int maxParallel() {
-        int limit = CollectorThreadPolicy.parallel(
+        int limit = CollectorThreadPolicy.parallelCurve(
             GTUtility.getTier(getMaxInputVoltage()),
             glass,
             GTNHAdjust.collectorBaseParallel,
-            GTNHAdjust.collectorVoltageParallelMultiplier);
+            GTNHAdjust.collectorMaxVoltageParallel);
         return parallelLimit == 0 ? limit : Math.min(limit, parallelLimit);
     }
 
@@ -198,6 +276,13 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         private int maxOverclocks = Integer.MAX_VALUE;
         private boolean wireless;
         private long wirelessBudget;
+        private GTRecipe selected;
+
+        /** Execute exactly the resource-pool recipe used by the scheduler and compact output calculation. */
+        @Override
+        protected java.util.stream.Stream<GTRecipe> findRecipeMatches(RecipeMap<?> map) {
+            return java.util.stream.Stream.of(selected);
+        }
 
         void setMaxOverclocks(int maxOverclocks) {
             this.maxOverclocks = Math.max(0, maxOverclocks);
@@ -210,7 +295,10 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
 
         @Override
         protected ParallelHelper createParallelHelper(GTRecipe recipe) {
-            ParallelHelper helper = super.createParallelHelper(recipe);
+            // Build the arbitrary-precision ledger after processing; never expand huge outputs into int-sized slices.
+            ParallelHelper helper = super.createParallelHelper(recipe)
+                .setCustomItemOutputCalculation(parallel -> GTValues.emptyItemStackArray)
+                .setCustomFluidOutputCalculation(parallel -> GTValues.emptyFluidStackArray);
             return wireless ? helper.setAvailableEUt(wirelessBudget) : helper;
         }
 
@@ -247,8 +335,8 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         }
         long power = runningPower();
         if (GTNHAdjust.debug && tick % 200 == 0 && !threads.isEmpty()) {
-            for (Map.Entry<String, RecipeThreadTask> entry : threads.entries()) {
-                RecipeThreadTask task = entry.getValue();
+            for (Map.Entry<String, ProxyThreadTask> entry : threads.entries()) {
+                ProxyThreadTask task = entry.getValue();
                 GTNHAdjust.LOG.info(
                     "Collector thread {}: slot={}, progress={}/{}, parallel={}, EU/t={}, finished={}, batch={}, voltage={}, capacity={}, used={}, glass={}",
                     entry.getKey(),
@@ -280,16 +368,15 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
                 stopMachine(ShutDownReasonRegistry.POLLUTION_FAIL);
                 return;
             }
-            for (RecipeThreadTask task : threads.values()) if (isRunnableThread(task)) task.advance();
+            for (ProxyThreadTask task : threads.values()) if (isRunnableThread(task)) task.advance();
             markDirty();
         }
         boolean completed = false;
-        for (Iterator<Map.Entry<String, RecipeThreadTask>> it = threads.entries()
+        for (Iterator<Map.Entry<String, ProxyThreadTask>> it = threads.entries()
             .iterator(); it.hasNext();) {
-            RecipeThreadTask task = it.next()
+            ProxyThreadTask task = it.next()
                 .getValue();
-            if (task.isFinished() && task.getOutputs()
-                .flush(this)) {
+            if (task.isFinished() && flushOutputs(task.getOutputs())) {
                 it.remove();
                 recipesDone += task.getParallels();
                 outputAfterRecipe();
@@ -300,6 +387,11 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         if (completed || tick % 5 == 0 || tile.hasInventoryBeenModified() || tile.hasWorkJustBeenEnabled())
             startEligibleThreads();
         updateThreadDisplay();
+    }
+
+    /** An active AE connection owns output delivery; full AE storage retains the undelivered balance. */
+    private boolean flushOutputs(ProxyThreadOutputs outputs) {
+        return isAeNetworkConnected() ? outputs.flushAe(this, getProxy()) : outputs.flushBuses(this);
     }
 
     private void startEligibleThreads() {
@@ -396,6 +488,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         if (!(processingLogic instanceof CollectorProcessingLogic)) return false;
         CollectorProcessingLogic logic = (CollectorProcessingLogic) processingLogic;
         setupProcessingLogic(logic);
+        logic.selected = candidate;
         logic.setWireless(wireless, remaining);
         long voltage = getMaxInputVoltage();
         if (voltage <= 0) return false;
@@ -403,6 +496,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             CollectorThreadPolicy.glassEnergyPercent(glass) / 100.0 * (wireless ? Math.pow(2, selectedOverclocks) : 1))
             .setSpeedBonus(CollectorThreadPolicy.glassEnergyPercent(glass) / 100.0)
             .setRecipeLocking(this, false)
+            .setVoidProtection(false, false)
             .setAvailableVoltage(voltage)
             .setAvailableAmperage(wireless ? 1 : Math.max(1, selectedParallel))
             .setAmperageOC(false)
@@ -427,12 +521,12 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         if (eut < 0 || eut > remaining) return false;
         int slot = freeSlot();
         if (slot < 0) return false;
-        RecipeThreadTask task = new RecipeThreadTask(
+        ProxyThreadTask task = new ProxyThreadTask(
             slot,
             eut,
             Math.max(1, logic.getDuration()),
             Math.max(1, logic.getCurrentParallels()),
-            scaledOutputs(logic.getOutputItems(), logic.getOutputFluids(), pending.markerCount));
+            scaledOutputs(candidate, logic.getCurrentParallels(), pending.markerCount));
         if (!threads.add(key, task, maxThreads())) return false;
         mEfficiency = Math.max(1000, 10000 - (getIdealStatus() - getRepairStatus()) * 1000);
         if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
@@ -451,24 +545,49 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         return true;
     }
 
-    /** Store multiplied output quantities in the existing arbitrary-precision thread ledger. */
-    private static RecipeThreadOutputs scaledOutputs(ItemStack[] items, net.minecraftforge.fluids.FluidStack[] fluids,
-        int multiplier) {
-        RecipeThreadOutputs outputs = new RecipeThreadOutputs(items, fluids);
-        if (multiplier == 1) return outputs;
-        NBTTagCompound saved = outputs.save();
+    /** One ledger entry per recipe output, independent of parallel count and dimension-marker multiplier. */
+    private static ProxyThreadOutputs scaledOutputs(GTRecipe recipe, int operations, int multiplier) {
+        NBTTagCompound saved = new NBTTagCompound();
+        NBTTagList items = new NBTTagList(), fluids = new NBTTagList();
         BigInteger factor = BigInteger.valueOf(multiplier);
-        for (String[] kind : new String[][] { { "items", "amount" }, { "fluids", "bigAmount" } }) {
-            NBTTagList entries = saved.getTagList(kind[0], 10);
-            for (int i = 0; i < entries.tagCount(); i++) {
-                NBTTagCompound entry = entries.getCompoundTagAt(i);
-                entry.setString(
-                    kind[1],
-                    new BigInteger(entry.getString(kind[1])).multiply(factor)
-                        .toString());
-            }
+        for (int i = 0; i < recipe.mOutputs.length; i++) {
+            ItemStack output = recipe.mOutputs[i];
+            if (output == null || output.stackSize <= 0) continue;
+            long rolls = outputRolls(recipe.getOutputChance(i), operations);
+            if (rolls == 0) continue;
+            NBTTagCompound entry = new NBTTagCompound();
+            GTUtility.saveItem(entry, "stack", output);
+            entry.setString(
+                "amount",
+                BigInteger.valueOf(output.stackSize)
+                    .multiply(BigInteger.valueOf(rolls))
+                    .multiply(factor)
+                    .toString());
+            items.appendTag(entry);
         }
-        return RecipeThreadOutputs.load(saved);
+        for (int i = 0; i < recipe.mFluidOutputs.length; i++) {
+            net.minecraftforge.fluids.FluidStack output = recipe.mFluidOutputs[i];
+            if (output == null || output.amount <= 0) continue;
+            long rolls = outputRolls(recipe.getFluidOutputChance(i), operations);
+            if (rolls == 0) continue;
+            NBTTagCompound entry = output.writeToNBT(new NBTTagCompound());
+            entry.setString(
+                "bigAmount",
+                BigInteger.valueOf(output.amount)
+                    .multiply(BigInteger.valueOf(rolls))
+                    .multiply(factor)
+                    .toString());
+            fluids.appendTag(entry);
+        }
+        saved.setTag("items", items);
+        saved.setTag("fluids", fluids);
+        return ProxyThreadOutputs.load(saved);
+    }
+
+    /** Sample fractional chance once per recipe output while keeping guaranteed rolls in long arithmetic. */
+    private static long outputRolls(int chance, int operations) {
+        return (long) (chance / 10000) * operations
+            + ParallelHelper.calculateIntegralChancedOutputMultiplier(chance % 10000, operations);
     }
 
     private static String recipeKey(ItemStack marker, ItemStack circuit) {
@@ -480,7 +599,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     private int freeSlot() {
         for (int i = 0; i < maxThreads(); i++) {
             boolean used = false;
-            for (RecipeThreadTask task : threads.values()) if (task.getThread() == i) {
+            for (ProxyThreadTask task : threads.values()) if (task.getThread() == i) {
                 used = true;
                 break;
             }
@@ -491,12 +610,12 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
 
     private long runningPower() {
         long power = 0;
-        for (RecipeThreadTask task : threads.values())
+        for (ProxyThreadTask task : threads.values())
             if (isRunnableThread(task)) power = CollectorThreadPolicy.addPower(power, task.getEUt());
         return power;
     }
 
-    private boolean isRunnableThread(RecipeThreadTask task) {
+    private boolean isRunnableThread(ProxyThreadTask task) {
         return task.getThread() < maxThreads() && !task.isFinished();
     }
 
@@ -509,7 +628,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         lEUt = 0;
         IGregTechTileEntity tile = getBaseMetaTileEntity();
         if (tile == null || !tile.isAllowedToWork()) return;
-        for (RecipeThreadTask task : threads.values()) if (isRunnableThread(task)) {
+        for (ProxyThreadTask task : threads.values()) if (isRunnableThread(task)) {
             mProgresstime = task.getProgress();
             mMaxProgresstime = task.getDuration();
             break;
@@ -532,6 +651,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     @Override
     public void saveNBTData(NBTTagCompound tag) {
         super.saveNBTData(tag);
+        if (getProxy() != null) getProxy().writeToNBT(tag);
         tag.setTag(THREADS_NBT, threads.save());
         tag.setInteger("collectorWirelessOverclockLimit", wirelessOverclockLimit);
         tag.setInteger("collectorParallelLimit", parallelLimit);
@@ -540,6 +660,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     @Override
     public void loadNBTData(NBTTagCompound tag) {
         super.loadNBTData(tag);
+        if (getProxy() != null) getProxy().readFromNBT(tag);
         wirelessOverclockLimit = Math.max(0, tag.getInteger("collectorWirelessOverclockLimit"));
         parallelLimit = Math.max(0, tag.getInteger("collectorParallelLimit"));
         if (tag.hasKey(THREADS_NBT, 9)) threads.load(tag.getTagList(THREADS_NBT, 10));
@@ -565,7 +686,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
 
     @Override
     public ModularWindow createPowerPanel(EntityPlayer player) {
-        return ModularWindow.builder(160, 110)
+        return ModularWindow.builder(160, 134)
             .setBackground(GTUITextures.BACKGROUND_SINGLEBLOCK_DEFAULT)
             .setDraggable(true)
             .widget(
@@ -598,6 +719,15 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
                     .setBackground(GTUITextures.BACKGROUND_TEXT_FIELD)
                     .setPos(8, 70)
                     .setSize(144, 18))
+            .widget(new FakeSyncWidget.IntegerSyncer(this::maxParallel, value -> clientParallelLimit = value))
+            .widget(
+                TextWidget
+                    .dynamicString(
+                        () -> StatCollector
+                            .translateToLocalFormatted("gtnhadjust.collector.effective_parallel", clientParallelLimit))
+                    .setSynced(false)
+                    .setPos(8, 96)
+                    .setSize(144, 24))
             .build();
     }
 
@@ -610,6 +740,19 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
                 .setEnabled(widget -> clientWirelessMode));
         screenElements
             .widget(new FakeSyncWidget.BooleanSyncer(this::wirelessMode, value -> clientWirelessMode = value));
+        screenElements
+            .widget(new FakeSyncWidget.BooleanSyncer(this::isAeNetworkConnected, value -> clientAeConnected = value));
+        screenElements.widget(
+            TextWidget.dynamicString(() -> aeNetworkStatusText(clientAeConnected))
+                .setSynced(false));
+        screenElements
+            .widget(new FakeSyncWidget.IntegerSyncer(this::maxParallel, value -> clientParallelLimit = value));
+        screenElements.widget(
+            TextWidget
+                .dynamicString(
+                    () -> StatCollector
+                        .translateToLocalFormatted("gtnhadjust.collector.effective_parallel", clientParallelLimit))
+                .setSynced(false));
         super.drawTexts(screenElements, inventorySlot);
         screenElements.widget(new FakeSyncWidget.IntegerSyncer(this::getErrorDisplayID, this::setErrorDisplayID))
             .widget(
@@ -662,8 +805,8 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     }
 
     private String threadDisplayData(int row) {
-        for (Map.Entry<String, RecipeThreadTask> entry : threads.entries()) {
-            RecipeThreadTask task = entry.getValue();
+        for (Map.Entry<String, ProxyThreadTask> entry : threads.entries()) {
+            ProxyThreadTask task = entry.getValue();
             if (task.getThread() == row) {
                 return entry.getKey() + ";" + task.getProgress() + ";" + task.getDuration() + ";" + task.getParallels();
             }
@@ -685,7 +828,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             String type = StatCollector.translateToLocal("gtnhadjust.collector.mode." + mode);
             return String.format(
                 java.util.Locale.ROOT,
-                "%s %s %.2fs / %.2fs ×%d",
+                "%s %s %.2fs / %.2fs " + StatCollector.translateToLocal("gtnhadjust.collector.batch_operations"),
                 dimension,
                 type,
                 Integer.parseInt(fields[1]) / 20.0,
@@ -699,13 +842,14 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     @Override
     public String[] getInfoData() {
         String[] base = super.getInfoData();
-        String[] result = java.util.Arrays.copyOf(base, base.length + 2);
+        String[] result = java.util.Arrays.copyOf(base, base.length + 3);
         long running = threads.values()
             .stream()
             .filter(this::isRunnableThread)
             .count();
         result[base.length] = "运行线程: " + running + " / " + maxThreads();
         result[base.length + 1] = "每线程最大并行: " + maxParallel();
+        result[base.length + 2] = aeNetworkStatusText(isAeNetworkConnected());
         return result;
     }
 
@@ -850,12 +994,14 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             .addInfo("输入维度标记与 20–24 号电路采集对应维度资源")
             .addInfo("20 矿石、21 宝石、22 粉末、23 锭、24 流体")
             .addInfo("标记和电路不消耗；不同配方可同时运行")
+            .addInfo("每线程独立使用并行上限；线程行显示含批处理的总加工次数")
+            .addInfo("主机连接可用 AE 网络时直接输出；断网时回退输出总线和输出仓")
             .addInfo(GTNHAdjust.collectorMarkerOutputMultiplier ? "对应维度标记数量放大产出，最多 64 倍" : "维度标记产出倍率已关闭")
             .addInfo("基础耗时 " + GTNHAdjust.collectorRecipeTicks + " tick，支持无损超频与批处理")
             .addInfo(
-                "LV " + GTNHAdjust.collectorBaseParallel
-                    + " 并行，电压每升一级并行 ×"
-                    + GTNHAdjust.collectorVoltageParallelMultiplier)
+                "每线程并行按指数成长：LV " + GTNHAdjust.collectorBaseParallel
+                    + " → MAX "
+                    + GTNHAdjust.collectorMaxVoltageParallel)
             .addInfo("多个能源仓升压最多达到最高仓的上一电压等级")
             .addInfo("LV 电压与 HV 玻璃提供 " + GTNHAdjust.collectorBaseThreads + " 线程")
             .addInfo("电压每升一级增加 " + GTNHAdjust.collectorVoltageThreads + " 线程，玻璃每升一级增加 4 线程")

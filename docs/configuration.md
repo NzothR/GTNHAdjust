@@ -52,6 +52,9 @@
 | `proxyFactory.locatorNavigation` | `true` | 定位器空气右键高亮与潜行传送 |
 | `proxyFactory.extremeCrafting` | `true` | TST 梦魇工作台转换加工样板桥接 |
 | `collector.singularityResourceRecipes` | `true` | 维度／等级标记与资源配方 |
+| `collector.directAeOutput` | `true` | 主机直连 AE 优先输出，节点不可用时回退输出舱室；重启生效 |
+| `collector.baseParallel` | `64` | LV 每线程并行能力，指数曲线起点 |
+| `collector.maxVoltageParallel` | `2147483647` | MAX 每线程并行能力，指数曲线终点，范围 1–2147483647 |
 | `collector.wirelessPower` | `true` | 物质解压器无能源仓时无线供电 |
 | `collector.blackHoleRendering` | `true` | 黑洞、约束场和向外喷流特效 |
 | `collector.markerOutputMultiplier` | `true` | 同种标记提高资源产出，最多计 64 个 |
@@ -89,3 +92,5 @@
 `gtnrVirtualTools` 的目录包含 PH `prog_toolkit` 的 0、1、2 三种模式。仅对配方中的零数量 NC 免提供，不改变工具包作为消耗原料时的需求；此目录同时用于编码、总成虚拟供料及两种代理的工具检查。适配 PH 0.2.1p7，修改开关及更新版本后两端重启。
 
 内部样板栏、逐槽调度及主机 AE 接入随 `threadedJointProxy` 启停。样板 NBT 中的 `gtnhadjustThread` 独立保存 target、power、parallel、oc；除首次匹配的 power 为配方 EU/t 外默认 -1。修改产量或耗能时一次计算并回填并行、OC，实际执行继续受全局参数限制。界面、单位、搜索及调度规则见 [机器说明](machines.md)。
+
+物质解压器不再使用 `collector.voltageParallelMultiplier`。默认曲线为 `round(64 × (2147483647 / 64)^((电压等级 - 1) / 13))`，LV 与 MAX 端点精确固定；手动上限对每个线程分别取较小值。HV 为最低玻璃要求；玻璃提升线程数，每级降低 15 个百分点的耗时与耗能，最低 1%。并行曲线和 AE 输出参数两端同步并重启。

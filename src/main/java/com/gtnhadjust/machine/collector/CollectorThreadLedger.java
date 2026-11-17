@@ -8,14 +8,14 @@ import java.util.Set;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 
-import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadTask;
+import com.gtnhadjust.machine.proxy.ProxyThreadTask;
 
 /** Persistent one-task-per-recipe ledger; all mutation happens on the server thread. */
 final class CollectorThreadLedger {
 
-    private final Map<String, RecipeThreadTask> tasks = new LinkedHashMap<>();
+    private final Map<String, ProxyThreadTask> tasks = new LinkedHashMap<>();
 
-    boolean add(String key, RecipeThreadTask task, int limit) {
+    boolean add(String key, ProxyThreadTask task, int limit) {
         if (task == null || !CollectorThreadPolicy.canStart(tasks.keySet(), key, limit)
             || task.getThread() >= limit
             || slotUsed(task.getThread())) return false;
@@ -24,7 +24,7 @@ final class CollectorThreadLedger {
     }
 
     boolean slotUsed(int slot) {
-        for (RecipeThreadTask task : tasks.values()) if (task.getThread() == slot) return true;
+        for (ProxyThreadTask task : tasks.values()) if (task.getThread() == slot) return true;
         return false;
     }
 
@@ -40,11 +40,11 @@ final class CollectorThreadLedger {
         return tasks.keySet();
     }
 
-    Collection<RecipeThreadTask> values() {
+    Collection<ProxyThreadTask> values() {
         return tasks.values();
     }
 
-    Set<Map.Entry<String, RecipeThreadTask>> entries() {
+    Set<Map.Entry<String, ProxyThreadTask>> entries() {
         return tasks.entrySet();
     }
 
@@ -54,7 +54,7 @@ final class CollectorThreadLedger {
 
     NBTTagList save() {
         NBTTagList entries = new NBTTagList();
-        for (Map.Entry<String, RecipeThreadTask> entry : tasks.entrySet()) {
+        for (Map.Entry<String, ProxyThreadTask> entry : tasks.entrySet()) {
             NBTTagCompound saved = entry.getValue()
                 .save();
             saved.setString("recipeKey", entry.getKey());
@@ -64,12 +64,12 @@ final class CollectorThreadLedger {
     }
 
     void load(NBTTagList entries) {
-        Map<String, RecipeThreadTask> restored = new LinkedHashMap<>();
+        Map<String, ProxyThreadTask> restored = new LinkedHashMap<>();
         Set<Integer> slots = new java.util.HashSet<>();
         for (int i = 0; i < entries.tagCount(); i++) {
             NBTTagCompound saved = entries.getCompoundTagAt(i);
             String key = saved.getString("recipeKey");
-            RecipeThreadTask task = RecipeThreadTask.load(saved);
+            ProxyThreadTask task = ProxyThreadTask.load(saved);
             if (key.isEmpty() || restored.put(key, task) != null || !slots.add(task.getThread()))
                 throw new IllegalStateException("Invalid or duplicate saved collector thread");
         }
