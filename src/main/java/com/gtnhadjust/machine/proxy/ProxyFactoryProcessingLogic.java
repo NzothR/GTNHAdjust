@@ -255,6 +255,7 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     @Nonnull
     protected CheckRecipeResult validateRecipe(@Nonnull GTRecipe recipe) {
         RecipeMap<?> current = patternRecipeMap;
+        if (!ProxyFactoryControllerRegistry.isExecutable(current)) return CheckRecipeResultRegistry.NO_RECIPE;
         if (ProxyFactoryEssentia.requiresEssentiaCell(current) && !controller.hasCreativeEssentiaCell())
             return CheckRecipeResultRegistry.NO_RECIPE;
         if (!matchesPatternOutputs(recipe) || !consumesPatternInputs(recipe, current))

@@ -616,6 +616,10 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 continue;
             }
             RecipeMap<?> map = PatternRecipeMap.resolve(name);
+            if (!com.gtnhadjust.machine.proxy.ProxyFactoryControllerRegistry.isExecutable(map)) {
+                failures.put(slot.key, new Failure("blocked_map"));
+                continue;
+            }
             ICraftingPatternDetails details = CircuitPatternCodec
                 .decode(slot.pattern.copy(), getBaseMetaTileEntity().getWorld());
             ProxyPatternRecipe recipe = ProxyPatternRecipe.find(map, details);

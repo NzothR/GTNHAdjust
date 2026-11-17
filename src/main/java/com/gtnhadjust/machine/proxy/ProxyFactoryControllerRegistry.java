@@ -37,9 +37,15 @@ public final class ProxyFactoryControllerRegistry {
         Collection<RecipeMap<?>> exposed = ((RecipeMapWorkable) target).getAvailableRecipeMaps();
         List<RecipeMap<?>> result = new ArrayList<>();
         for (RecipeMap<?> map : exposed) {
-            if (RecipeMap.ALL_RECIPE_MAPS.get(map.unlocalizedName) == map && !result.contains(map)) result.add(map);
+            if (isExecutable(map) && RecipeMap.ALL_RECIPE_MAPS.get(map.unlocalizedName) == map && !result.contains(map))
+                result.add(map);
         }
         return result;
+    }
+
+    /** Eye of Harmony requires its own simulation and is never executable by a proxy. */
+    public static boolean isExecutable(RecipeMap<?> map) {
+        return map != null && !"gt.recipe.eyeofharmony".equals(map.unlocalizedName);
     }
 
     public static List<String> maps(ItemStack stack) {
@@ -52,7 +58,7 @@ public final class ProxyFactoryControllerRegistry {
             if (exposed == null) return Collections.emptyList();
             List<String> result = new ArrayList<>();
             for (RecipeMap<?> map : exposed) {
-                if (map == null || !ALLOWED.contains(map.unlocalizedName)
+                if (!isExecutable(map) || !ALLOWED.contains(map.unlocalizedName)
                     || RecipeMap.ALL_RECIPE_MAPS.get(map.unlocalizedName) != map
                     || result.contains(map.unlocalizedName)) continue;
                 result.add(map.unlocalizedName);

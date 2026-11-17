@@ -98,6 +98,23 @@ final class ThreadPatternSlot extends ItemSlot {
         return matches;
     }
 
+    /** Highlight matching physical patterns while keeping the scrolling slot grid stable. */
+    @Override
+    @cpw.mods.fml.relauncher.SideOnly(cpw.mods.fml.relauncher.Side.CLIENT)
+    public com.cleanroommc.modularui.api.drawable.IDrawable getCurrentBackground(
+        com.cleanroommc.modularui.theme.WidgetThemeEntry<?> theme) {
+        boolean searching = false;
+        for (StringValue query : searches) searching |= !query.getStringValue()
+            .trim()
+            .isEmpty();
+        if (searching && owner.patterns()
+            .getStackInSlot(index) != null && matchesSearch()) return SEARCH_MATCH;
+        return super.getCurrentBackground(theme);
+    }
+
+    private static final com.cleanroommc.modularui.api.drawable.IDrawable SEARCH_MATCH = new com.cleanroommc.modularui.drawable.Rectangle()
+        .color(0xFFFFFF60);
+
     private static void append(List<String> names, IAEStack<?>[] stacks) {
         for (IAEStack<?> stack : stacks) {
             if (stack instanceof IAEItemStack item) names.add(

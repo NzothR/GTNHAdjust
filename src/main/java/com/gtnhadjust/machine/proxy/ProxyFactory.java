@@ -427,7 +427,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     }
 
     boolean isRecipeMapUnlocked(RecipeMap<?> map) {
-        return map != null && getAvailableRecipeMaps().contains(map);
+        return ProxyFactoryControllerRegistry.isExecutable(map) && getAvailableRecipeMaps().contains(map);
     }
 
     @Override
@@ -498,7 +498,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
             List<RecipeMap<?>> maps = new ArrayList<>();
             for (String name : clientRecipeNames) {
                 RecipeMap<?> map = RecipeMap.ALL_RECIPE_MAPS.get(name);
-                if (map != null && !maps.contains(map)) maps.add(map);
+                if (ProxyFactoryControllerRegistry.isExecutable(map) && !maps.contains(map)) maps.add(map);
             }
             return maps;
         }

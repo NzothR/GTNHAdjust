@@ -98,10 +98,7 @@ public class ProxyLocatorGui<T extends MTEExtendedPowerMultiBlockBase<?> & Proxy
             int count = packet.readInt();
             if (childManager.isClient()) multiblock.getLocatorInventory()
                 .setSize(count);
-            java.util.List<ProxyLocatorSlot> slots = new java.util.ArrayList<>();
-            ProxySearchGrid grid = new ProxySearchGrid(
-                i -> slots.get(i)
-                    .matchesSearch());
+            ProxySearchGrid grid = new ProxySearchGrid();
             grid.size(getTerminalWidgetWidth() - 16, getTerminalWidgetHeight() - 28);
             for (int i = 0; i < count; i++) {
                 final int slot = i;
@@ -121,7 +118,6 @@ public class ProxyLocatorGui<T extends MTEExtendedPowerMultiBlockBase<?> & Proxy
                     .getOrCreateSyncHandler("proxyLocatorSlot", i, ItemSlotSH.class, () -> new ItemSlotSH(modularSlot));
                 ProxyLocatorSlot widget = new ProxyLocatorSlot(multiblock, slot, search);
                 widget.syncHandler(slotSync);
-                slots.add(widget);
                 grid.addSlot(widget);
             }
             return grid;

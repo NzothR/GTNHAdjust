@@ -33,6 +33,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 public class GTNHAdjust {
 
     public static int threadedProxyPatternSlots = 1024;
+    public static boolean reshapingSimple;
 
     public static final String MOD_ID = "gtnhadjust";
     public static final Logger LOG = LogManager.getLogger(MOD_ID);
@@ -83,6 +84,11 @@ public class GTNHAdjust {
             && Loader.isModLoaded("appliedenergistics2")) com.gtnhadjust.quest.QuestAeNetwork.init();
         if (FeatureConfig.get().quickTerminal || patternDeduplication) TerminalNotifications.init();
         Configuration config = new Configuration(event.getSuggestedConfigurationFile());
+        reshapingSimple = config.getBoolean(
+            "simpleMode",
+            "reshaping",
+            false,
+            "Use EyeOfHarmonyBuffer's EV structure and controller recipe, with no ring tier restriction. Restart required; client and server must match.");
         debug = config.getBoolean(
             "debug",
             Configuration.CATEGORY_GENERAL,
@@ -246,6 +252,8 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
+        if (FeatureConfig.get().substanceReshapingDevice && Loader.isModLoaded("gregtech"))
+            com.gtnhadjust.machine.reshaping.ReshapingRegistration.registerMachine(31996);
         if (recipePoolDebuggerEnabled && Loader.isModLoaded("gregtech"))
             RecipePoolDebugger.register(recipePoolDebuggerMteId);
         if (FeatureConfig.get().threadedJointProxy && Loader.isModLoaded("gtneverreset")
@@ -266,6 +274,8 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void loadComplete(FMLLoadCompleteEvent event) {
+        if (FeatureConfig.get().substanceReshapingDevice && Loader.isModLoaded("gregtech"))
+            com.gtnhadjust.machine.reshaping.ReshapingRegistration.registerRecipes();
         if (machineLocatorsEnabled && Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech"))
             ProxyFactoryRegistration.registerLocatorCrafting();
         if (recipePoolDebuggerEnabled && event.getSide()

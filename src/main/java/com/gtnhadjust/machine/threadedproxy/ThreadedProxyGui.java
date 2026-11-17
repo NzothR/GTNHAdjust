@@ -41,7 +41,7 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
         return 3;
     }
 
-    /** All physical slots register once; client search compacts only their presentation. */
+    /** Register the fixed physical slots before opening the panel; search only highlights matches. */
     @Override
     protected IWidget createPatternPage(ModularPanel parent, PanelSyncManager manager) {
         IPanelHandler editor = manager
@@ -52,68 +52,47 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
                 9,
                 com.cleanroommc.modularui.widgets.slot.SlotGroup.STORAGE_SLOT_PRIO,
                 true).setAllowSorting(false));
-        DynamicSyncHandler inventory = new DynamicSyncHandler().widgetProvider((childManager, packet) -> {
-            if (packet == null) return new EmptyWidget();
-            int count = packet.readInt();
-            if (childManager.isClient()) multiblock.patterns()
-                .setSize(count);
-            List<ThreadPatternSlot> slots = new ArrayList<>();
-            com.gtnhadjust.machine.proxy.ProxySearchGrid grid = new com.gtnhadjust.machine.proxy.ProxySearchGrid(
-                index -> slots.get(index)
-                    .matchesSearch());
-            grid.size(getTerminalWidgetWidth() - 16, getTerminalWidgetHeight() - 46);
-            for (int i = 0; i < count; i++) {
-                final int index = i;
-                var action = new com.cleanroommc.modularui.value.sync.InteractionSyncHandler()
-                    .setOnMousePressed(mouse -> {
-                        if (mouse.mouseButton != 2 || multiblock.patterns()
-                            .getStackInSlot(index) == null || !multiblock.canEditLocators()) return;
-                        editingSlot = index;
-                        if (mouse.isClient()) {
-                            editor.openPanel();
-                        }
-                    });
-                childManager.syncValue("editPattern", i, action);
-                var slot = new com.cleanroommc.modularui.widgets.slot.ModularSlot(multiblock.patterns(), i) {
+        int count = multiblock.patterns()
+            .getSlots();
+        com.gtnhadjust.machine.proxy.ProxySearchGrid grid = new com.gtnhadjust.machine.proxy.ProxySearchGrid();
+        grid.size(getTerminalWidgetWidth() - 16, getTerminalWidgetHeight() - 46);
+        for (int i = 0; i < count; i++) {
+            final int index = i;
+            var action = new com.cleanroommc.modularui.value.sync.InteractionSyncHandler().setOnMousePressed(mouse -> {
+                if (mouse.mouseButton != 2 || multiblock.patterns()
+                    .getStackInSlot(index) == null || !multiblock.canEditLocators()) return;
+                editingSlot = index;
+                if (mouse.isClient()) {
+                    editor.openPanel();
+                }
+            });
+            manager.syncValue("editPattern", i, action);
+            var slot = new com.cleanroommc.modularui.widgets.slot.ModularSlot(multiblock.patterns(), i) {
 
-                    @Override
-                    public boolean canTakeStack(net.minecraft.entity.player.EntityPlayer player) {
-                        return multiblock.canEditLocators() && super.canTakeStack(player);
-                    }
+                @Override
+                public boolean canTakeStack(net.minecraft.entity.player.EntityPlayer player) {
+                    return multiblock.canEditLocators() && super.canTakeStack(player);
+                }
 
-                    @Override
-                    public boolean canDragIntoSlot() {
-                        return multiblock.canEditLocators() && super.canDragIntoSlot();
-                    }
-                }.slotGroup("threadPatterns");
-                var sync = childManager.getOrCreateSyncHandler(
-                    "threadPatternSlot",
-                    i,
-                    com.cleanroommc.modularui.value.sync.ItemSlotSH.class,
-                    () -> new com.cleanroommc.modularui.value.sync.ItemSlotSH(slot));
-                ThreadPatternSlot widget = new ThreadPatternSlot(
-                    multiblock,
-                    i,
-                    patternSearch,
-                    action,
-                    () -> { if (editor.isPanelOpen()) editor.closePanel(); });
-                widget.syncHandler(sync);
-                slots.add(widget);
-                grid.addSlot(widget);
-            }
-            return grid;
-        });
-        manager.addOpenListener(player -> {
-            if (manager.isClient()) return;
-            inventory.notifyUpdate(
-                packet -> packet.writeInt(
-                    multiblock.patterns()
-                        .getSlots()));
-            for (int i = 0; i < multiblock.patterns()
-                .getSlots(); i++)
-                manager.findSyncHandler("threadPatternSlot", i, com.cleanroommc.modularui.value.sync.ItemSlotSH.class)
-                    .forceSyncItem();
-        });
+                @Override
+                public boolean canDragIntoSlot() {
+                    return multiblock.canEditLocators() && super.canDragIntoSlot();
+                }
+            }.slotGroup("threadPatterns");
+            var sync = manager.getOrCreateSyncHandler(
+                "threadPatternSlot",
+                i,
+                com.cleanroommc.modularui.value.sync.ItemSlotSH.class,
+                () -> new com.cleanroommc.modularui.value.sync.ItemSlotSH(slot));
+            ThreadPatternSlot widget = new ThreadPatternSlot(
+                multiblock,
+                i,
+                patternSearch,
+                action,
+                () -> { if (editor.isPanelOpen()) editor.closePanel(); });
+            widget.syncHandler(sync);
+            grid.addSlot(widget);
+        }
         var page = new com.cleanroommc.modularui.widget.ParentWidget<>()
             .size(getTerminalWidgetWidth(), getTerminalWidgetHeight());
         String[] hints = { "input", "output", "map" };
@@ -124,10 +103,7 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
                 .hintText(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.search." + hints[i]))
                 .pos(i == 2 ? getTerminalWidgetWidth() / 2 + 2 : 4, i == 0 ? 2 : 20)
                 .size(getTerminalWidgetWidth() / 2 - 6, 16));
-        return page.child(
-            new DynamicSyncedWidget<>().syncHandler(inventory)
-                .pos(8, 40)
-                .size(getTerminalWidgetWidth() - 16, getTerminalWidgetHeight() - 46));
+        return page.child(grid.pos(8, 40));
     }
 
     /** Reuses the right-hand settings position; every committed field is written to the physical pattern. */

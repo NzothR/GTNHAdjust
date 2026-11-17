@@ -20,6 +20,7 @@ import gregtech.api.recipe.RecipeMap;
 /** The actual stack remains a locator; only the slot's presentation uses its recorded controller. */
 final class ProxyLocatorSlot extends ItemSlot {
 
+    private static final IDrawable SEARCH_MATCH = new com.cleanroommc.modularui.drawable.Rectangle().color(0xFFFFFF60);
     private final ProxyLocatorHost owner;
     private final int index;
     private final StringValue search;
@@ -99,7 +100,9 @@ final class ProxyLocatorSlot extends ItemSlot {
         updateRecord(
             owner.getLocatorInventory()
                 .getStackInSlot(index));
-        IDrawable background = super.getCurrentBackground(theme);
-        return background;
+        if (!search.getStringValue()
+            .trim()
+            .isEmpty() && record != null && matchesSearch()) return SEARCH_MATCH;
+        return super.getCurrentBackground(theme);
     }
 }

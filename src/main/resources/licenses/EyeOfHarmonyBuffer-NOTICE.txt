@@ -1,0 +1,11 @@
+EyeOfHarmonyBuffer by SafariXiu: https://github.com/SafariXiu/EyeOfHarmonyBuffer
+Source commit: 927487325d41a7b6b083158c7b5747d8b292bb4a
+License: GNU GPL v3, included as EyeOfHarmonyBuffer-GPL-3.0.txt.
+
+The substance reshaping structures, recipes, tooltips, frontend and textures were
+ported to com.gtnhadjust.machine.reshaping and assets/gtnhadjust. Both the complete
+structure and the optional EV structure are preserved. Material names, hatches,
+parallel processing and lifecycle were adapted to GTNH 2.9.0. The godforge free
+upgrade behavior was implemented against GTNH 2.9.0's ForgeOfGodsData interface.
+
+See THIRD_PARTY_NOTICES.md in the source distribution for further details.

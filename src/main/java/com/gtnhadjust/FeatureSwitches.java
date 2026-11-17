@@ -46,6 +46,8 @@ final class FeatureSwitches {
     private static final String SOUL_VIAL = "soulVialExpandedCapture";
     private static final String STRUCTURELIB_AE_AUTOPLACE = "structureLibAeAutoPlace";
 
+    boolean substanceReshapingDevice;
+    boolean godforgeFreeUpgrades;
     boolean bookmarkMachineGroups;
     boolean gtnrVirtualTools;
     final boolean hologramImprovements;
@@ -120,6 +122,8 @@ final class FeatureSwitches {
 
     static FeatureSwitches load(Path file) {
         Properties defaults = new Properties();
+        defaults.setProperty("substanceReshapingDevice", "true");
+        defaults.setProperty("godforgeFreeUpgrades", "true");
         defaults.setProperty("bookmarkMachineGroups", "true");
         defaults.setProperty("gtnrVirtualTools", "true");
         defaults.setProperty(HOLOGRAM, "true");
@@ -196,6 +200,8 @@ final class FeatureSwitches {
                 read(values, THREADED_PROXY),
                 read(values, HIDE_SHIMMER),
                 read(values, HIDE_DISASSEMBLER));
+            result.substanceReshapingDevice = read(values, "substanceReshapingDevice");
+            result.godforgeFreeUpgrades = read(values, "godforgeFreeUpgrades");
             result.bookmarkMachineGroups = read(values, "bookmarkMachineGroups");
             result.gtnrVirtualTools = read(values, "gtnrVirtualTools");
             LOG.info(
@@ -326,6 +332,10 @@ final class FeatureSwitches {
                 mixins.add("nei.HideGtnlShimmerRecipesMixin");
             if (hideGtnrDisassemblerRecipes && loadedMods.contains("gtneverreset"))
                 mixins.add("nei.HideGtnrDisassemblerRecipesMixin");
+        }
+        if (godforgeFreeUpgrades && loadedMods.contains("gregtech")) {
+            mixins.add("godforge.FreeUpgradesMixin");
+            mixins.add("godforge.FreeUpgradeMaterialsMixin");
         }
         if (grandAssemblyAutoMaintenance && loadedMods.contains("sciencenotleisure"))
             mixins.add("gtnl.GrandAssemblyMaintenanceMixin");
