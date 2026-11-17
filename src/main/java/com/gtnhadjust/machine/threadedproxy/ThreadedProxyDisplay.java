@@ -168,14 +168,19 @@ final class ThreadedProxyDisplay {
                 task.getEUt());
         }
 
-        String text() {
+        String name() {
+            return info == null ? StatCollector.translateToLocal("gtnhadjust.threaded_proxy.reason.legacy")
+                : info.item != null ? info.item.getDisplayName() : info.fluid.getLocalizedName();
+        }
+
+        /** Compact second line for the proxy terminal's product-icon rows. */
+        String details() {
             String state = result != null ? result.getDisplayString()
                 : reason.isEmpty() ? "" : StatCollector.translateToLocal("gtnhadjust.threaded_proxy.reason." + reason);
             if (duration == 0)
                 return StatCollector.translateToLocalFormatted("gtnhadjust.threaded_proxy.idle", index, state);
-            String product = info == null ? StatCollector.translateToLocal("gtnhadjust.threaded_proxy.reason.legacy")
-                : (info.estimated ? "~" : "") + info.amount
-                    + (info.item != null ? "x" + info.item.getDisplayName() : "L " + info.fluid.getLocalizedName());
+            String product = info == null ? "?"
+                : (info.estimated ? "~" : "") + info.amount + (info.item != null ? "x" : "L");
             String row = String.format(
                 Locale.ROOT,
                 "%s %.1fs/%.1fs %deu/t %sx %s",
@@ -186,6 +191,14 @@ final class ThreadedProxyDisplay {
                 info == null || info.parallel < 0 ? "?" : Integer.toString(info.parallel),
                 info == null || info.overclocks < 0 ? "?" : Integer.toString(info.overclocks));
             return state.isEmpty() ? row : row + " (" + state + ")";
+        }
+
+        boolean sameShape(Row other) {
+            return duration == 0 && other.duration == 0 || duration > 0 && other.duration > 0
+                && (info == null ? other.info == null
+                    : other.info != null && ItemStack.areItemStacksEqual(info.item, other.info.item)
+                        && (info.fluid == null ? other.info.fluid == null
+                            : other.info.fluid != null && info.fluid.isFluidEqual(other.info.fluid)));
         }
 
         static void write(PacketBuffer buffer, Row row) {

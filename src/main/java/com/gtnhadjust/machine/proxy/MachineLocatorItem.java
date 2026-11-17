@@ -50,7 +50,7 @@ public final class MachineLocatorItem extends Item {
     /** Air use only: block interactions retain their existing recording behavior. */
     @Override
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
-        if (world.isRemote || !GTNHAdjust.proxyFactoryEnabled || !GTNHAdjust.locatorNavigation) return stack;
+        if (world.isRemote || !GTNHAdjust.machineLocatorsEnabled || !GTNHAdjust.locatorNavigation) return stack;
         MovingObjectPosition hit = getMovingObjectPositionFromPlayer(world, player, false);
         if (hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) return stack;
         MachineLocatorRecord record = read(stack);
@@ -62,7 +62,7 @@ public final class MachineLocatorItem extends Item {
     @Override
     public boolean onItemUseFirst(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
         float hitX, float hitY, float hitZ) {
-        if (!GTNHAdjust.proxyFactoryEnabled || !player.isSneaking()) return false;
+        if (!GTNHAdjust.machineLocatorsEnabled || !player.isSneaking()) return false;
         // Let the client send the interaction packet; only the server edits the recorded item/inventory.
         if (world.isRemote) return false;
         TileEntity tile = world.getTileEntity(x, y, z);

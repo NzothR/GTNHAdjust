@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -23,20 +22,10 @@ import net.minecraftforge.fluids.FluidStack;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
-import com.gtnewhorizons.modularui.api.math.Alignment;
-import com.gtnewhorizons.modularui.api.math.CrossAxisAlignment;
-import com.gtnewhorizons.modularui.api.screen.ModularWindow;
-import com.gtnewhorizons.modularui.api.widget.IWidgetBuilder;
-import com.gtnewhorizons.modularui.api.widget.Widget;
-import com.gtnewhorizons.modularui.common.widget.ButtonWidget;
-import com.gtnewhorizons.modularui.common.widget.ChangeableWidget;
-import com.gtnewhorizons.modularui.common.widget.DynamicPositionedColumn;
-import com.gtnewhorizons.modularui.common.widget.FakeSyncWidget;
-import com.gtnewhorizons.modularui.common.widget.SlotWidget;
-import com.gtnewhorizons.modularui.common.widget.TextWidget;
-import com.gtnewhorizons.modularui.common.widget.textfield.NumericWidget;
 import com.gtnhadjust.GTNHAdjust;
-import com.gtnhadjust.machine.proxy.ProxyFactoryControllerRegistry;
+import com.gtnhadjust.machine.proxy.ProxyLocatorHost;
+import com.gtnhadjust.machine.proxy.ProxyLocatorInventory;
+import com.gtnhadjust.machine.proxy.ProxyLocatorPool;
 import com.xyp.gtneverreset.common.machine.hatch.CrossRecipeMEPatternBuffer;
 import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadTask;
 import com.xyp.gtneverreset.common.me.CircuitPatternCodec;
@@ -45,7 +34,6 @@ import com.xyp.gtneverreset.common.me.PatternRecipeMap;
 import appeng.api.networking.crafting.ICraftingPatternDetails;
 import gregtech.api.enums.Textures;
 import gregtech.api.enums.VoidingMode;
-import gregtech.api.gui.modularui.GTUITextures;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -73,7 +61,7 @@ import gtPlusPlus.xmod.gregtech.api.metatileentity.implementations.MTEHatchReser
 
 /** One physical pattern slot defines one thread; crafting-buffer deliveries are never machine ingredients. */
 public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<ThreadedJointProxy>
-    implements ISurvivalConstructable {
+    implements ISurvivalConstructable, ProxyLocatorHost {
 
     private static final String THREADS = "gtnhadjustThreadedProxyTasks";
     private IStructureDefinition<ThreadedJointProxy> structure;
@@ -82,15 +70,15 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     private final Map<String, ThreadedProxyDisplay.RunInfo> runInfo = new LinkedHashMap<>();
     private final Map<String, Failure> failures = new LinkedHashMap<>();
     private final Map<String, Definition> definitionIndex = new LinkedHashMap<>();
-    private List<ThreadedProxyDisplay.Row> clientRows = Collections.emptyList();
     private List<Definition> definitions = Collections.emptyList();
     private List<PatternSlot> snapshot = Collections.emptyList();
-    private ItemStack previousController;
+    private final ProxyLocatorInventory locatorInventory = new ProxyLocatorInventory(this);
+    private final ProxyLocatorPool locatorPool = new ProxyLocatorPool();
+    private int operationMode = 1;
     private boolean definitionsDirty = true;
     private boolean refreshRequested;
     private boolean hasWaterReservoir;
     private boolean previousWaterReservoir;
-    private String clientStatus = "";
     private int maxOverclocks;
 
     public ThreadedJointProxy(int id, String name, String localizedName) {
@@ -108,10 +96,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
 
     @Override
     public Collection<RecipeMap<?>> getAvailableRecipeMaps() {
-        return ProxyFactoryControllerRegistry.maps(getControllerSlot())
-            .stream()
-            .map(PatternRecipeMap::resolve)
-            .collect(Collectors.toList());
+        return locatorPool.recipeMaps();
     }
 
     @Override
@@ -119,6 +104,48 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         return getAvailableRecipeMaps().stream()
             .findFirst()
             .orElse(null);
+    }
+
+    @Override
+    public ProxyLocatorInventory getLocatorInventory() {
+        return locatorInventory;
+    }
+
+    @Override
+    public boolean canEditLocators() {
+        return operationMode == 1;
+    }
+
+    @Override
+    public int getOperationMode() {
+        return operationMode;
+    }
+
+    @Override
+    public void setClientOperationMode(int mode) {
+        operationMode = mode == 1 ? 1 : 0;
+    }
+
+    /** Input mode locks out new threads while committed tasks retain their progress. */
+    @Override
+    public void cycleOperationMode() {
+        operationMode = 1 - operationMode;
+        markDirty();
+    }
+
+    /** Reindex controller capabilities only when slots change; live source checks occur at thread admission. */
+    @Override
+    public void onLocatorInventoryChanged() {
+        IGregTechTileEntity tile = getBaseMetaTileEntity();
+        if (tile == null || tile.isClientSide()) return;
+        List<ItemStack> locators = new ArrayList<>();
+        for (int i = 0; i < locatorInventory.getSlots(); i++) {
+            ItemStack stack = locatorInventory.getStackInSlot(i);
+            if (stack != null) locators.add(stack);
+        }
+        locatorPool.replace(locators);
+        definitionsDirty = true;
+        markDirty();
     }
 
     List<CrossRecipeMEPatternBuffer> patternHatches() {
@@ -160,29 +187,23 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     }
 
     /**
-     * Re-read the controller and all patterns after the new hatch lists are known, even while the machine is paused.
+     * Re-read locators and all patterns after the new hatch lists are known, even while the machine is paused.
      */
     @Override
     protected void onStructureCheckFinished(IGregTechTileEntity tile) {
         super.onStructureCheckFinished(tile);
         if (!refreshRequested) return;
         refreshRequested = false;
+        onLocatorInventoryChanged();
         definitionsDirty = true;
         ((ThreadedProxyProcessingLogic) processingLogic).discardPreparedRecipe();
         refreshDefinitions();
         if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
-            "[threaded-proxy] manual refresh: formed={}, controller={}, installed={}, valid={}",
+            "[threaded-proxy] manual refresh: formed={}, maps={}, installed={}, valid={}",
             mMachine,
-            getControllerSlot(),
+            locatorPool.recipeMaps(),
             snapshot.size(),
             definitions.size());
-    }
-
-    @Override
-    public ButtonWidget createStructureUpdateButton(IWidgetBuilder<?> builder) {
-        ButtonWidget button = super.createStructureUpdateButton(builder);
-        button.addTooltip(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.refresh"));
-        return button;
     }
 
     @Override
@@ -315,7 +336,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     /** Admit more ready threads, apply their OC limits, then give the admitted group a common concurrent parallel. */
     private void startThreads() {
         refreshDefinitions();
-        if (definitions.isEmpty()) return;
+        if (canEditLocators() || definitions.isEmpty()) return;
         startRecipeProcessing();
         try {
             List<ItemStack> ordinaryItems = getStoredInputs();
@@ -324,6 +345,11 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             long voltage = getMaxInputVoltage();
             for (Definition definition : definitions) {
                 if (tasks.containsKey(definition.key)) continue;
+                CheckRecipeResult sourceResult = locatorPool.checkStart(this, definition.map, definition.recipe.recipe);
+                if (!sourceResult.wasSuccessful()) {
+                    failures.put(definition.key, new Failure(sourceResult));
+                    continue;
+                }
                 ThreadInputs input = selectInputs(definition, ordinaryItems, ordinaryFluids);
                 if (!hasReadyInputs(input)) continue;
                 if (definition.execution.mEUt > OverclockCalculator.getMaxAllowedRecipeEUt(voltage, 1)) {
@@ -532,7 +558,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     }
 
     /**
-     * Rebuilds expensive recipe matches only after an encoded stack, its position or the inserted controller changes.
+     * Rebuilds expensive recipe matches only after an encoded stack, its position or the locator inventory changes.
      */
     private void refreshDefinitions() {
         List<PatternSlot> current = new ArrayList<>();
@@ -569,20 +595,20 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                         pattern));
             }
         }
-        ItemStack controller = getControllerSlot();
         boolean changed = definitionsDirty || previousWaterReservoir != hasWaterReservoir
-            || !ItemStack.areItemStacksEqual(controller, previousController)
             || current.size() != snapshot.size();
         for (int i = 0; !changed && i < current.size(); i++) {
             PatternSlot left = current.get(i), right = snapshot.get(i);
             changed = !left.key.equals(right.key) || !ItemStack.areItemStacksEqual(left.pattern, right.pattern);
         }
         if (!changed) return;
-        previousController = controller == null ? null : controller.copy();
         previousWaterReservoir = hasWaterReservoir;
         snapshot = current;
         definitionsDirty = false;
-        List<String> allowed = ProxyFactoryControllerRegistry.maps(controller);
+        java.util.Set<String> allowed = locatorPool.recipeMaps()
+            .stream()
+            .map(map -> map.unlocalizedName)
+            .collect(Collectors.toSet());
         List<Definition> resolved = new ArrayList<>();
         failures.clear();
         definitionIndex.clear();
@@ -591,12 +617,9 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             if (name == null || !allowed.contains(name)) {
                 failures.put(
                     slot.key,
-                    new Failure(
-                        controller == null ? "no_controller"
-                            : allowed.isEmpty() ? "unsupported_controller"
-                                : name == null ? "missing_map" : "wrong_map"));
+                    new Failure(allowed.isEmpty() ? "no_locator" : name == null ? "missing_map" : "wrong_map"));
                 if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
-                    "[threaded-proxy] ignored {}: pattern map={} not provided by inserted controller",
+                    "[threaded-proxy] ignored {}: pattern map={} not provided by locator inventory",
                     slot.label,
                     name);
                 continue;
@@ -633,10 +656,9 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         }
         definitions = resolved;
         if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
-            "[threaded-proxy] pattern slots={}, valid={}, controller={}, allowedMaps={}, reservoir={}",
+            "[threaded-proxy] pattern slots={}, valid={}, allowedMaps={}, reservoir={}",
             current.size(),
             resolved.size(),
-            controller,
             allowed,
             hasWaterReservoir);
     }
@@ -686,6 +708,8 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     @Override
     public void saveNBTData(NBTTagCompound tag) {
         super.saveNBTData(tag);
+        tag.setTag("gtnhadjustLocatorInventory", locatorInventory.serializeNBT());
+        tag.setInteger("gtnhadjustProxyOperation", operationMode);
         tag.setInteger("threadedProxyMaxOverclocks", maxOverclocks);
         NBTTagList saved = new NBTTagList();
         tasks.forEach((key, task) -> {
@@ -703,6 +727,10 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     @Override
     public void loadNBTData(NBTTagCompound tag) {
         super.loadNBTData(tag);
+        if (tag.hasKey("gtnhadjustLocatorInventory", 10))
+            locatorInventory.deserializeNBT(tag.getCompoundTag("gtnhadjustLocatorInventory"));
+        operationMode = !tag.hasKey("gtnhadjustProxyOperation") ? 1 : tag.getInteger("gtnhadjustProxyOperation");
+        onLocatorInventoryChanged();
         maxOverclocks = Math.max(0, tag.getInteger("threadedProxyMaxOverclocks"));
         tasks.clear();
         runInfo.clear();
@@ -729,9 +757,18 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         definitionsDirty = true;
     }
 
+    /** Keep real locator stacks and settings on the dropped controller item. */
+    @Override
+    public void setItemNBT(NBTTagCompound tag) {
+        super.setItemNBT(tag);
+        tag.setTag("gtnhadjustLocatorInventory", locatorInventory.serializeNBT());
+        tag.setInteger("gtnhadjustProxyOperation", operationMode);
+        tag.setInteger("threadedProxyMaxOverclocks", maxOverclocks);
+    }
+
     @Override
     protected boolean useMui2() {
-        return false;
+        return true;
     }
 
     @Override
@@ -740,75 +777,28 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     }
 
     @Override
-    public ModularWindow createPowerPanel(EntityPlayer player) {
-        return ModularWindow.builder(160, 80)
-            .setBackground(GTUITextures.BACKGROUND_SINGLEBLOCK_DEFAULT)
-            .setDraggable(true)
-            .widget(
-                TextWidget.localised("gtnhadjust.threaded_proxy.oc_limit")
-                    .setPos(8, 8)
-                    .setSize(144, 16))
-            .widget(
-                new NumericWidget().setGetter(() -> maxOverclocks)
-                    .setSetter(value -> {
-                        maxOverclocks = (int) value;
-                        markDirty();
-                    })
-                    .setBounds(0, Integer.MAX_VALUE)
-                    .setScrollValues(1, 4, 16)
-                    .setBackground(GTUITextures.BACKGROUND_TEXT_FIELD)
-                    .setPos(8, 30)
-                    .setSize(144, 18))
-            .widget(
-                TextWidget.localised("gtnhadjust.threaded_proxy.oc_default")
-                    .setPos(8, 53)
-                    .setSize(144, 18))
-            .build();
+    protected ThreadedProxyGui getGui() {
+        return new ThreadedProxyGui(this);
     }
 
-    @Override
-    protected void drawTexts(DynamicPositionedColumn column, SlotWidget slot) {
-        super.drawTexts(column, slot);
-        column.widget(
-            TextWidget.dynamicString(() -> clientStatus)
-                .setSynced(false)
-                .setTextAlignment(Alignment.CenterLeft)
-                .setDefaultColor(0xFFFFFF));
-        column.widget(new FakeSyncWidget.StringSyncer(this::status, value -> clientStatus = value));
-        ChangeableWidget rows = new ChangeableWidget(this::createThreadRows);
-        column.widget(new FakeSyncWidget.ListSyncer<>(this::threadRows, values -> {
-            boolean sizeChanged = clientRows.size() != values.size();
-            clientRows = values;
-            if (sizeChanged) rows.notifyChangeNoSync();
-        }, ThreadedProxyDisplay.Row::write, ThreadedProxyDisplay.Row::read));
-        column.widget(rows);
+    int getMaxOverclocks() {
+        return maxOverclocks;
     }
 
-    /** Rebuild widget structure only when row count changes; progress updates use existing dynamic text widgets. */
-    private Widget createThreadRows() {
-        DynamicPositionedColumn rows = new DynamicPositionedColumn();
-        rows.setSynced(false)
-            .setSpace(0);
-        rows.setAlignment(CrossAxisAlignment.START);
-        for (int i = 0; i < clientRows.size(); i++) {
-            final int index = i;
-            rows.widget(
-                TextWidget.dynamicString(
-                    () -> clientRows.get(index)
-                        .text())
-                    .setSynced(false)
-                    .setDefaultColor(0xFFFFFF)
-                    .setTextAlignment(Alignment.CenterLeft)
-                    .setScale(0.75f)
-                    .setMaxWidth(182));
-        }
-        return rows;
+    /** OC changes affect the next launch, leaving committed task parameters intact. */
+    void setMaxOverclocks(int value) {
+        maxOverclocks = Math.max(0, value);
+        markDirty();
+    }
+
+    Collection<RecipeThreadTask> threadTasks() {
+        return tasks.values();
     }
 
     /**
      * Every installed slot gets a row, including invalid or idle definitions; removed but unfinished tasks follow them.
      */
-    private List<ThreadedProxyDisplay.Row> threadRows() {
+    List<ThreadedProxyDisplay.Row> threadRows() {
         List<ThreadedProxyDisplay.Row> rows = new ArrayList<>();
         java.util.Set<String> shown = new java.util.HashSet<>();
         boolean paused = !getBaseMetaTileEntity().isAllowedToWork();
@@ -842,7 +832,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         return rows;
     }
 
-    private String status() {
+    String status() {
         String text = StatCollector.translateToLocalFormatted(
             "gtnhadjust.threaded_proxy.status",
             tasks.size(),
@@ -875,7 +865,9 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     @Override
     public MultiblockTooltipBuilder createTooltip() {
         return new MultiblockTooltipBuilder().addMachineType("多线程联合代理")
-            .addInfo("主机槽放入被代理控制器，按样板记录的白名单配方池工作")
+            .addInfo("定位器库存接入多个成型多方块，开放它们公开的全部配方池")
+            .addInfo("输入模式编辑定位器，运行模式锁定库存；按每张样板记录的配方池工作")
+            .addInfo("新线程要求目标已加载、身份一致且成型；高炉配方额外检查炉温")
             .addInfo("一个样板一个线程，从输入总线和输入仓取料，产物送入输出舱室")
             .addInfo("允许共享输入，同种原料按待启动线程平均分配")
             .addInfo("安装蓄水仓后，配方用水免消耗；其他流体照常消耗")

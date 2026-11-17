@@ -71,7 +71,7 @@ import mcp.mobius.waila.api.IWailaDataAccessor;
 
 @IMetaTileEntity.SkipGenerateDescription
 public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
-    implements ISurvivalConstructable, IGridProxyable {
+    implements ISurvivalConstructable, IGridProxyable, ProxyLocatorHost {
 
     private static final IIconContainer MARK = Textures.BlockIcons.custom(GTNHAdjust.MOD_ID, "proxy/overlay_mark");
     private static final int BASE_PARALLELS = 64;
@@ -350,15 +350,15 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
         // Recipe-pool selection and recipe locking are intentionally unavailable.
     }
 
-    int getOperationMode() {
+    public int getOperationMode() {
         return operationMode;
     }
 
-    void setClientOperationMode(int mode) {
+    public void setClientOperationMode(int mode) {
         operationMode = mode == INPUT ? INPUT : RUN;
     }
 
-    void cycleOperationMode() {
+    public void cycleOperationMode() {
         operationMode = operationMode == INPUT ? RUN : INPUT;
         patternIssues.clear();
         scheduleRecipeCheckImmediate();
@@ -374,7 +374,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     }
 
     /** Rebuild only when actual locator slots change; running tasks keep their committed recipe and outputs. */
-    void onLocatorInventoryChanged() {
+    public void onLocatorInventoryChanged() {
         IGregTechTileEntity tile = getBaseMetaTileEntity();
         if (tile == null || tile.isClientSide()) return;
         patternIssues.clear();

@@ -14,6 +14,7 @@ import net.minecraftforge.common.DimensionManager;
 import com.gtnhadjust.GTNHAdjust;
 
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.check.CheckRecipeResult;
@@ -58,7 +59,7 @@ public final class ProxyLocatorPool {
     }
 
     /** No chunk tickets, dimension initialization, background checks or fallback to later same-pool records. */
-    public CheckRecipeResult checkStart(ProxyFactory proxy, RecipeMap<?> map, GTRecipe recipe) {
+    public CheckRecipeResult checkStart(MTEExtendedPowerMultiBlockBase<?> proxy, RecipeMap<?> map, GTRecipe recipe) {
         MachineLocatorRecord record = sources.get(map);
         if (record == null) return failure("missing_locator");
         if (GTNHAdjust.debug) GTNHAdjust.LOG.info(

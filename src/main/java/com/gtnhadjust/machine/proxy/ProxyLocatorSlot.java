@@ -22,7 +22,7 @@ import gregtech.api.recipe.RecipeMap;
 /** The actual stack remains a locator; only the slot's presentation uses its recorded controller. */
 final class ProxyLocatorSlot extends ItemSlot {
 
-    private final ProxyFactory owner;
+    private final ProxyLocatorHost owner;
     private final int index;
     private final StringValue search;
     private ItemStack cachedLocator;
@@ -31,7 +31,7 @@ final class ProxyLocatorSlot extends ItemSlot {
     private String previousQuery;
     private boolean matches;
 
-    ProxyLocatorSlot(ProxyFactory owner, int index, StringValue search) {
+    ProxyLocatorSlot(ProxyLocatorHost owner, int index, StringValue search) {
         this.owner = owner;
         this.index = index;
         this.search = search;

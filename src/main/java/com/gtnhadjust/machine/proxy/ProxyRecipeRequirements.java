@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import gregtech.api.enums.HeatingCoilLevel;
+import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 import gregtech.api.metatileentity.implementations.MTEMultiBlockBase;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.RecipeMaps;
@@ -23,7 +24,7 @@ public final class ProxyRecipeRequirements {
     @FunctionalInterface
     public interface Requirement {
 
-        CheckRecipeResult check(ProxyFactory proxy, MTEMultiBlockBase source, GTRecipe recipe);
+        CheckRecipeResult check(MTEExtendedPowerMultiBlockBase<?> proxy, MTEMultiBlockBase source, GTRecipe recipe);
     }
 
     private static final Map<RecipeMap<?>, Requirement> RULES = new HashMap<>();
@@ -58,14 +59,15 @@ public final class ProxyRecipeRequirements {
         RULES.put(map, requirement);
     }
 
-    public static CheckRecipeResult check(ProxyFactory proxy, MTEMultiBlockBase source, RecipeMap<?> map,
-        GTRecipe recipe) {
+    public static CheckRecipeResult check(MTEExtendedPowerMultiBlockBase<?> proxy, MTEMultiBlockBase source,
+        RecipeMap<?> map, GTRecipe recipe) {
         Requirement rule = RULES.get(map);
         return rule == null ? CheckRecipeResultRegistry.SUCCESSFUL : rule.check(proxy, source, recipe);
     }
 
     /** Godforge uses its computed process heat; coil furnaces use physical coil heat plus proxy voltage heat. */
-    private static CheckRecipeResult checkBlastHeat(ProxyFactory proxy, MTEMultiBlockBase source, GTRecipe recipe) {
+    private static CheckRecipeResult checkBlastHeat(MTEExtendedPowerMultiBlockBase<?> proxy, MTEMultiBlockBase source,
+        GTRecipe recipe) {
         if (source instanceof MTESmeltingModule module) {
             int heat = module.getHeat();
             if (com.gtnhadjust.GTNHAdjust.debug) com.gtnhadjust.GTNHAdjust.LOG

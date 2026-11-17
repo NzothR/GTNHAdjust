@@ -52,6 +52,7 @@ public class GTNHAdjust {
     public static boolean terminalDebug;
     public static boolean patternDeduplication;
     public static boolean proxyFactoryEnabled;
+    public static boolean machineLocatorsEnabled;
     public static boolean hologramAeMaterials;
     public static int steamGreenhouseMaxSeeds = 64;
     private int superFragmentMteId = 31990;
@@ -67,6 +68,7 @@ public class GTNHAdjust {
             net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new SoulVialMultipartHandler());
         patternDeduplication = FeatureConfig.get().patternDeduplication;
         proxyFactoryEnabled = FeatureConfig.get().proxyFactory;
+        machineLocatorsEnabled = proxyFactoryEnabled || FeatureConfig.get().threadedJointProxy;
         hologramAeMaterials = FeatureConfig.get().structureLibAeAutoPlace;
         if (FeatureConfig.get().questAeRetrieval && Loader.isModLoaded("betterquesting")
             && Loader.isModLoaded("appliedenergistics2")) com.gtnhadjust.quest.QuestAeNetwork.init();
@@ -151,7 +153,7 @@ public class GTNHAdjust {
             "proxyFactory",
             true,
             "Allow recorded locators to highlight on air right-click and safely teleport on sneaking air right-click. Restart required.");
-        if (proxyFactoryEnabled && locatorNavigation) com.gtnhadjust.machine.proxy.MachineLocatorNavigation.init();
+        if (machineLocatorsEnabled && locatorNavigation) com.gtnhadjust.machine.proxy.MachineLocatorNavigation.init();
         // Vanilla slot IDs are signed shorts; reserve 36 player slots and the controller slot.
         proxyFactoryLocatorSlots = config.getInt(
             "locatorSlots",
@@ -159,7 +161,7 @@ public class GTNHAdjust {
             128,
             1,
             32730,
-            "Locator inventory capacity. Existing overflow slots remain extractable. Restart required; client and server must match.");
+            "Locator inventory capacity shared by both proxy machines. Existing overflow slots remain extractable. Restart required; client and server must match.");
         collectorMarkerOutputMultiplier = config.getBoolean(
             "markerOutputMultiplier",
             "collector",
@@ -210,7 +212,7 @@ public class GTNHAdjust {
         GameRegistry.registerItem(tierDimension, "tier_dimension");
         if (event.getSide()
             .isClient()) tierDimension.registerRenderer();
-        if (FeatureConfig.get().proxyFactory && Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech"))
+        if (machineLocatorsEnabled && Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech"))
             ProxyFactoryRegistration.registerItems(
                 event.getSide()
                     .isClient());
@@ -238,6 +240,8 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void loadComplete(FMLLoadCompleteEvent event) {
+        if (machineLocatorsEnabled && Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech"))
+            ProxyFactoryRegistration.registerLocatorCrafting();
         if (recipePoolDebuggerEnabled && event.getSide()
             .isClient() && Loader.isModLoaded("NotEnoughItems")) RecipePoolCatalog.register();
         if (FeatureConfig.get().threadedJointProxy && Loader.isModLoaded("gtneverreset")

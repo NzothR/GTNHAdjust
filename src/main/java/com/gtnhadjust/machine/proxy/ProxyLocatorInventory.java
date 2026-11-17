@@ -9,9 +9,9 @@ import com.gtnhadjust.GTNHAdjust;
 /** Real single-item slots; saved slot indices include holes and capacity-reduction overflow. */
 public final class ProxyLocatorInventory extends ItemStackHandler {
 
-    private final ProxyFactory owner;
+    private final ProxyLocatorHost owner;
 
-    ProxyLocatorInventory(ProxyFactory owner) {
+    public ProxyLocatorInventory(ProxyLocatorHost owner) {
         super(GTNHAdjust.proxyFactoryLocatorSlots);
         this.owner = owner;
     }

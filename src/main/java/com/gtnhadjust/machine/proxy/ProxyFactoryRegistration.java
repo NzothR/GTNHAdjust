@@ -21,7 +21,7 @@ public final class ProxyFactoryRegistration {
 
     private ProxyFactoryRegistration() {}
 
-    /** The locator and its recipe share the proxyFactory feature switch. */
+    /** Both proxy features share the same locator item and registry identity. */
     public static void registerItems(boolean client) {
         locator = new MachineLocatorItem();
         GameRegistry.registerItem(locator, "multiblock_machine_locator");
@@ -39,6 +39,10 @@ public final class ProxyFactoryRegistration {
         if (controller == null || original == null
             || !GTModHandler.addShapelessCraftingRecipe(controller.copy(), new Object[] { original }))
             GTNHAdjust.LOG.warn("Proxy joint factory controller crafting recipe could not be registered");
+    }
+
+    /** Register once when either proxy is enabled, independently of the proxy factory controller recipe. */
+    public static void registerLocatorCrafting() {
         ItemStack chip = GTModHandler.getModItem(Mods.RemoteIO.ID, "item.chip.location", 1, 0);
         if (chip == null) {
             GTNHAdjust.LOG.warn("Multiblock machine locator recipe unavailable: RemoteIO location chip is missing");
