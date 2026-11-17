@@ -3,7 +3,6 @@ package com.gtnhadjust.terminal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import com.gtnhadjust.GTNHAdjust;
@@ -14,20 +13,16 @@ public final class ClientTargets {
     private ClientTargets() {}
 
     public static long[] find(Object interfaceTerminal, String search) {
-        if (interfaceTerminal == null || search == null
-            || search.trim()
-                .isEmpty())
-            return new long[0];
-        String query = search.trim()
-            .toLowerCase(Locale.ROOT);
+        if (interfaceTerminal == null || search == null) return new long[0];
+        String query = InterfaceNames.normalize(search);
+        if (query.isEmpty()) return new long[0];
         try {
             Object master = Reflection.field(interfaceTerminal, "masterList");
             Map<?, ?> entries = (Map<?, ?>) Reflection.field(master, "list");
             List<Target> targets = new ArrayList<>();
             for (Map.Entry<?, ?> entry : entries.entrySet()) {
                 Object value = entry.getValue();
-                String name = String.valueOf(Reflection.field(value, "dispName"))
-                    .toLowerCase(Locale.ROOT);
+                String name = InterfaceNames.normalize(String.valueOf(Reflection.field(value, "dispName")));
                 if (!name.contains(query)) continue;
                 int rank = name.equals(query) ? 0 : name.startsWith(query) ? 1 : 2;
                 targets.add(new Target(((Number) entry.getKey()).longValue(), rank, name));

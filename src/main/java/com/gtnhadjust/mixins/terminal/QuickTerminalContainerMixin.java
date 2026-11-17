@@ -2,7 +2,6 @@ package com.gtnhadjust.mixins.terminal;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import net.minecraft.inventory.IInventory;
@@ -17,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.gtnhadjust.GTNHAdjust;
+import com.gtnhadjust.terminal.InterfaceNames;
 import com.gtnhadjust.terminal.PatternDuplicates;
 import com.gtnhadjust.terminal.PatternEncodingResult;
 import com.gtnhadjust.terminal.Reflection;
@@ -88,17 +88,14 @@ public abstract class QuickTerminalContainerMixin {
             Map<?, ?> tracked = (Map<?, ?>) Reflection.field(interfaceDelegate, "trackedById");
             List<Long> ids = new ArrayList<>();
             for (long id : meta.gtnhadjust$getTargets()) if (tracked.containsKey(id)) ids.add(id);
-            String query = meta.gtnhadjust$getSearch()
-                .trim()
-                .toLowerCase(Locale.ROOT);
+            String query = InterfaceNames.normalize(meta.gtnhadjust$getSearch());
             if (query.isEmpty() && ids.isEmpty()) {
                 gtnhadjust$report("未自动上传：没有接口搜索条件，请检查 GT-Never-Reset 的 NEI 自动搜索设置。");
                 return;
             }
             if (!query.isEmpty()) {
                 for (Map.Entry<?, ?> entry : tracked.entrySet()) {
-                    String name = String.valueOf(Reflection.field(entry.getValue(), "name"))
-                        .toLowerCase(Locale.ROOT);
+                    String name = InterfaceNames.normalize(String.valueOf(Reflection.field(entry.getValue(), "name")));
                     long id = ((Number) entry.getKey()).longValue();
                     if (name.contains(query) && !ids.contains(id)) ids.add(id);
                 }

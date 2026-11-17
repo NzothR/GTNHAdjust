@@ -16,7 +16,7 @@
 | `steamGreenhouse` | GTNL 蒸汽温室容量 | 两端 |
 | `grandAssemblyAutoMaintenance` | GTNL 大型装配线自动维护 | 两端 |
 | `carpenterRecipes` | 木工机与农场组装机配方 | 两端 |
-| `quickTerminal` | 二合一终端编码、上传及界面改善 | 两端；含扩展转移数据包 |
+| `quickTerminal` | 二合一终端编码、上传及界面改善；上传接口名称按去除颜色和样式代码后的纯文字匹配 | 两端；含扩展转移数据包，兼容 GTNR 0.1.48，重启生效 |
 | `patternDeduplication` | 接口样板按产物类型及 NBT 去重 | 两端 |
 | `terminalCraftingRefreshFix` | 样板修改后的合成状态刷新 | 两端 |
 | `patternRecipeMapPreservation` | 修改加工样板时保留来源配方池 | 两端 |
