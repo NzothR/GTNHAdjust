@@ -63,6 +63,15 @@ public final class GtnrToolPatterns {
         return false;
     }
 
+    /** Stellar forge's mold is an optional special-slot hint, not part of the encoded recipe identity. */
+    public static boolean specialTool(GTRecipe recipe, ItemStack item) {
+        return recipe.mSpecialItems instanceof ItemStack special && special.stackSize == 0
+            && item.getItemDamage() == 36
+            && "TwistSpaceTechnology:MetaItem01"
+                .equals(net.minecraft.item.Item.itemRegistry.getNameForObject(item.getItem()))
+            && GTUtility.areStacksEqual(special, item, false);
+    }
+
     /** Recipe matching uses the encoded map, all advertised products and the original complete ingredient list. */
     public static synchronized GTRecipe recipe(ICraftingPatternDetails details) {
         if (details == null || details.isCraftable() || details.isInputOnly()) return null;
@@ -141,6 +150,9 @@ public final class GtnrToolPatterns {
                 .anyMatch(output -> output instanceof IAEFluidStack);
         // Rebuild from the complete bill, so a catalog item actually consumed by this recipe stays a real demand.
         for (IAEStack<?> stack : details.getAEInputs()) {
+            // Manual terminal encoding exposes the complete grid, including empty slots.
+            if (stack == null) continue;
+            if (stack instanceof IAEItemStack item && specialTool(recipe, item.getItemStack())) continue;
             if (stack instanceof IAEItemStack item && Arrays.stream(tools)
                 .anyMatch(tool -> GTUtility.areStacksEqual(tool, item.getItemStack(), false))) continue;
             NBTTagCompound entry = new NBTTagCompound();
@@ -155,6 +167,14 @@ public final class GtnrToolPatterns {
         for (ItemStack tool : tools) encoded.appendTag(tool.writeToNBT(new NBTTagCompound()));
         tag.setTag("in", consumed);
         tag.setTag(TOOLS, encoded);
+        NBTTagList nativeMolds = tag.getTagList(CircuitPatternCodec.MOLDS, 10);
+        NBTTagList retainedMolds = new NBTTagList();
+        for (int i = 0; i < nativeMolds.tagCount(); i++) {
+            ItemStack tool = ItemStack.loadItemStackFromNBT(nativeMolds.getCompoundTagAt(i));
+            if (tool != null && !specialTool(recipe, tool)) retainedMolds.appendTag(nativeMolds.getCompoundTagAt(i));
+        }
+        if (retainedMolds.tagCount() == 0) tag.removeTag(CircuitPatternCodec.MOLDS);
+        else tag.setTag(CircuitPatternCodec.MOLDS, retainedMolds);
         if (GTNHAdjust.debug) GTNHAdjust.LOG
             .info("[gtnr-virtual-tools] pattern map={} NC={}", PatternRecipeMap.name(runtime), Arrays.toString(tools));
         return CircuitPatternCodec.decode(runtime, world);

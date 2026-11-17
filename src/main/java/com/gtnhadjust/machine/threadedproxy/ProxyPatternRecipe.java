@@ -146,7 +146,8 @@ public final class ProxyPatternRecipe {
         RecipeItemInput[] required = recipe.getCachedCombinedItemInputs();
         for (ItemStack item : inputs) {
             boolean tool = Arrays.stream(required)
-                .anyMatch(input -> input.inputAmount == 0 && matches(input, item));
+                .anyMatch(input -> input.inputAmount == 0 && matches(input, item))
+                || com.gtnhadjust.compat.GtnrToolPatterns.specialTool(recipe, item);
             if (tool) knownTools.add(item);
             else {
                 // Zero-count metadata cannot turn into a consumable. Unmatched positive inputs must be consumed below.
