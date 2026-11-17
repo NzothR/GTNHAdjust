@@ -86,4 +86,6 @@
 
 ## 多线程代理样板参数
 
+`gtnrVirtualTools` 的目录包含 PH `prog_toolkit` 的 0、1、2 三种模式。仅对配方中的零数量 NC 免提供，不改变工具包作为消耗原料时的需求；此目录同时用于编码、总成虚拟供料及两种代理的工具检查。适配 PH 0.2.1p7，修改开关及更新版本后两端重启。
+
 内部样板栏、逐槽调度及主机 AE 接入随 `threadedJointProxy` 启停。样板 NBT 中的 `gtnhadjustThread` 独立保存 target、power、parallel、oc；除首次匹配的 power 为配方 EU/t 外默认 -1。修改产量或耗能时一次计算并回填并行、OC，实际执行继续受全局参数限制。界面、单位、搜索及调度规则见 [机器说明](machines.md)。

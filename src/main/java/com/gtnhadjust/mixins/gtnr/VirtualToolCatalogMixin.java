@@ -23,7 +23,7 @@ import gregtech.api.util.GTUtility;
 @Mixin(value = MoldDataManager.class, remap = false)
 public abstract class VirtualToolCatalogMixin {
 
-    /** Add registered PH shape families once, before CRIB_MOLDS is assigned and any pattern caches are built. */
+    /** Append shape families and PH toolkit modes before CRIB_MOLDS and pattern caches are initialized. */
     @Inject(method = "buildMoldArray", at = @At("RETURN"), cancellable = true, remap = false)
     private static void gtnhadjust$extendCatalog(CallbackInfoReturnable<ItemStack[]> result) {
         ItemStack[] original = result.getReturnValue();
@@ -42,6 +42,15 @@ public abstract class VirtualToolCatalogMixin {
             ItemStack mold = GTModHandler.getModItem("TwistSpaceTechnology", "MetaItem01", 1, 36);
             if (mold != null && tools.stream()
                 .noneMatch(existing -> GTUtility.areStacksEqual(existing, mold, false))) tools.add(mold);
+        }
+        // PH provider recipes accept the programming toolkit in any mode as a zero-count catalyst.
+        // Keep concrete modes in the catalog so its UI never has to render a wildcard metadata item.
+        if (Loader.isModLoaded("programmablehatches")) {
+            for (int mode = 0; mode < 3; mode++) {
+                ItemStack toolkit = GTModHandler.getModItem("programmablehatches", "prog_toolkit", 1, mode);
+                if (toolkit != null && tools.stream()
+                    .noneMatch(existing -> GTUtility.areStacksEqual(existing, toolkit, false))) tools.add(toolkit);
+            }
         }
         result.setReturnValue(tools.toArray(new ItemStack[0]));
         if (GTNHAdjust.debug) GTNHAdjust.LOG
