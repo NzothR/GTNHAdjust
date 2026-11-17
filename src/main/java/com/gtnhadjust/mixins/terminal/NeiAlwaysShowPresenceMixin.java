@@ -70,10 +70,10 @@ public abstract class NeiAlwaysShowPresenceMixin {
             List<ItemOverlayState> states = ((NeiOverlayButtonAccessor) overlay).gtnhadjust$ingredientsOverlay();
             NEIClientUtils.gl2DRenderContext(() -> {
                 for (ItemOverlayState state : states) {
-                    // NEI and NEE use 8px status icons on 16px slots; reserve the right side for stack counts.
+                    // NEI and NEE anchor 8px status icons at bottom-right; move them above the quantity line.
                     GL11.glPushMatrix();
                     try {
-                        GL11.glTranslatef(-8.0F, 0.0F, 0.0F);
+                        GL11.glTranslatef(0.0F, -8.0F, 0.0F);
                         state.draw(ItemOverlayFormat.ICON);
                     } finally {
                         GL11.glPopMatrix();

@@ -21,7 +21,7 @@
 | `terminalCraftingRefreshFix` | 样板修改后的合成状态刷新 | 两端 |
 | `patternRecipeMapPreservation` | 修改加工样板时保留来源配方池 | 两端 |
 | `terminalInventoryFix` | 终端库存同步及 NEI 状态 | 客户端 |
-| `terminalNeiAlwaysShowPresence` | NEI 左下角常驻材料状态与覆盖按钮提示 | 客户端；依赖库存修复及 NEE |
+| `terminalNeiAlwaysShowPresence` | NEI 右上角常驻库存／缺失状态与覆盖按钮提示，可合成样板标记在左上角 | 客户端；依赖库存修复及 NEE，适配 GTNH 2.9.0、NEI 2.8.171、NEE 1.7.50，更新后重启 |
 | `terminalSmartIngredients` | 收藏、电路和网络材料选择优先级 | 两端；依赖 `quickTerminal` |
 | `gtnlQuickTerminalCraftFix` | GTNL NEI 请求合成的终端槽位修复 | 两端 |
 | `matrixPatternLoadFix` | 装配矩阵读档样板失效修复 | 两端 |
