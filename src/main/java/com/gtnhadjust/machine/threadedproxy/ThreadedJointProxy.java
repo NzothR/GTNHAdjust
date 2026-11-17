@@ -152,8 +152,8 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         return patternHatches;
     }
 
-    /** Accepts exactly the defining assembly, ordinary IO and normal/exotic energy; no other pattern buffers. */
-    boolean addProxyHatch(IGregTechTileEntity tile, int texture) {
+    /** Native bottom region accepts the defining assembly, ordinary inputs and normal/exotic energy. */
+    boolean addProxyInputHatch(IGregTechTileEntity tile, int texture) {
         if (tile == null) return false;
         IMetaTileEntity meta = tile.getMetaTileEntity();
         if (meta instanceof CrossRecipeMEPatternBuffer hatch) {
@@ -162,14 +162,19 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             return true;
         }
         if (meta instanceof IDualInputHatch) return false;
-        if (meta instanceof MTEHatchInput || meta instanceof MTEHatchInputBus
-            || meta instanceof MTEHatchOutput
-            || meta instanceof MTEHatchOutputBus) {
+        if (meta instanceof MTEHatchInput || meta instanceof MTEHatchInputBus) {
             boolean added = addToMachineList(tile, texture);
             if (added && meta instanceof MTEHatchReservoir) hasWaterReservoir = true;
             return added;
         }
         return addEnergyInputToMachineList(tile, texture) || addExoticEnergyInputToMachineList(tile, texture);
+    }
+
+    /** Native top region accepts ordinary output buses and fluid output hatches. */
+    boolean addProxyOutputHatch(IGregTechTileEntity tile, int texture) {
+        if (tile == null) return false;
+        IMetaTileEntity meta = tile.getMetaTileEntity();
+        return (meta instanceof MTEHatchOutput || meta instanceof MTEHatchOutputBus) && addToMachineList(tile, texture);
     }
 
     @Override

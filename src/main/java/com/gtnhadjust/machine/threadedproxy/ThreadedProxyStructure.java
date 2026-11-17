@@ -1,7 +1,6 @@
 package com.gtnhadjust.machine.threadedproxy;
 
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
-import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.ExoticEnergy;
 import static gregtech.api.enums.HatchElement.InputBus;
@@ -11,24 +10,19 @@ import static gregtech.api.enums.HatchElement.OutputHatch;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
-import com.science.gtnl.api.casing.GTNLCasings;
-import com.science.gtnl.utils.StructureUtils;
 import com.xyp.gtneverreset.common.machine.hatch.CrossRecipeMEPatternBuffer;
 
-import bartworks.common.loaders.ItemRegistry;
-import gregtech.api.casing.Casings;
-import gregtech.api.enums.Materials;
+import gregtech.api.enums.TAE;
 import gregtech.api.interfaces.IHatchElement;
 import gregtech.api.util.GTStructureUtility;
-import kubatech.loaders.BlockLoader;
-import tectech.thing.casing.BlockGTCasingsTT;
+import gtPlusPlus.core.block.ModBlocks;
 
-/** GTNL dev-290 alloy mixing furnace geometry, with this controller and optional ordinary service hatches. */
+/** GTNH 2.9.0 quantum force transformer geometry, with fixed tier-one cores and native hatch regions. */
 final class ThreadedProxyStructure {
 
     static final String PIECE = "main";
-    static final int X = 8, Y = 14, Z = 0;
-    static final int CASING_TEXTURE = BlockGTCasingsTT.textureOffset;
+    static final int X = 7, Y = 20, Z = 4;
+    static final int CASING_TEXTURE = TAE.getIndexFromPage(0, 10);
     static final IHatchElement<ThreadedJointProxy> PATTERNS = InputBus
         .<ThreadedJointProxy>withMteClass(CrossRecipeMEPatternBuffer.class)
         .withName("gtnhadjust_threaded_proxy_patterns")
@@ -38,36 +32,50 @@ final class ThreadedProxyStructure {
 
     private ThreadedProxyStructure() {}
 
+    /** Preserve the native geometry and H/T regions, replacing tier channels with their tier-one blocks. */
     static IStructureDefinition<ThreadedJointProxy> create() {
         return StructureDefinition.<ThreadedJointProxy>builder()
             .addShape(
                 PIECE,
-                transpose(StructureUtils.readStructureFromFile("sciencenotleisure:multiblock/smelting_mixing_furnace")))
-            .addElement('A', ofBlock(ItemRegistry.bw_realglas, 6))
-            .addElement('B', GTNLCasings.NeutroniumGearbox.asElement())
-            .addElement('C', GTNLCasings.Antifreeze_Heatproof_Machine_Casing.asElement())
-            .addElement('D', ofBlock(BlockLoader.defcCasingBlock, 7))
-            .addElement('E', ofBlock(BlockLoader.defcCasingBlock, 10))
-            .addElement('F', Casings.DimensionallyTranscendentCasing.asElement())
-            .addElement('G', Casings.DimensionalInjectionCasing.asElement())
-            .addElement('H', Casings.ActiveNeutroniumCasing.asElement())
-            .addElement('I', Casings.SolidifierCasing.asElement())
-            .addElement('J', Casings.AdvancedIridiumPlatedMachineCasing.asElement())
-            .addElement('K', Casings.NaquadriaReinforcedWaterPlantCasing.asElement())
-            .addElement('L', Casings.ContainmentFieldGenerator.asElement())
-            .addElement('M', Casings.HollowCasing.asElement())
-            .addElement('N', GTStructureUtility.ofFrame(Materials.Infinity))
-            .addElement('O', Casings.WashPlantCasing.asElement())
-            .addElement('P', Casings.MolecularContainmentCasing.asElement())
-            .addElement('Q', Casings.HastelloyNReactorCasing.asElement())
+                new String[][] {
+                    // spotless:off
+                { "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "      BAB      ", "   BBBBABBBB   ", "   BAAAAAAAB   ", "   BABBABBAB   ", "   BA     AB   ", "    A     A    ", "    A     A    ", "    A     A    " },
+                { "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "      BAB      ", "   AAABBBAAA   ", "  BAAAAAAAAAB  ", "  B         B  ", "  A         A  ", "  A         A  ", "               ", "               ", "               " },
+                { "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "      BAB      ", "    AA   AA    ", "  AA       AA  ", " BAA       AAB ", " B           B ", " A           A ", " A           A ", "               ", "               ", "               " },
+                { "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "     BAAAB     ", "   AA     AA   ", " AA         AA ", "BAA         AAB", "B             B", "A             A", "A             A", "A             A", "A             A", "A             A" },
+                { "      TTT      ", "      EEE      ", "      EEE      ", "      EEE      ", "      DDD      ", "      EEE      ", "      DDD      ", "      EEE      ", "      EEE      ", "      EEE      ", "      DDD      ", "    BAEEEAB    ", "  AA  EEE  AA  ", " A    EEE    A ", "BA    DDD    AB", "B     EEE     B", "B     DDD     B", "      EEE      ", "      EEE      ", "      EEE      ", "      H~H      " },
+                { "     TTTTT     ", "     ECCCE     ", "     ECCCE     ", "     ECCCE     ", "     D   D     ", "     ECCCE     ", "     D   D     ", "     ECCCE     ", "     ECCCE     ", "     ECCCE     ", "     D   D     ", "   BAECCCEAB   ", "  A  ECCCE  A  ", " A   ECCCE   A ", "BA   D   D   AB", "B    ECCCE    B", "B    D   D    B", "B    ECCCE    B", "     ECCCE     ", "     ECCCE     ", "     HHHHH     " },
+                { "    TTTTTTT    ", "    ECCCCCE    ", "    EC   CE    ", "    EC   CE    ", "    D     D    ", "    EC   CE    ", "    D     D    ", "    EC   CE    ", "    EC   CE    ", "    EC   CE    ", "    D     D    ", "  BAEC   CEAB  ", " B  EC   CE  B ", "BB  EC   CE  BB", "BA  D     D  AB", "A   EC   CE   A", "A   D     D   A", "A   EC   CE   A", "    EC   CE    ", "    EC   CE    ", "    HHHHHHH    " },
+                { "    TTTTTTT    ", "    ECCCCCE    ", "    EC   CE    ", "    EC   CE    ", "    D     D    ", "    EC   CE    ", "    D     D    ", "    EC   CE    ", "    EC   CE    ", "    EC   CE    ", "    D     D    ", "  AAEC   CEAA  ", " A  EC   CE  A ", "AB  EC   CE  BA", "AA  D     D  AA", "A   EC   CE   A", "A   D     D   A", "    EC   CE    ", "    EC   CE    ", "    EC   CE    ", "    HHHHHHH    " },
+                { "    TTTTTTT    ", "    ECCCCCE    ", "    EC   CE    ", "    EC   CE    ", "    D     D    ", "    EC   CE    ", "    D     D    ", "    EC   CE    ", "    EC   CE    ", "    EC   CE    ", "    D     D    ", "  BAEC   CEAB  ", " B  EC   CE  B ", "BB  EC   CE  BB", "BA  D     D  AB", "A   EC   CE   A", "A   D     D   A", "A   EC   CE   A", "    EC   CE    ", "    EC   CE    ", "    HHHHHHH    " },
+                { "     TTTTT     ", "     ECCCE     ", "     ECCCE     ", "     ECCCE     ", "     D   D     ", "     ECCCE     ", "     D   D     ", "     ECCCE     ", "     ECCCE     ", "     ECCCE     ", "     D   D     ", "   BAECCCEAB   ", "  A  ECCCE  A  ", " A   ECCCE   A ", "BA   D   D   AB", "B    ECCCE    B", "B    D   D    B", "B    ECCCE    B", "     ECCCE     ", "     ECCCE     ", "     HHHHH     " },
+                { "      TTT      ", "      EEE      ", "      EEE      ", "      EEE      ", "      DDD      ", "      EEE      ", "      DDD      ", "      EEE      ", "      EEE      ", "      EEE      ", "      DDD      ", "    BAEEEAB    ", "  AA  EEE  AA  ", " A    EEE    A ", "BA    DDD    AB", "B     EEE     B", "B     DDD     B", "      EEE      ", "      EEE      ", "      EEE      ", "      HHH      " },
+                { "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "     BAAAB     ", "   AA     AA   ", " AA         AA ", "BAA         AAB", "B             B", "A             A", "A             A", "A             A", "A             A", "A             A" },
+                { "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "      BAB      ", "    AA   AA    ", "  AA       AA  ", " BAA       AAB ", " B           B ", " A           A ", " A           A ", "               ", "               ", "               " },
+                { "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "      BAB      ", "   AAABBBAAA   ", "  BAAAAAAAAAB  ", "  B         B  ", "  A         A  ", "  A         A  ", "               ", "               ", "               " },
+                { "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "               ", "      BAB      ", "   BBBBABBBB   ", "   BBBAAABBB   ", "   ABBAAABBA   ", "   A BA AB A   ", "      A A      ", "      A A      ", "      A A      " }, })
+                // spotless:on
+            .addElement('A', ofBlock(ModBlocks.blockCasings5Misc, 7))
+            .addElement('B', ofBlock(ModBlocks.blockCasings5Misc, 11))
+            .addElement('C', ofBlock(ModBlocks.blockCasings4Misc, 4))
+            .addElement('D', ofBlock(ModBlocks.blockCasings2Misc, 12))
+            .addElement('E', ofBlock(ModBlocks.blockCasings5Misc, 15))
             .addElement(
-                'R',
+                'H',
                 GTStructureUtility.buildHatchAdder(ThreadedJointProxy.class)
-                    .anyOf(PATTERNS, InputBus, InputHatch, OutputBus, OutputHatch, Energy, ExoticEnergy)
-                    .adder(ThreadedJointProxy::addProxyHatch)
+                    .anyOf(PATTERNS, InputBus, InputHatch, Energy, ExoticEnergy)
+                    .adder(ThreadedJointProxy::addProxyInputHatch)
                     .casingIndex(CASING_TEXTURE)
                     .hint(1)
-                    .buildAndChain(Casings.HighPowerCasing.asElement()))
+                    .buildAndChain(ofBlock(ModBlocks.blockCasings2Misc, 12)))
+            .addElement(
+                'T',
+                GTStructureUtility.buildHatchAdder(ThreadedJointProxy.class)
+                    .anyOf(OutputBus, OutputHatch)
+                    .adder(ThreadedJointProxy::addProxyOutputHatch)
+                    .casingIndex(CASING_TEXTURE)
+                    .hint(2)
+                    .buildAndChain(ofBlock(ModBlocks.blockCasings2Misc, 12)))
             .build();
     }
 }
