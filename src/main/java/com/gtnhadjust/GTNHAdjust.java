@@ -32,6 +32,8 @@ import cpw.mods.fml.common.registry.GameRegistry;
     dependencies = "after:Forestry;after:gregtech;after:gtneverreset;after:sciencenotleisure")
 public class GTNHAdjust {
 
+    public static int threadedProxyPatternSlots = 1024;
+
     public static final String MOD_ID = "gtnhadjust";
     public static final Logger LOG = LogManager.getLogger(MOD_ID);
     public static TierDimensionItem tierDimension;
@@ -149,6 +151,13 @@ public class GTNHAdjust {
             "proxyFactory",
             true,
             "Allow UEV+ glass proxy factories without energy hatches to use their owner's wireless EU network. Restart required; client and server must match.");
+        threadedProxyPatternSlots = config.getInt(
+            "patternSlots",
+            "threadedJointProxy",
+            1024,
+            1,
+            16384,
+            "Internal single-pattern slot count. Restart required; client and server must match.");
         threadedProxyWirelessPower = config.getBoolean(
             "wirelessPower",
             "threadedJointProxy",

@@ -45,6 +45,7 @@
 | 参数 | 默认值 | 用途 |
 | --- | --- | --- |
 | `general.debug` | `false` | 机器、定位器与配方诊断日志 |
+| `threadedJointProxy.patternSlots` | `1024` | 内部样板容量，范围 1–16384；两端同步并重启 |
 | `threadedJointProxy.wirelessPower` | `true` | 多线程代理无能源仓时无线供电，无玻璃门槛 |
 | `proxyFactory.wirelessPower` | `true` | 代理工厂 UEV+ 玻璃且无能源仓时无线供电 |
 | `proxyFactory.locatorSlots` | `128` | 两种代理共用的定位器容量，范围 1–32730 |
@@ -82,3 +83,7 @@
 旧样板没有新字段时保留旧格式和兼容匹配，不删除物品或改写原样板。重新编辑、编码后追加完整清单。关闭扩展会恢复 GTNR 原目录与处理流程；含新增目录物品或外部工具字段的新样板需要在重新开启扩展后使用，或按原 GTNR 规则重新编码。原生 AE 处理样板仍需要实际输入需求，纯 NC 配方保留既有样板形态。
 
 `general.debug` 默认关闭，开启时可查看 `[gtnr-virtual-tools]` 目录扩展数量和样板匹配诊断。游戏内验证多个 NC 同时记录、目录外实物／PH 库存／PH 可合成状态、断网后停止启动、不产生 PH 合成任务、编辑后工具还原、仅 NC 配方的多线程代理加工，以及旧样板不重编码仍能继续运行。
+
+## 多线程代理样板参数
+
+内部样板栏、逐槽调度及主机 AE 接入随 `threadedJointProxy` 启停。样板 NBT 中的 `gtnhadjustThread` 独立保存 target、power、parallel、oc；除首次匹配的 power 为配方 EU/t 外默认 -1。修改产量或耗能时一次计算并回填并行、OC，实际执行继续受全局参数限制。界面、单位、搜索及调度规则见 [机器说明](machines.md)。

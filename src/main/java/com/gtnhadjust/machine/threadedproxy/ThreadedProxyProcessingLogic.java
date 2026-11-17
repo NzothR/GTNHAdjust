@@ -28,7 +28,7 @@ final class ThreadedProxyProcessingLogic extends RecipeThreadProcessingLogic {
     private RecipeThreadOutputs pendingOutputs;
     private int concurrentParallel;
 
-    /** Applies the group allocation unchanged; native batching runs after this fixed OC and concurrent parallel. */
+    /** Applies this slot's bounded OC and parallel; native batching runs after the launch parameters are fixed. */
     void configure(GTRecipe recipe, long budget, long voltage, int parallel, ThreadedProxyAllocation.Plan plan) {
         clear();
         selected = recipe;

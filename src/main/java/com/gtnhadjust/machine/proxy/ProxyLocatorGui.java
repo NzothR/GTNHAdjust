@@ -21,7 +21,6 @@ import com.cleanroommc.modularui.widgets.ButtonWidget;
 import com.cleanroommc.modularui.widgets.DynamicSyncedWidget;
 import com.cleanroommc.modularui.widgets.PagedWidget;
 import com.cleanroommc.modularui.widgets.layout.Flow;
-import com.cleanroommc.modularui.widgets.layout.Grid;
 import com.cleanroommc.modularui.widgets.slot.ModularSlot;
 import com.cleanroommc.modularui.widgets.slot.SlotGroup;
 import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
@@ -38,6 +37,14 @@ public class ProxyLocatorGui<T extends MTEExtendedPowerMultiBlockBase<?> & Proxy
 
     private final StringValue search = new StringValue("");
     private PagedWidget<?> pages;
+
+    protected int pageCount() {
+        return 2;
+    }
+
+    protected IWidget createPatternPage(ModularPanel panel, PanelSyncManager manager) {
+        return new EmptyWidget();
+    }
 
     protected ProxyLocatorGui(T controller) {
         super(controller);
@@ -76,6 +83,7 @@ public class ProxyLocatorGui<T extends MTEExtendedPowerMultiBlockBase<?> & Proxy
         pages = new PagedWidget<>().size(getTerminalWidgetWidth(), getTerminalWidgetHeight())
             .addPage(super.createTerminalParentWidget(panel, manager))
             .addPage(createLocatorPage(manager));
+        if (pageCount() == 3) pages.addPage(createPatternPage(panel, manager));
         return new ParentWidget<>().size(getTerminalWidgetWidth(), getTerminalWidgetHeight())
             .child(pages);
     }
@@ -89,8 +97,11 @@ public class ProxyLocatorGui<T extends MTEExtendedPowerMultiBlockBase<?> & Proxy
             int count = packet.readInt();
             if (childManager.isClient()) multiblock.getLocatorInventory()
                 .setSize(count);
-            Grid grid = new Grid().scrollable()
-                .size(getTerminalWidgetWidth() - 16, getTerminalWidgetHeight() - 28);
+            java.util.List<ProxyLocatorSlot> slots = new java.util.ArrayList<>();
+            ProxySearchGrid grid = new ProxySearchGrid(
+                i -> slots.get(i)
+                    .matchesSearch());
+            grid.size(getTerminalWidgetWidth() - 16, getTerminalWidgetHeight() - 28);
             for (int i = 0; i < count; i++) {
                 final int slot = i;
                 ModularSlot modularSlot = new ModularSlot(multiblock.getLocatorInventory(), i) {
@@ -107,8 +118,10 @@ public class ProxyLocatorGui<T extends MTEExtendedPowerMultiBlockBase<?> & Proxy
                 }.slotGroup("proxyLocators");
                 ItemSlotSH slotSync = childManager
                     .getOrCreateSyncHandler("proxyLocatorSlot", i, ItemSlotSH.class, () -> new ItemSlotSH(modularSlot));
-                grid.child(new ProxyLocatorSlot(multiblock, slot, search).syncHandler(slotSync));
-                if ((i + 1) % 9 == 0 && i + 1 < count) grid.nextRow();
+                ProxyLocatorSlot widget = new ProxyLocatorSlot(multiblock, slot, search);
+                widget.syncHandler(slotSync);
+                slots.add(widget);
+                grid.addSlot(widget);
             }
             return grid;
         });
@@ -144,7 +157,7 @@ public class ProxyLocatorGui<T extends MTEExtendedPowerMultiBlockBase<?> & Proxy
         InteractionSyncHandler mode = new InteractionSyncHandler().setOnMousePressed(
             mouse -> { if (!mouse.isClient() && mouse.mouseButton == 0) multiblock.cycleOperationMode(); });
         InteractionSyncHandler view = new InteractionSyncHandler().setOnMousePressed(
-            mouse -> { if (mouse.mouseButton == 0) pages.setPage(1 - pages.getCurrentPageIndex()); });
+            mouse -> { if (mouse.mouseButton == 0) pages.setPage((pages.getCurrentPageIndex() + 1) % pageCount()); });
         return Flow.row()
             .coverChildrenWidth()
             .fullHeight()
@@ -166,7 +179,8 @@ public class ProxyLocatorGui<T extends MTEExtendedPowerMultiBlockBase<?> & Proxy
                         IKey.dynamic(
                             () -> StatCollector.translateToLocal(
                                 pages.getCurrentPageIndex() == 0 ? "gtnhadjust.proxy.view.status"
-                                    : "gtnhadjust.proxy.view.inventory"))))
+                                    : pages.getCurrentPageIndex() == 1 ? "gtnhadjust.proxy.view.inventory"
+                                        : "gtnhadjust.threaded_proxy.view.patterns"))))
             .child(createBatchModeButton(manager));
     }
 

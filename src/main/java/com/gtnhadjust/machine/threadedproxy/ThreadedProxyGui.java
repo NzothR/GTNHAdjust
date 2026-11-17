@@ -31,6 +31,251 @@ import com.gtnhadjust.machine.proxy.ProxyLocatorGui;
 /** The shared proxy terminal presents physical-pattern threads without changing their execution or IO. */
 final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
 
+    private int editingSlot = -1;
+    private final com.cleanroommc.modularui.value.StringValue[] patternSearch = {
+        new com.cleanroommc.modularui.value.StringValue(""), new com.cleanroommc.modularui.value.StringValue(""),
+        new com.cleanroommc.modularui.value.StringValue("") };
+
+    @Override
+    protected int pageCount() {
+        return 3;
+    }
+
+    /** All physical slots register once; client search compacts only their presentation. */
+    @Override
+    protected IWidget createPatternPage(ModularPanel parent, PanelSyncManager manager) {
+        IPanelHandler editor = manager
+            .syncedPanel("threadPattern", true, (childManager, handler) -> createPatternEditor(parent, childManager));
+        manager.registerSlotGroup(
+            new com.cleanroommc.modularui.widgets.slot.SlotGroup(
+                "threadPatterns",
+                9,
+                com.cleanroommc.modularui.widgets.slot.SlotGroup.STORAGE_SLOT_PRIO,
+                true).setAllowSorting(false));
+        DynamicSyncHandler inventory = new DynamicSyncHandler().widgetProvider((childManager, packet) -> {
+            if (packet == null) return new EmptyWidget();
+            int count = packet.readInt();
+            if (childManager.isClient()) multiblock.patterns()
+                .setSize(count);
+            List<ThreadPatternSlot> slots = new ArrayList<>();
+            com.gtnhadjust.machine.proxy.ProxySearchGrid grid = new com.gtnhadjust.machine.proxy.ProxySearchGrid(
+                index -> slots.get(index)
+                    .matchesSearch());
+            grid.size(getTerminalWidgetWidth() - 16, getTerminalWidgetHeight() - 46);
+            for (int i = 0; i < count; i++) {
+                final int index = i;
+                var action = new com.cleanroommc.modularui.value.sync.InteractionSyncHandler()
+                    .setOnMousePressed(mouse -> {
+                        if (mouse.mouseButton != 2 || multiblock.patterns()
+                            .getStackInSlot(index) == null || !multiblock.canEditLocators()) return;
+                        editingSlot = index;
+                        if (mouse.isClient()) {
+                            editor.openPanel();
+                        }
+                    });
+                childManager.syncValue("editPattern", i, action);
+                var slot = new com.cleanroommc.modularui.widgets.slot.ModularSlot(multiblock.patterns(), i) {
+
+                    @Override
+                    public boolean canTakeStack(net.minecraft.entity.player.EntityPlayer player) {
+                        return multiblock.canEditLocators() && super.canTakeStack(player);
+                    }
+
+                    @Override
+                    public boolean canDragIntoSlot() {
+                        return multiblock.canEditLocators() && super.canDragIntoSlot();
+                    }
+                }.slotGroup("threadPatterns");
+                var sync = childManager.getOrCreateSyncHandler(
+                    "threadPatternSlot",
+                    i,
+                    com.cleanroommc.modularui.value.sync.ItemSlotSH.class,
+                    () -> new com.cleanroommc.modularui.value.sync.ItemSlotSH(slot));
+                ThreadPatternSlot widget = new ThreadPatternSlot(
+                    multiblock,
+                    i,
+                    patternSearch,
+                    action,
+                    () -> { if (editor.isPanelOpen()) editor.closePanel(); });
+                widget.syncHandler(sync);
+                slots.add(widget);
+                grid.addSlot(widget);
+            }
+            return grid;
+        });
+        manager.addOpenListener(player -> {
+            if (manager.isClient()) return;
+            inventory.notifyUpdate(
+                packet -> packet.writeInt(
+                    multiblock.patterns()
+                        .getSlots()));
+            for (int i = 0; i < multiblock.patterns()
+                .getSlots(); i++)
+                manager.findSyncHandler("threadPatternSlot", i, com.cleanroommc.modularui.value.sync.ItemSlotSH.class)
+                    .forceSyncItem();
+        });
+        var page = new com.cleanroommc.modularui.widget.ParentWidget<>()
+            .size(getTerminalWidgetWidth(), getTerminalWidgetHeight());
+        String[] hints = { "input", "output", "map" };
+        for (int i = 0; i < 3; i++) page.child(
+            new TextFieldWidget().value(patternSearch[i])
+                .setMaxLength(128)
+                .autoUpdateOnChange(true)
+                .hintText(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.search." + hints[i]))
+                .pos(i == 2 ? getTerminalWidgetWidth() / 2 + 2 : 4, i == 0 ? 2 : 20)
+                .size(getTerminalWidgetWidth() / 2 - 6, 16));
+        return page.child(
+            new DynamicSyncedWidget<>().syncHandler(inventory)
+                .pos(8, 40)
+                .size(getTerminalWidgetWidth() - 16, getTerminalWidgetHeight() - 46));
+    }
+
+    /** Reuses the right-hand settings position; every committed field is written to the physical pattern. */
+    private ModularPanel createPatternEditor(ModularPanel parent, PanelSyncManager manager) {
+        ModularPanel panel = new ModularPanel("threadPattern").relative(parent)
+            .leftRel(1)
+            .topRel(0)
+            .size(164, 222);
+        panel.child(
+            IKey.lang("gtnhadjust.threaded_proxy.parameters")
+                .asWidget()
+                .pos(6, 5));
+        String[] fields = { "target", "power", "parallel", "oc" };
+        IntSyncValue globalParallel = new IntSyncValue(multiblock::getTrueParallel);
+        IntSyncValue globalOc = new IntSyncValue(multiblock::getMaxOverclocks);
+        manager.syncValue("globalParallel", globalParallel);
+        manager.syncValue("globalOc", globalOc);
+        for (int i = 0; i < fields.length; i++) {
+            final int field = i;
+            var value = new com.cleanroommc.modularui.value.sync.StringSyncValue(
+                () -> parameterText(editingSlot, field),
+                expression -> multiblock.editPattern(editingSlot, field, expression)).allowC2S();
+            manager.syncValue("parameter", i, value);
+            panel.child(
+                IKey.lang("gtnhadjust.threaded_proxy.parameter." + fields[i])
+                    .asWidget()
+                    .pos(6, 23 + i * 38));
+            panel.child(
+                new TextFieldWidget().value(value)
+                    .setMaxLength(128)
+                    .setValidator(expression -> {
+                        double parsed = ThreadParameterExpression.parse(expression);
+                        boolean valid = Double.isFinite(parsed)
+                            && (parsed == -1 || (field == 3 ? parsed >= 0 : parsed > 0));
+                        return valid
+                            ? (field == 0 ? Double.toString(parsed)
+                                : Long
+                                    .toString((long) Math.min(field == 1 ? Long.MAX_VALUE : Integer.MAX_VALUE, parsed)))
+                            : value.getStringValue();
+                    })
+                    .pos(6, 35 + i * 38)
+                    .size(field == 0 ? 126 : 138, 17)
+                    .tooltipBuilder(t -> t.addLine(IKey.lang("gtnhadjust.threaded_proxy.expression"))));
+            if (i >= 2) panel.child(
+                new ButtonWidget<>().overlay(IKey.str("§e!"))
+                    .pos(145, 35 + i * 38)
+                    .size(14, 17)
+                    .setEnabledIf(
+                        w -> ThreadParameterExpression.parse(value.getStringValue())
+                            > (field == 2 ? globalParallel.getValue() : globalOc.getValue()))
+                    .tooltipBuilder(
+                        t -> t.addLine(
+                            IKey.dynamic(
+                                () -> StatCollector.translateToLocalFormatted(
+                                    "gtnhadjust.threaded_proxy.over_limit",
+                                    field == 2 ? globalParallel.getValue() : globalOc.getValue())))));
+        }
+        var item = com.cleanroommc.modularui.value.sync.GenericSyncValue.forItem(() -> {
+            var product = editorOutput();
+            return product instanceof appeng.api.storage.data.IAEItemStack stack ? stack.getItemStack() : null;
+        }, ignored -> {});
+        var fluid = com.cleanroommc.modularui.value.sync.GenericSyncValue.forFluid(() -> {
+            var product = editorOutput();
+            return product instanceof appeng.api.storage.data.IAEFluidStack stack ? stack.getFluidStack() : null;
+        }, ignored -> {});
+        manager.syncValue("productItem", item);
+        manager.syncValue("productFluid", fluid);
+        panel.child(
+            new ItemDisplayWidget().item(item)
+                .displayAmount(false)
+                .pos(137, 35)
+                .size(18)
+                .tooltipBuilder(tooltip -> {
+                    if (item.getValue() != null) for (String line : item.getValue()
+                        .getTooltip(manager.getPlayer(), false)) tooltip.addLine(line);
+                })
+                .setEnabledIf(w -> item.getValue() != null));
+        panel.child(
+            new FluidDisplayWidget().value(fluid)
+                .displayAmount(false)
+                .pos(137, 35)
+                .size(18)
+                .setEnabledIf(w -> fluid.getValue() != null));
+        var estimate = new com.cleanroommc.modularui.value.sync.StringSyncValue(() -> {
+            ProxyPatternRecipe recipe = multiblock.patternRecipe(editingSlot);
+            ThreadPatternSettings settings = ThreadPatternSettings.read(
+                multiblock.patterns()
+                    .getStackInSlot(editingSlot));
+            if (recipe == null || settings.parallel < 1 || settings.oc < 0) return "";
+            var plan = ThreadedProxyAllocation
+                .plan(recipe.recipe.mEUt, recipe.recipe.mDuration, Long.MAX_VALUE, settings.oc);
+            double rate = settings.parallel * ThreadPatternSettings.expectedOutput(recipe) * 20 / plan.duration;
+            return String.format(java.util.Locale.ROOT, "%.3f", rate);
+        });
+        manager.syncValue("estimate", estimate);
+        panel.child(
+            IKey.dynamic(
+                () -> estimate.getStringValue()
+                    .isEmpty()
+                        ? ""
+                        : StatCollector
+                            .translateToLocalFormatted("gtnhadjust.threaded_proxy.estimate", estimate.getStringValue()))
+                .asWidget()
+                .pos(6, 181)
+                .width(152)
+                .scale(0.75f));
+        panel.child(
+            IKey.lang("gtnhadjust.threaded_proxy.parameter_help")
+                .asWidget()
+                .pos(6, 195)
+                .width(152)
+                .scale(0.65f));
+        return panel;
+    }
+
+    private ItemStack editorPattern;
+    private appeng.api.storage.data.IAEStack<?> editorProduct;
+
+    /** Decode the selected product only when the selected physical stack changes. */
+    private appeng.api.storage.data.IAEStack<?> editorOutput() {
+        ItemStack pattern = editingSlot < 0 ? null
+            : multiblock.patterns()
+                .getStackInSlot(editingSlot);
+        if (!ItemStack.areItemStacksEqual(editorPattern, pattern)) {
+            editorPattern = pattern == null ? null : pattern.copy();
+            editorProduct = null;
+            var details = pattern == null ? null
+                : com.xyp.gtneverreset.common.me.CircuitPatternCodec.decode(
+                    pattern.copy(),
+                    multiblock.getBaseMetaTileEntity()
+                        .getWorld());
+            if (details != null)
+                for (var product : details.getAEOutputs()) if (product != null && product.getStackSize() > 0) {
+                    editorProduct = product.copy();
+                    break;
+                }
+        }
+        return editorProduct;
+    }
+
+    private String parameterText(int slot, int field) {
+        ThreadPatternSettings settings = ThreadPatternSettings.read(
+            multiblock.patterns()
+                .getStackInSlot(slot));
+        if (field == 0) return Double.toString(settings.target);
+        return Long.toString(field == 1 ? settings.power : field == 2 ? settings.parallel : settings.oc);
+    }
+
     private List<ThreadedProxyDisplay.Row> clientRows = new ArrayList<>();
     private List<ThreadedProxyDisplay.Row> rowShape = new ArrayList<>();
 

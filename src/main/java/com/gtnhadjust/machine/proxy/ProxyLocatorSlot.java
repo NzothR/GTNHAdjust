@@ -7,8 +7,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 
 import com.cleanroommc.modularui.api.drawable.IDrawable;
-import com.cleanroommc.modularui.drawable.DrawableStack;
-import com.cleanroommc.modularui.drawable.Rectangle;
 import com.cleanroommc.modularui.screen.RichTooltip;
 import com.cleanroommc.modularui.theme.WidgetThemeEntry;
 import com.cleanroommc.modularui.value.StringValue;
@@ -37,6 +35,20 @@ final class ProxyLocatorSlot extends ItemSlot {
         this.search = search;
     }
 
+    /** Cached names also drive compact filtering in the shared host page. */
+    boolean matchesSearch() {
+        updateRecord(
+            owner.getLocatorInventory()
+                .getStackInSlot(index));
+        String query = search.getStringValue();
+        if (!query.equals(previousQuery)) {
+            previousQuery = query;
+            matches = query.trim()
+                .isEmpty() || ProxyLocatorSearch.matches(names, query);
+        }
+        return matches;
+    }
+
     /** Recompute searchable names only when the recorded item changes, never on every rendered frame. */
     @SideOnly(Side.CLIENT)
     private void updateRecord(ItemStack stack) {
@@ -44,6 +56,7 @@ final class ProxyLocatorSlot extends ItemSlot {
         cachedLocator = stack == null ? null : stack.copy();
         record = MachineLocatorItem.read(stack);
         names.clear();
+        previousQuery = null;
         if (record != null) {
             names.add(
                 record.controller()
@@ -51,7 +64,6 @@ final class ProxyLocatorSlot extends ItemSlot {
             for (RecipeMap<?> map : ProxyFactoryControllerRegistry.unrestrictedMaps(record.controller()))
                 names.add(StatCollector.translateToLocal(map.unlocalizedName));
         }
-        previousQuery = null;
     }
 
     @Override
@@ -87,17 +99,7 @@ final class ProxyLocatorSlot extends ItemSlot {
         updateRecord(
             owner.getLocatorInventory()
                 .getStackInSlot(index));
-        String query = search.getStringValue();
-        if (!query.equals(previousQuery)) {
-            previousQuery = query;
-            matches = !query.trim()
-                .isEmpty() && ProxyLocatorSearch.matches(names, query);
-        }
         IDrawable background = super.getCurrentBackground(theme);
-        return matches ? new DrawableStack(
-            background,
-            new Rectangle().color(0xffe6c849)
-                .hollow(1))
-            : background;
+        return background;
     }
 }

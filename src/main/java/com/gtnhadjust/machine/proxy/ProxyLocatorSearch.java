@@ -11,13 +11,13 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 /** Search is purely client-side and follows the installed NECH spelling configuration. */
 @SideOnly(Side.CLIENT)
-final class ProxyLocatorSearch {
+public final class ProxyLocatorSearch {
 
     private static final boolean NECH = Loader.isModLoaded("nech");
 
     private ProxyLocatorSearch() {}
 
-    static boolean matches(List<String> names, String search) {
+    public static boolean matches(List<String> names, String search) {
         String query = normalize(search).trim();
         for (String name : names) {
             String text = normalize(name);
