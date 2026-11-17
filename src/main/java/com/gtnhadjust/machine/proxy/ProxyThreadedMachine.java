@@ -59,6 +59,7 @@ import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.OverclockCalculator;
 import gregtech.api.util.shutdown.ShutDownReason;
+import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.api.util.tooltip.TooltipHelper;
 
 public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> extends MTEExtendedPowerMultiBlockBase<T>
@@ -293,7 +294,10 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
         }
         int total = getTotalRecipeThreads();
         long power = usedThreadPower();
-        paused = power > Math.max(0, getMaxInputEu());
+        if (power > Math.max(0, getMaxInputEu())) {
+            stopMachine(ShutDownReasonRegistry.POWER_LOSS);
+            return;
+        }
         boolean hasRunning = threadTasks.values()
             .stream()
             .anyMatch(task -> task.getThread() < total && !task.isFinished());
@@ -360,17 +364,32 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
         }
     }
 
+    /** Power loss discards committed threads and buffered products; other shutdowns retain paused work. */
     @Override
     public void stopMachine(@Nonnull ShutDownReason reason) {
-        if (GTNHAdjust.debug)
-            GTNHAdjust.LOG.info("[proxy-flow] stop reason={} retainedTasks={}", reason, threadTasks.size());
         super.stopMachine(reason);
+        int discarded = 0;
+        if (ShutDownReasonRegistry.POWER_LOSS.getID()
+            .equals(reason.getID())
+            && ShutDownReasonRegistry.POWER_LOSS.getKey()
+                .equals(reason.getKey())) {
+            discarded = threadTasks.size();
+            threadTasks.clear();
+            ((RecipeThreadProcessingLogic) processingLogic).finishRecipe();
+            ((RecipeThreadProcessingLogic) processingLogic).resetPatternInventory();
+            processingLogic.clear();
+        }
         pendingTask = null;
         preparingThread = -1;
         useRemainingPower = false;
         paused = true;
         updateThreadDisplay();
         markDirty();
+        if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
+            "[proxy-flow] stop reason={} discardedTasks={} retainedTasks={}; committed inputs are not refunded",
+            reason.getKey(),
+            discarded,
+            threadTasks.size());
     }
 
     private int firstFreeThread() {
@@ -711,7 +730,11 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
         if (!tag.hasKey(INPUT_SEPARATION_NBT_KEY)) inputSeparation = getDefaultInputSeparationMode();
         threadTasks.clear();
         NBTTagList tasks = tag.getTagList("gtnrRecipeThreads", 10);
-        for (int index = 0; index < tasks.tagCount(); index++) {
+        boolean powerTrip = tag.getBoolean("mWasShutdown") && ShutDownReasonRegistry.POWER_LOSS.getID()
+            .equals(tag.getString("shutDownReasonID"))
+            && ShutDownReasonRegistry.POWER_LOSS.writeToNBT(new NBTTagCompound())
+                .equals(tag.getCompoundTag("shutDownReason"));
+        for (int index = 0; !powerTrip && index < tasks.tagCount(); index++) {
             ProxyThreadTask task = ProxyThreadTask.load(tasks.getCompoundTagAt(index));
             if (threadTasks.put(task.getThread(), task) != null) {
                 throw new IllegalStateException("Duplicate saved recipe thread");

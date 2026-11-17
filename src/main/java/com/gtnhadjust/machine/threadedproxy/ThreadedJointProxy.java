@@ -684,12 +684,17 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     @Override
     public void stopMachine(ShutDownReason reason) {
         super.stopMachine(reason);
-        if (reason != ShutDownReasonRegistry.POWER_LOSS) return;
+        if (!ShutDownReasonRegistry.POWER_LOSS.getID()
+            .equals(reason.getID())
+            || !ShutDownReasonRegistry.POWER_LOSS.getKey()
+                .equals(reason.getKey()))
+            return;
         int discarded = tasks.size();
         tasks.clear();
         runInfo.clear();
         failures.clear();
         ((ThreadedProxyProcessingLogic) processingLogic).discardPreparedRecipe();
+        updateDisplay();
         markDirty();
         if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
             "[threaded-proxy] power trip: discarded {} tasks and all their buffered products; consumed inputs are not refunded",
