@@ -263,7 +263,7 @@ public class GTNHAdjust {
             "recombinationFusion",
             "recipeAdjustments",
             true,
-            "Set the GTNL planetary engine's Recombination Fusion Reactor recipe to 64 seconds and 1 MAX amp. Restart required.");
+            "Replace the original Recombination Fusion Reactor recipe with the circuit 1 variant. Restart required.");
         if (config.hasChanged()) config.save();
         tierDimension = new TierDimensionItem();
         GameRegistry.registerItem(tierDimension, "tier_dimension");
@@ -319,7 +319,7 @@ public class GTNHAdjust {
     @Mod.EventHandler
     public void loadComplete(FMLLoadCompleteEvent event) {
         if (recombinationFusionRecipe && Loader.isModLoaded("sciencenotleisure") && Loader.isModLoaded("gregtech"))
-            RecombinationFusionRecipe.apply();
+            RecombinationFusionRecipe.register();
         if (FeatureConfig.get().substanceReshapingDevice && Loader.isModLoaded("gregtech"))
             com.gtnhadjust.machine.reshaping.ReshapingRegistration.registerRecipes();
         if (machineLocatorsEnabled && Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech"))

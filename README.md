@@ -67,7 +67,7 @@
 
 ## 配方调整与模组兼容
 
-GTNL 初代目行星发动机的重聚变反应堆配方改为基础耗时 64 秒、1 MAX/t（2,147,483,640 EU/t）。`recipeAdjustments.recombinationFusion` 默认开启，适配 GTNH 2.9.0、GTNL dev-290，两端同步更新并重启。
+GTNL 初代目行星发动机的重聚变反应堆使用新注册的 1 号编程电路配方，消耗 2,100,000,000 个石头粉，基础耗时 64 秒，耗能 0 EU/t。新配方沿用原配方的产物，去掉熔融磁物质和星门水晶浆液。新配方注册成功后移除原来的纯石头粉配方。`recipeAdjustments.recombinationFusion` 默认开启，适配 GTNH 2.9.0、GTNL dev-290，两端同步更新并重启。
 
 初代目行星发动机用投影仪设定 `structure_render=1` 后，右键主机预览。`structure_preview=1`（默认）显示当前分区里的方块，省略粒子和逐块错误检查；`structure_preview=2` 只画整机外框并显示占地尺寸。潜行右键调用 GTNL 原生建造，生存放置按 StructureLib 的投影仪预算执行，完整检查合并到放置结束后。适配 GTNH 2.9.0、GTNL dev-290 和 StructureLib 1.4.47。`planetaryEngineProjector` 默认开启，两端同步更新并重启。
 
