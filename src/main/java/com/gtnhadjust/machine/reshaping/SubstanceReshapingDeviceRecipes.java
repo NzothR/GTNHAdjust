@@ -13,7 +13,6 @@ import static gtPlusPlus.core.material.MaterialsElements.STANDALONE.ASTRAL_TITAN
 import static gtPlusPlus.core.material.MaterialsElements.STANDALONE.CELESTIAL_TUNGSTEN;
 import static gtnhlanth.common.register.WerkstoffMaterialPool.Iodine;
 
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 
 import bartworks.system.material.WerkstoffLoader;
@@ -28,7 +27,7 @@ import gtnhlanth.common.register.WerkstoffMaterialPool;
 
 public class SubstanceReshapingDeviceRecipes {
 
-    /** Register all eighteen upstream recipes with GTNH 2.9.0 material names. */
+    /** Register all seventeen retained upstream recipes with GTNH 2.9.0 material names. */
     public void loadRecipes() {
 
         /*
@@ -275,26 +274,6 @@ public class SubstanceReshapingDeviceRecipes {
             .eut(0)
             .duration(5 * SECONDS)
             .specialValue(11)
-            .addTo(MAP);
-
-        // 一些奇怪的东西......
-        GTValues.RA.stdBuilder()
-            .itemInputs(
-                GTUtility.getIntegratedCircuit(24),
-                new ItemStack(Items.iron_ingot, 4),
-                new ItemStack(Items.stick, 3))
-            .itemOutputs(
-                getModItem(SGCraft.ID, "stargateRing", 16, 0),
-                getModItem(SGCraft.ID, "stargateRing", 14, 1),
-                getModItem(SGCraft.ID, "stargateBase", 2, 0),
-                getModItem(SGCraft.ID, "stargateController", 2, 0),
-                getModItem(SGCraft.ID, "rfPowerUnit", 2, 0),
-                getModItem(SGCraft.ID, "ocInterface", 2, 0),
-                getModItem(SGCraft.ID, "sgChevronUpgrade", 2, 0),
-                getModItem(SGCraft.ID, "sgIrisUpgrade", 2, 0))
-            .eut(0)
-            .duration(5 * SECONDS)
-            .specialValue(14)
             .addTo(MAP);
 
         // 无尽之类的

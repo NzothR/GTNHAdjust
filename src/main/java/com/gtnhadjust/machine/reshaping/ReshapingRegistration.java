@@ -5,26 +5,26 @@ import net.minecraftforge.fluids.Fluid;
 
 import com.gtnewhorizons.modularui.api.drawable.UITexture;
 
-import cpw.mods.fml.common.registry.GameRegistry;
 import gregtech.api.GregTechAPI;
 import gregtech.api.enums.FluidState;
+import gregtech.api.enums.GTValues;
+import gregtech.api.enums.ItemList;
+import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
+import gregtech.api.enums.TierEU;
 import gregtech.api.fluid.GTFluidFactory;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.RecipeMapBuilder;
+import gregtech.api.recipe.RecipeMaps;
+import gregtech.api.util.GTOreDictUnificator;
 
-/** EyeOfHarmonyBuffer controller, both structures and its complete dedicated recipe/material chain. */
+/** EyeOfHarmonyBuffer EV controller and its retained processing recipe pool. */
 public final class ReshapingRegistration {
 
     public static final RecipeMap<?> MAP = RecipeMapBuilder.of("gtnhadjust.recipe.substance_reshaping")
         .maxIO(4, 16, 4, 16)
         .neiRecipeBackgroundSize(170, 185)
         .useCustomFilterForNEI()
-        .neiSpecialInfoFormatter(
-            info -> com.gtnhadjust.GTNHAdjust.reshapingSimple ? java.util.Collections.emptyList()
-                : java.util.Collections.singletonList(
-                    net.minecraft.util.StatCollector
-                        .translateToLocalFormatted("gtnhadjust.reshaping.required_ring", info.recipe.mSpecialValue)))
         .logo(UITexture.fullImage("gtnhadjust", "gui/reshaping"))
         .logoSize(20, 20)
         .logoPos(152, 63)
@@ -33,19 +33,13 @@ public final class ReshapingRegistration {
 
     private static ItemStack controller;
     public static Fluid ptmegElastomer;
-    public static ReshapingRingBlock ringBlock;
-    private static ReshapingCatalystItem catalystItem;
 
     private ReshapingRegistration() {}
 
-    /** Register the controller, fourteen ring tiers and the dedicated Harmony material forms. */
+    /** The EV structure uses existing GTNH glass and casings; register only its controller and needed fluid. */
     public static void registerMachine(int id) {
         if (GregTechAPI.METATILEENTITIES[id] != null)
             throw new IllegalStateException("Substance reshaping controller MTE ID is already in use: " + id);
-        ringBlock = new ReshapingRingBlock();
-        GameRegistry.registerBlock(ringBlock, ReshapingRingBlock.RingItem.class, "reshaping_ring");
-        catalystItem = new ReshapingCatalystItem();
-        GameRegistry.registerItem(catalystItem, "reshaping_catalyst");
         controller = new SubstanceReshapingDevice(id).getStackForm(1);
         // GTNH 2.9 removed PTMEG; retain the upstream rubber recipe's fourth fluid output.
         ptmegElastomer = GTFluidFactory.builder("gtnhadjust.molten.ptmegelastomer")
@@ -58,24 +52,19 @@ public final class ReshapingRegistration {
             .asFluid();
     }
 
-    /** Register the selected controller recipe, all ring/material recipes and the complete processing pool. */
+    /** Register the original EV controller recipe and the retained seventeen processing recipes. */
     public static void registerRecipes() {
-        ReshapingCraftingRecipes.register();
-        new ReshapingMaterialsRecipes().loadRecipes();
+        GTValues.RA.stdBuilder()
+            .itemInputs(
+                ItemList.Casing_RobustTungstenSteel.get(8),
+                ItemList.Emitter_EV.get(8),
+                ItemList.Sensor_EV.get(8),
+                ItemList.Field_Generator_EV.get(8),
+                GTOreDictUnificator.get(OrePrefixes.circuit, Materials.EV, 16))
+            .itemOutputs(controller.copy())
+            .eut(TierEU.RECIPE_EV)
+            .duration(30 * 20)
+            .addTo(RecipeMaps.assemblerRecipes);
         new SubstanceReshapingDeviceRecipes().loadRecipes();
-    }
-
-    static ItemStack controller() {
-        return controller.copy();
-    }
-
-    static ItemStack ring(int meta) {
-        return new ItemStack(ringBlock, 1, meta);
-    }
-
-    /** Only these three material forms are consumed or produced by the dedicated upstream chain. */
-    static ItemStack catalyst(OrePrefixes prefix, int count) {
-        int meta = prefix == OrePrefixes.dust ? 0 : prefix == OrePrefixes.ingotHot ? 1 : 2;
-        return new ItemStack(catalystItem, count, meta);
     }
 }

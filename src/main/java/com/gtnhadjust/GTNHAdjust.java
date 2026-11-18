@@ -33,7 +33,6 @@ import cpw.mods.fml.common.registry.GameRegistry;
 public class GTNHAdjust {
 
     public static int threadedProxyPatternSlots = 1024;
-    public static boolean reshapingSimple;
 
     public static final String MOD_ID = "gtnhadjust";
     public static final Logger LOG = LogManager.getLogger(MOD_ID);
@@ -84,11 +83,6 @@ public class GTNHAdjust {
             && Loader.isModLoaded("appliedenergistics2")) com.gtnhadjust.quest.QuestAeNetwork.init();
         if (FeatureConfig.get().quickTerminal || patternDeduplication) TerminalNotifications.init();
         Configuration config = new Configuration(event.getSuggestedConfigurationFile());
-        reshapingSimple = config.getBoolean(
-            "simpleMode",
-            "reshaping",
-            false,
-            "Use EyeOfHarmonyBuffer's EV structure and controller recipe, with no ring tier restriction. Restart required; client and server must match.");
         debug = config.getBoolean(
             "debug",
             Configuration.CATEGORY_GENERAL,

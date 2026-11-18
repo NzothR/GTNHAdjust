@@ -2,9 +2,7 @@
 package com.gtnhadjust.machine.reshaping;
 
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
-import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlocksTiered;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
-import static com.gtnewhorizon.structurelib.structure.StructureUtility.withChannel;
 import static gregtech.api.enums.HatchElement.InputBus;
 import static gregtech.api.enums.HatchElement.InputHatch;
 import static gregtech.api.enums.HatchElement.OutputBus;
@@ -23,8 +21,6 @@ import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidStack;
 
-import org.apache.commons.lang3.tuple.Pair;
-
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
@@ -41,7 +37,6 @@ import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBas
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
-import gregtech.api.recipe.check.SimpleCheckRecipeResult;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.GTRecipe;
@@ -49,13 +44,12 @@ import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.OverclockCalculator;
 import gtPlusPlus.core.block.ModBlocks;
 
-/** Original tiered structure and optional EV variant; ten recipe passes per five-second cycle. */
+/** Original EV structure and unrestricted recipe pool; ten recipe passes per five-second cycle. */
 public final class SubstanceReshapingDevice extends MTEExtendedPowerMultiBlockBase<SubstanceReshapingDevice>
     implements ISurvivalConstructable {
 
     private static final String MAIN = "main";
     private static IStructureDefinition<SubstanceReshapingDevice> structure;
-    private int ringTier;
 
     public SubstanceReshapingDevice(int id) {
         super(id, "gtnhadjust.substance_reshaping", "Substance Reshaping Device");
@@ -72,35 +66,6 @@ public final class SubstanceReshapingDevice extends MTEExtendedPowerMultiBlockBa
 
     @Override
     public IStructureDefinition<SubstanceReshapingDevice> getStructureDefinition() {
-        if (structure == null && !GTNHAdjust.reshapingSimple) {
-            List<Pair<net.minecraft.block.Block, Integer>> rings = new ArrayList<>();
-            for (int meta = 0; meta < 14; meta++) rings.add(Pair.of(ReshapingRegistration.ringBlock, meta));
-            structure = IStructureDefinition.<SubstanceReshapingDevice>builder()
-                .addShape(MAIN, transpose(ReshapingShape.shapeMain2))
-                .addElement('A', ofBlock(ItemRegistry.bw_realglas2, 0))
-                .addElement('B', ofBlock(goodgenerator.loader.Loaders.FRF_Coil_3, 0))
-                .addElement(
-                    'C',
-                    withChannel(
-                        "SingularityStabilizationRingCasings",
-                        ofBlocksTiered(
-                            (block, meta) -> block == ReshapingRegistration.ringBlock ? meta + 1 : -1,
-                            rings,
-                            0,
-                            (machine, tier) -> machine.ringTier = tier,
-                            machine -> machine.ringTier)))
-                .addElement('D', ofBlock(GregTechAPI.sBlockCasings1, 12))
-                .addElement(
-                    'E',
-                    buildHatchAdder(SubstanceReshapingDevice.class)
-                        .atLeast(InputBus, OutputBus, InputHatch, OutputHatch)
-                        .casingIndex(13)
-                        .hint(1)
-                        .buildAndChain(ofBlock(GregTechAPI.sBlockCasings1, 13)))
-                .addElement('F', ofBlock(GregTechAPI.sBlockCasings1, 14))
-                .addElement('G', ofBlock(tectech.thing.casing.TTCasingsContainer.sBlockCasingsTT, 9))
-                .build();
-        }
         if (structure == null) structure = IStructureDefinition.<SubstanceReshapingDevice>builder()
             .addShape(MAIN, transpose(ReshapingShape.shapeMain))
             .addElement('A', ofBlock(ItemRegistry.bw_realglas, 2))
@@ -117,22 +82,17 @@ public final class SubstanceReshapingDevice extends MTEExtendedPowerMultiBlockBa
 
     @Override
     public void checkMachine(IGregTechTileEntity tile, ItemStack stack, List<StructureError> errors) {
-        ringTier = GTNHAdjust.reshapingSimple ? Integer.MAX_VALUE : 0;
-        checkPiece(MAIN, offset(), offset(), 0, errors);
+        checkPiece(MAIN, 4, 4, 0, errors);
     }
 
     @Override
     public void construct(ItemStack stack, boolean hintsOnly) {
-        buildPiece(MAIN, stack, hintsOnly, offset(), offset(), 0);
+        buildPiece(MAIN, stack, hintsOnly, 4, 4, 0);
     }
 
     @Override
     public int survivalConstruct(ItemStack stack, int budget, ISurvivalBuildEnvironment env) {
-        return mMachine ? -1 : survivalBuildPiece(MAIN, stack, offset(), offset(), 0, budget, env, false, true);
-    }
-
-    private static int offset() {
-        return GTNHAdjust.reshapingSimple ? 4 : 19;
+        return mMachine ? -1 : survivalBuildPiece(MAIN, stack, 4, 4, 0, budget, env, false, true);
     }
 
     @Override
@@ -143,12 +103,6 @@ public final class SubstanceReshapingDevice extends MTEExtendedPowerMultiBlockBa
     @Override
     protected ProcessingLogic createProcessingLogic() {
         return new ProcessingLogic() {
-
-            @Override
-            protected CheckRecipeResult validateRecipe(GTRecipe recipe) {
-                return recipe.mSpecialValue <= ringTier ? CheckRecipeResultRegistry.SUCCESSFUL
-                    : SimpleCheckRecipeResult.ofFailure("gtnhadjust_reshaping_ring");
-            }
 
             @Override
             protected OverclockCalculator createOverclockCalculator(GTRecipe recipe) {

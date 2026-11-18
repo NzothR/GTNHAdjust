@@ -11,7 +11,7 @@
 | `gtnrVirtualTools` | 完整 NC 元数据、虚拟工具目录与 PH 可用状态桥接 | 两端；默认开启，关闭不加载本组六个共用 Mixin 和一个客户端导入 Mixin |
 | `proxyFactory` | 代理联合工厂 | 两端 |
 | `threadedJointProxy` | 多线程联合代理 | 两端 |
-| `substanceReshapingDevice` | EyeOfHarmonyBuffer 物质重塑仪、14 级稳定环、鸿蒙材料链及全部 18 条加工配方；ID 31996 | 两端；默认开启，GTNH 2.9.0，重启生效 |
+| `substanceReshapingDevice` | EyeOfHarmonyBuffer EV 物质重塑仪、控制器制作及 17 条加工配方；排除星门产出配方，ID 31996 | 两端；默认开启，GTNH 2.9.0，重启生效 |
 | `godforgeFreeUpgrades` | 诸神之锻炉升级无前置、环数、碎片或材料限制 | 两端；默认开启，GregTech 5.09.54.265，关闭后不加载对应两项 Mixin，重启生效 |
 | `lootSimulator` | 战利品模拟室 | 两端 |
 | `cropBreeder` | GTNR 作物杂交机调整 | 两端 |
@@ -47,7 +47,6 @@
 | 参数 | 默认值 | 用途 |
 | --- | --- | --- |
 | `general.debug` | `false` | 机器、定位器与配方诊断日志 |
-| `reshaping.simpleMode` | `false` | 默认完整结构及制造链；开启后使用 EV 控制器配方、9×9×9 简化结构并取消稳定环等级限制；两端同步重启 |
 | `threadedJointProxy.patternSlots` | `1024` | 内部样板容量，范围 1–16384；两端同步并重启 |
 | `threadedJointProxy.wirelessPower` | `true` | 多线程代理无能源仓时无线供电，无玻璃门槛 |
 | `proxyFactory.wirelessPower` | `true` | 代理工厂 UEV+ 玻璃且无能源仓时无线供电 |
