@@ -20,18 +20,18 @@ public class LateMixinsLoader implements ILateMixinLoader {
     @Override
     public List<String> getMixins(Set<String> loadedMods) {
         FeatureSwitches features = FeatureConfig.get();
-        List<String> mixins = features.selectMixins(
-            loadedMods,
-            FMLLaunchHandler.side()
-                .isClient());
-        if (features.ae2thingTerminalRecipeFix && loadedMods.contains("ae2thing")
-            && loadedMods.contains("gtneverreset")
-            && "1.3.4".equals(
-                Loader.instance()
-                    .getIndexedModList()
-                    .get("ae2thing")
-                    .getVersion())) {
-            mixins.add("fix.Ae2ThingTerminalRecipeMixin");
+        boolean client = FMLLaunchHandler.side()
+            .isClient();
+        List<String> mixins = features.selectMixins(loadedMods, client);
+        if (loadedMods.contains("ae2thing") && "1.3.4".equals(
+            Loader.instance()
+                .getIndexedModList()
+                .get("ae2thing")
+                .getVersion())) {
+            if (features.ae2thingTerminalRecipeFix && loadedMods.contains("gtneverreset"))
+                mixins.add("fix.Ae2ThingTerminalRecipeMixin");
+            if (client && features.ae2thingInfinityCellUsageFix && loadedMods.contains("NotEnoughItems"))
+                mixins.add("fix.Ae2ThingInfinityCellUsageMixin");
         }
         return mixins;
     }

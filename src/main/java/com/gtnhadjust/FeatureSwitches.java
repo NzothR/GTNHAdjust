@@ -46,6 +46,7 @@ final class FeatureSwitches {
     private static final String SOUL_VIAL = "soulVialExpandedCapture";
     private static final String STRUCTURELIB_AE_AUTOPLACE = "structureLibAeAutoPlace";
     private static final String AE2THING_TERMINAL_RECIPE_FIX = "ae2thingTerminalRecipeFix";
+    private static final String AE2THING_INFINITY_CELL_USAGE_FIX = "ae2thingInfinityCellUsageFix";
     private static final String PLANETARY_ENGINE_PROJECTOR = "planetaryEngineProjector";
     private static final String PROJECTOR_BUILD_BUDGET = "projectorBuildBudget";
 
@@ -83,6 +84,7 @@ final class FeatureSwitches {
     final boolean soulVialExpandedCapture;
     final boolean structureLibAeAutoPlace;
     final boolean ae2thingTerminalRecipeFix;
+    final boolean ae2thingInfinityCellUsageFix;
     final boolean planetaryEngineProjector;
     final boolean projectorBuildBudget;
 
@@ -95,7 +97,9 @@ final class FeatureSwitches {
         boolean proxyDispatchDiagnostics, boolean ysmuAnimatedArms, boolean hologramImprovements,
         boolean questAeRetrieval, boolean gtnlQuickTerminalCraftFix, boolean grandAssemblyAutoMaintenance,
         boolean threadedJointProxy, boolean hideGtnlShimmerRecipes, boolean hideGtnrDisassemblerRecipes,
-        boolean ae2thingTerminalRecipeFix, boolean planetaryEngineProjector, boolean projectorBuildBudget) {
+        boolean ae2thingTerminalRecipeFix, boolean planetaryEngineProjector, boolean projectorBuildBudget,
+        boolean ae2thingInfinityCellUsageFix) {
+        this.ae2thingInfinityCellUsageFix = ae2thingInfinityCellUsageFix;
         this.projectorBuildBudget = projectorBuildBudget;
         this.planetaryEngineProjector = planetaryEngineProjector;
         this.ae2thingTerminalRecipeFix = ae2thingTerminalRecipeFix;
@@ -166,6 +170,7 @@ final class FeatureSwitches {
         defaults.setProperty(SOUL_VIAL, "true");
         defaults.setProperty(STRUCTURELIB_AE_AUTOPLACE, "true");
         defaults.setProperty(AE2THING_TERMINAL_RECIPE_FIX, "true");
+        defaults.setProperty(AE2THING_INFINITY_CELL_USAGE_FIX, "true");
         defaults.setProperty(PLANETARY_ENGINE_PROJECTOR, "true");
         defaults.setProperty(PROJECTOR_BUILD_BUDGET, "true");
         try {
@@ -215,7 +220,8 @@ final class FeatureSwitches {
                 read(values, HIDE_DISASSEMBLER),
                 read(values, AE2THING_TERMINAL_RECIPE_FIX),
                 read(values, PLANETARY_ENGINE_PROJECTOR),
-                read(values, PROJECTOR_BUILD_BUDGET));
+                read(values, PROJECTOR_BUILD_BUDGET),
+                read(values, AE2THING_INFINITY_CELL_USAGE_FIX));
             result.substanceReshapingDevice = read(values, "substanceReshapingDevice");
             result.godforgeFreeUpgrades = read(values, "godforgeFreeUpgrades");
             result.bookmarkMachineGroups = read(values, "bookmarkMachineGroups");
@@ -279,11 +285,14 @@ final class FeatureSwitches {
                     + ", planetaryEngineProjector="
                     + result.planetaryEngineProjector
                     + ", projectorBuildBudget="
-                    + result.projectorBuildBudget);
+                    + result.projectorBuildBudget
+                    + ", ae2thingInfinityCellUsageFix="
+                    + result.ae2thingInfinityCellUsageFix);
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
             return new FeatureSwitches(
+                false,
                 false,
                 false,
                 false,

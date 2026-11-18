@@ -27,6 +27,7 @@
 | `terminalSmartIngredients` | 收藏、电路和网络材料选择优先级 | 两端；依赖 `quickTerminal` |
 | `gtnlQuickTerminalCraftFix` | GTNL NEI 请求合成的终端槽位修复 | 两端 |
 | `ae2thingTerminalRecipeFix` | AE2Thing 1.3.4 和 GTNR 同装时，跳过未注册的无线二合一终端的三处配方注册 | 两端；默认开启，重启生效 |
+| `ae2thingInfinityCellUsageFix` | 修复 AE2Thing 1.3.4 的 NEI 无限存储元件用途查询报错 | 客户端；默认开启，重启生效 |
 | `matrixPatternLoadFix` | 装配矩阵读档样板失效修复 | 两端 |
 | `bookmarkMachineGroups` | V 排序、Shift+V 按池分组 | 客户端 |
 | `hideGtnlShimmerRecipes` | 隐藏 GTNL 微光嬗变 NEI 页面 | 客户端 |
