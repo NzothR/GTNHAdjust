@@ -16,7 +16,6 @@ import com.gtnhadjust.machine.loot.LootSimulatorRegistration;
 import com.gtnhadjust.machine.proxy.ProxyFactoryRegistration;
 import com.gtnhadjust.machine.threadedproxy.ThreadedProxyRegistration;
 import com.gtnhadjust.recipe.CarpenterRecipes;
-import com.gtnhadjust.recipe.RecombinationFusionRecipe;
 import com.gtnhadjust.soul.SoulVialMultipartHandler;
 import com.gtnhadjust.structurelib.PlanetaryEngineStructure;
 import com.gtnhadjust.structurelib.ProjectorBuildBudget;
@@ -38,7 +37,6 @@ import cpw.mods.fml.common.registry.GameRegistry;
 public class GTNHAdjust {
 
     public static int threadedProxyPatternSlots = 1024;
-    private boolean recombinationFusionRecipe;
 
     public static final String MOD_ID = "gtnhadjust";
     public static final Logger LOG = LogManager.getLogger(MOD_ID);
@@ -259,11 +257,6 @@ public class GTNHAdjust {
             2048,
             32766,
             "Recipe pool debugger controller ID. Restart required; client and server must match.");
-        recombinationFusionRecipe = config.getBoolean(
-            "recombinationFusion",
-            "recipeAdjustments",
-            true,
-            "Replace the original Recombination Fusion Reactor recipe with the circuit 1 variant. Restart required.");
         if (config.hasChanged()) config.save();
         tierDimension = new TierDimensionItem();
         GameRegistry.registerItem(tierDimension, "tier_dimension");
@@ -318,8 +311,6 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void loadComplete(FMLLoadCompleteEvent event) {
-        if (recombinationFusionRecipe && Loader.isModLoaded("sciencenotleisure") && Loader.isModLoaded("gregtech"))
-            RecombinationFusionRecipe.register();
         if (FeatureConfig.get().substanceReshapingDevice && Loader.isModLoaded("gregtech"))
             com.gtnhadjust.machine.reshaping.ReshapingRegistration.registerRecipes();
         if (machineLocatorsEnabled && Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech"))

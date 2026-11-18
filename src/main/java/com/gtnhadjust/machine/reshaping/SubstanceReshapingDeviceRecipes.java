@@ -15,20 +15,26 @@ import static gtPlusPlus.core.material.MaterialsElements.STANDALONE.CELESTIAL_TU
 import static gtnhlanth.common.register.WerkstoffMaterialPool.Iodine;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.StatCollector;
+
+import com.science.gtnl.utils.enums.GTNLItemList;
 
 import bartworks.system.material.WerkstoffLoader;
+import cpw.mods.fml.common.Loader;
 import gregtech.api.enums.GTValues;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.util.GTOreDictUnificator;
+import gregtech.api.util.GTRecipe;
+import gregtech.api.util.GTRecipeBuilder;
 import gregtech.api.util.GTUtility;
 import gtPlusPlus.core.material.MaterialsElements;
 import gtnhlanth.common.register.WerkstoffMaterialPool;
 
 public class SubstanceReshapingDeviceRecipes {
 
-    /** Register the sixteen retained processing recipes for GTNH 2.9.0. */
+    /** Register the retained processing recipes and the stone dust recipe for GTNH 2.9.0. */
     public void loadRecipes() {
 
         /*
@@ -282,6 +288,40 @@ public class SubstanceReshapingDeviceRecipes {
             .duration(PROCESSING_TICKS)
             .specialValue(9)
             .addTo(MAP);
+
+        registerStoneDustRecipe();
+    }
+
+    /** Keep the stone dust recipe's full input count and duration through recipe compilation. */
+    private static void registerStoneDustRecipe() {
+        int fluidAmount = Integer.MAX_VALUE;
+        GTRecipeBuilder builder = GTValues.RA.stdBuilder()
+            .itemInputsUnsafe(
+                GTUtility.getIntegratedCircuit(1),
+                setStackSize(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Stone, 1), 2_100_000_000))
+            .fluidOutputs(
+                Materials.MagMatter.getMolten(fluidAmount),
+                Materials.MHDCSM.getMolten(fluidAmount),
+                Materials.Universium.getMolten(fluidAmount),
+                Materials.WhiteDwarfMatter.getMolten(fluidAmount),
+                Materials.BlackDwarfMatter.getMolten(fluidAmount),
+                Materials.SpaceTime.getMolten(fluidAmount),
+                Materials.TranscendentMetal.getMolten(fluidAmount),
+                Materials.Eternity.getMolten(fluidAmount),
+                Materials.PrimordialMatter.getFluid(fluidAmount),
+                Materials.Space.getMolten(fluidAmount),
+                Materials.Time.getMolten(fluidAmount),
+                Materials.SixPhasedCopper.getMolten(fluidAmount),
+                Materials.Antimatter.getFluid(fluidAmount),
+                Materials.QuarkGluonPlasma.getFluid(fluidAmount))
+            .duration(PROCESSING_TICKS)
+            .eut(PROCESSING_EUT);
+        if (Loader.isModLoaded("sciencenotleisure")) builder.itemOutputs(
+            GTNLItemList.TrollFace.get(1)
+                .setStackDisplayName(
+                    StatCollector.translateToLocal("gtnl.recipe.refusion_reactor.structure_incomplete")))
+            .outputChances(1);
+        for (GTRecipe recipe : builder.addTo(MAP)) recipe.mDuration = PROCESSING_TICKS;
     }
 
     /** Preserve upstream int-sized recipe quantities without changing the caller's stack. */
