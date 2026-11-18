@@ -217,3 +217,6 @@ gtnhadjust.planetary_engine.range=行星发动机分区编号应在 1～%s 之�
 gtnhadjust.planetary_engine.unloaded=行星发动机分区 %s 所在的区块（%s, %s）未加载。
 gtnhadjust.planetary_engine.preview=行星发动机投影 %s/%s，区块（%s, %s），Y=%s～%s。
 gtnhadjust.planetary_engine.outline=行星发动机外框，X×Z 占地 %s×%s，高 %s 格。
+gtnhadjust.channel.placement_budget=每次潜行右键生存建造最多放置的方块数，范围 1～2,100,000,000。删除此信道后使用投影仪配置。
+gtnhadjust.channel.structure_preview=行星发动机预览模式。1 为分区逐块预览，2 为整机外框。
+gtnhadjust.channel.structure_section=行星发动机逐块预览的分区编号。删除此信道后预览主机分区。

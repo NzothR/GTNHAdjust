@@ -5,6 +5,7 @@ import net.minecraftforge.common.config.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnhadjust.machine.collector.MatterCompression;
 import com.gtnhadjust.machine.collector.SuperFragmentRecipes;
 import com.gtnhadjust.machine.collector.SuperFragmentRegistration;
@@ -16,6 +17,8 @@ import com.gtnhadjust.machine.proxy.ProxyFactoryRegistration;
 import com.gtnhadjust.machine.threadedproxy.ThreadedProxyRegistration;
 import com.gtnhadjust.recipe.CarpenterRecipes;
 import com.gtnhadjust.soul.SoulVialMultipartHandler;
+import com.gtnhadjust.structurelib.PlanetaryEngineStructure;
+import com.gtnhadjust.structurelib.ProjectorBuildBudget;
 import com.gtnhadjust.terminal.TerminalNotifications;
 
 import cpw.mods.fml.common.Loader;
@@ -267,6 +270,24 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
+        if (Loader.isModLoaded("structurelib")) {
+            FeatureSwitches features = FeatureConfig.get();
+            if (features.projectorBuildBudget) StructureLibAPI.registerChannelDescription(
+                ProjectorBuildBudget.CHANNEL,
+                MOD_ID,
+                "gtnhadjust.channel.placement_budget");
+            if (features.planetaryEngineProjector && Loader.isModLoaded("sciencenotleisure")
+                && Loader.isModLoaded("gregtech")) {
+                StructureLibAPI.registerChannelDescription(
+                    PlanetaryEngineStructure.PREVIEW_CHANNEL,
+                    MOD_ID,
+                    "gtnhadjust.channel.structure_preview");
+                StructureLibAPI.registerChannelDescription(
+                    PlanetaryEngineStructure.SECTION_CHANNEL,
+                    MOD_ID,
+                    "gtnhadjust.channel.structure_section");
+            }
+        }
         if (FeatureConfig.get().substanceReshapingDevice && Loader.isModLoaded("gregtech"))
             com.gtnhadjust.machine.reshaping.ReshapingRegistration.registerMachine(31996);
         if (recipePoolDebuggerEnabled && Loader.isModLoaded("gregtech"))

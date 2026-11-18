@@ -31,7 +31,8 @@ public final class HologramReplacementContext {
             return original.getAsInt();
         if (CURRENT.get() != null || !(target instanceof MTEMultiBlockBase machine)
             || !(env.getActor() instanceof EntityPlayerMP player)
-            || !ChannelDataAccessor.hasSubChannel(trigger)) {
+            || !ChannelDataAccessor.hasSubChannel(trigger)
+            || (ProjectorBuildBudget.current() != null && ChannelDataAccessor.countChannelData(trigger) == 1)) {
             return original.getAsInt();
         }
         IGregTechTileEntity tile = machine.getBaseMetaTileEntity();

@@ -47,6 +47,7 @@ final class FeatureSwitches {
     private static final String STRUCTURELIB_AE_AUTOPLACE = "structureLibAeAutoPlace";
     private static final String AE2THING_TERMINAL_RECIPE_FIX = "ae2thingTerminalRecipeFix";
     private static final String PLANETARY_ENGINE_PROJECTOR = "planetaryEngineProjector";
+    private static final String PROJECTOR_BUILD_BUDGET = "projectorBuildBudget";
 
     boolean substanceReshapingDevice;
     boolean godforgeFreeUpgrades;
@@ -83,6 +84,7 @@ final class FeatureSwitches {
     final boolean structureLibAeAutoPlace;
     final boolean ae2thingTerminalRecipeFix;
     final boolean planetaryEngineProjector;
+    final boolean projectorBuildBudget;
 
     private FeatureSwitches(boolean lootSimulator, boolean proxyFactory, boolean cropBreeder, boolean steamGreenhouse,
         boolean carpenterRecipes, boolean quickTerminal, boolean gtsrDiagnostics, boolean gtsrRecipeSpeedCompatibility,
@@ -93,7 +95,8 @@ final class FeatureSwitches {
         boolean proxyDispatchDiagnostics, boolean ysmuAnimatedArms, boolean hologramImprovements,
         boolean questAeRetrieval, boolean gtnlQuickTerminalCraftFix, boolean grandAssemblyAutoMaintenance,
         boolean threadedJointProxy, boolean hideGtnlShimmerRecipes, boolean hideGtnrDisassemblerRecipes,
-        boolean ae2thingTerminalRecipeFix, boolean planetaryEngineProjector) {
+        boolean ae2thingTerminalRecipeFix, boolean planetaryEngineProjector, boolean projectorBuildBudget) {
+        this.projectorBuildBudget = projectorBuildBudget;
         this.planetaryEngineProjector = planetaryEngineProjector;
         this.ae2thingTerminalRecipeFix = ae2thingTerminalRecipeFix;
         this.hideGtnlShimmerRecipes = hideGtnlShimmerRecipes;
@@ -164,6 +167,7 @@ final class FeatureSwitches {
         defaults.setProperty(STRUCTURELIB_AE_AUTOPLACE, "true");
         defaults.setProperty(AE2THING_TERMINAL_RECIPE_FIX, "true");
         defaults.setProperty(PLANETARY_ENGINE_PROJECTOR, "true");
+        defaults.setProperty(PROJECTOR_BUILD_BUDGET, "true");
         try {
             Files.createDirectories(file.getParent());
             if (!Files.exists(file)) {
@@ -210,7 +214,8 @@ final class FeatureSwitches {
                 read(values, HIDE_SHIMMER),
                 read(values, HIDE_DISASSEMBLER),
                 read(values, AE2THING_TERMINAL_RECIPE_FIX),
-                read(values, PLANETARY_ENGINE_PROJECTOR));
+                read(values, PLANETARY_ENGINE_PROJECTOR),
+                read(values, PROJECTOR_BUILD_BUDGET));
             result.substanceReshapingDevice = read(values, "substanceReshapingDevice");
             result.godforgeFreeUpgrades = read(values, "godforgeFreeUpgrades");
             result.bookmarkMachineGroups = read(values, "bookmarkMachineGroups");
@@ -272,11 +277,14 @@ final class FeatureSwitches {
                     + ", ae2thingTerminalRecipeFix="
                     + result.ae2thingTerminalRecipeFix
                     + ", planetaryEngineProjector="
-                    + result.planetaryEngineProjector);
+                    + result.planetaryEngineProjector
+                    + ", projectorBuildBudget="
+                    + result.projectorBuildBudget);
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
             return new FeatureSwitches(
+                false,
                 false,
                 false,
                 false,
@@ -326,6 +334,10 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (projectorBuildBudget && loadedMods.contains("structurelib")) {
+            mixins.add("structurelib.ProjectorBuildBudgetMixin");
+            mixins.add("structurelib.ProjectorBuildBudgetWalkerMixin");
+        }
         if (planetaryEngineProjector && loadedMods.contains("sciencenotleisure")
             && loadedMods.contains("structurelib")
             && loadedMods.contains("gregtech")) {
