@@ -48,6 +48,7 @@ final class FeatureSwitches {
     private static final String AE2THING_TERMINAL_RECIPE_FIX = "ae2thingTerminalRecipeFix";
     private static final String AE2THING_INFINITY_CELL_USAGE_FIX = "ae2thingInfinityCellUsageFix";
     private static final String PLANETARY_ENGINE_PROJECTOR = "planetaryEngineProjector";
+    private static final String ANTIMATTER_CYCLE_INTERVAL = "antimatterCycleInterval";
     private static final String ANTIMATTER_WIRELESS = "antimatterWireless";
     private static final String PROJECTOR_BUILD_BUDGET = "projectorBuildBudget";
 
@@ -89,6 +90,7 @@ final class FeatureSwitches {
     final boolean planetaryEngineProjector;
     final boolean projectorBuildBudget;
     final boolean antimatterWireless;
+    final boolean antimatterCycleInterval;
 
     private FeatureSwitches(boolean lootSimulator, boolean proxyFactory, boolean cropBreeder, boolean steamGreenhouse,
         boolean carpenterRecipes, boolean quickTerminal, boolean gtsrDiagnostics, boolean gtsrRecipeSpeedCompatibility,
@@ -100,10 +102,11 @@ final class FeatureSwitches {
         boolean questAeRetrieval, boolean gtnlQuickTerminalCraftFix, boolean grandAssemblyAutoMaintenance,
         boolean threadedJointProxy, boolean hideGtnlShimmerRecipes, boolean hideGtnrDisassemblerRecipes,
         boolean ae2thingTerminalRecipeFix, boolean planetaryEngineProjector, boolean projectorBuildBudget,
-        boolean ae2thingInfinityCellUsageFix, boolean antimatterWireless) {
+        boolean ae2thingInfinityCellUsageFix, boolean antimatterWireless, boolean antimatterCycleInterval) {
         this.ae2thingInfinityCellUsageFix = ae2thingInfinityCellUsageFix;
         this.projectorBuildBudget = projectorBuildBudget;
         this.antimatterWireless = antimatterWireless;
+        this.antimatterCycleInterval = antimatterCycleInterval;
         this.planetaryEngineProjector = planetaryEngineProjector;
         this.ae2thingTerminalRecipeFix = ae2thingTerminalRecipeFix;
         this.hideGtnlShimmerRecipes = hideGtnlShimmerRecipes;
@@ -175,6 +178,7 @@ final class FeatureSwitches {
         defaults.setProperty(AE2THING_TERMINAL_RECIPE_FIX, "true");
         defaults.setProperty(AE2THING_INFINITY_CELL_USAGE_FIX, "true");
         defaults.setProperty(PLANETARY_ENGINE_PROJECTOR, "true");
+        defaults.setProperty(ANTIMATTER_CYCLE_INTERVAL, "true");
         defaults.setProperty(ANTIMATTER_WIRELESS, "true");
         defaults.setProperty(PROJECTOR_BUILD_BUDGET, "true");
         try {
@@ -226,7 +230,8 @@ final class FeatureSwitches {
                 read(values, PLANETARY_ENGINE_PROJECTOR),
                 read(values, PROJECTOR_BUILD_BUDGET),
                 read(values, AE2THING_INFINITY_CELL_USAGE_FIX),
-                read(values, ANTIMATTER_WIRELESS));
+                read(values, ANTIMATTER_WIRELESS),
+                read(values, ANTIMATTER_CYCLE_INTERVAL));
             result.substanceReshapingDevice = read(values, "substanceReshapingDevice");
             result.godforgeFreeUpgrades = read(values, "godforgeFreeUpgrades");
             result.bookmarkMachineGroups = read(values, "bookmarkMachineGroups");
@@ -330,6 +335,7 @@ final class FeatureSwitches {
                 false,
                 false,
                 false,
+                false,
                 false);
         }
     }
@@ -349,6 +355,9 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (antimatterCycleInterval && loadedMods.contains("GoodGenerator")) {
+            mixins.add("goodgenerator.AntimatterCycleMixin");
+        }
         if (antimatterWireless && loadedMods.contains("GoodGenerator")) {
             mixins.add("goodgenerator.AntimatterWirelessMixin");
         }

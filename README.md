@@ -67,6 +67,8 @@
 
 ## 配方调整与模组兼容
 
+屏蔽拉格朗日湮灭矩阵默认每 20 刻湮灭一次（20 TPS 时为 1 秒），有线和无线共用周期。可在 `config/gtnhadjust.cfg` 的 `antimatterGenerator.cycleTicks` 调整周期，设为 100 可恢复原版间隔。启动开关 `antimatterCycleInterval` 默认开启，适配 GTNH 2.9.0、GregTech 5.09.54.265（含 GoodGenerator），两端同步配置并重启。
+
 屏蔽拉格朗日湮灭矩阵默认开启无线模式，已有主机首次加载时也会切到无线，之后保存玩家用螺丝刀选择的模式。无线模式下，原版支持的催化剂都可将产出的 EU 直接送入主机所有者的无线电网，无需激光源仓，也不受仓容量限制。切回有线模式后恢复原版激光源仓要求。适配 GTNH 2.9.0、GregTech 5.09.54.265（含 GoodGenerator），`antimatterWireless` 默认开启，两端同步配置并重启。
 
 初代目行星发动机用投影仪设定 `structure_render=1` 后，右键主机预览。`structure_preview=1`（默认）显示当前分区里的方块，省略粒子和逐块错误检查；`structure_preview=2` 只画整机外框并显示占地尺寸。潜行右键调用 GTNL 原生建造，生存放置按 StructureLib 的投影仪预算执行，完整检查合并到放置结束后。适配 GTNH 2.9.0、GTNL dev-290 和 StructureLib 1.4.47。`planetaryEngineProjector` 默认开启，两端同步更新并重启。

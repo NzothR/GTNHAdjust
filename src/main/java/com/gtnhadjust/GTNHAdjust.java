@@ -67,6 +67,7 @@ public class GTNHAdjust {
     public static boolean machineLocatorsEnabled;
     public static boolean hologramAeMaterials;
     public static int steamGreenhouseMaxSeeds = 64;
+    public static int antimatterCycleTicks = 20;
     private int superFragmentMteId = 31990;
     private int lootSimulatorMteId = 31992;
     private int proxyFactoryMteId = 31993;
@@ -109,6 +110,13 @@ public class GTNHAdjust {
             1,
             64,
             "Steam greenhouse maximum seed count; server setting, restart required. Remove excess seeds before lowering.");
+        antimatterCycleTicks = config.getInt(
+            "cycleTicks",
+            "antimatterGenerator",
+            20,
+            1,
+            Integer.MAX_VALUE,
+            "Antimatter generator cycle interval in ticks (20 ticks = 1 second). Restart required.");
         collectorRecipeTicks = config.getInt(
             "recipeDurationTicks",
             "collector",

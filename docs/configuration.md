@@ -36,6 +36,7 @@
 | `planetaryEngineProjector` | 初代目行星发动机无粒子预览、整机外框、结构定义缓存和延后检查，使用 `structure_render=1` | 两端；默认开启，GTNL dev-290／StructureLib 1.4.47，重启生效 |
 | `projectorBuildBudget` | 投影仪的 `placement_budget` 覆盖生存自动放置预算，最高 2,100,000,000 格 | 两端；默认开启，StructureLib 1.4.47，重启生效 |
 | `antimatterWireless` | 屏蔽拉格朗日湮灭矩阵默认无线，原版催化剂均可无线输出，激光源仓仅有线模式必需 | 两端；默认开启，GTNH 2.9.0／GregTech 5.09.54.265，重启生效 |
+| `antimatterCycleInterval` | 启用可配置的湮灭周期 | 两端；默认开启，GTNH 2.9.0／GregTech 5.09.54.265，重启生效 |
 | `structureLibAeAutoPlace` | 生存建造从 AE 取材料与流体 | 两端；受投影仪总开关控制 |
 | `questAeRetrieval` | BetterQuesting 从无线 AE 检索／交付 | 两端 |
 | `soulVialExpandedCapture` | Ender IO 灵魂瓶扩展捕获 | 两端 |
@@ -48,6 +49,8 @@
 ## 机器与独立功能参数
 
 文件：`config/gtnhadjust.cfg`。
+
+`antimatterGenerator.cycleTicks` 设置湮灭周期间隔，默认 20 刻，最小 1 刻，100 刻为原版间隔。启用 `antimatterCycleInterval` 时生效，两端同步配置并重启。
 
 | 参数 | 默认值 | 用途 |
 | --- | --- | --- |
