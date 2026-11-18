@@ -50,6 +50,7 @@ dependencies {
     compileOnly(files("ref/libs/nee-instance.jar"))
     compileOnly(files("ref/libs/gtsr-instance.jar"))
     compileOnly(elytraModpackVersion.gtnhdev("CropsNH") as String) { transitive = false }
+    compileOnly(elytraModpackVersion.gtnhdev("Avaritia") as String) { transitive = false }
     compileOnly(elytraModpackVersion.gtnhdev("GTNHLib") as String) { transitive = false }
     compileOnly(elytraModpackVersion.gtnhdev("GT5-Unofficial") as String) { transitive = false }
     compileOnly(elytraModpackVersion.gtnhdev("StructureLib") as String) { transitive = false }

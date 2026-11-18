@@ -55,6 +55,7 @@
 | `proxyFactory.extremeCrafting` | `true` | TST 梦魇工作台转换加工样板桥接 |
 | `collector.singularityResourceRecipes` | `true` | 维度／等级标记与资源配方 |
 | `collector.directAeOutput` | `true` | 主机直连 AE 优先输出，节点不可用时回退输出舱室；重启生效 |
+| `collector.matterCompression` | `true` | 启用物质压缩模式和空白元件终极合成；两端同步并重启 |
 | `collector.baseParallel` | `64` | LV 每线程并行能力，指数曲线起点 |
 | `collector.maxVoltageParallel` | `2147483647` | MAX 每线程并行能力，指数曲线终点，范围 1–2147483647 |
 | `collector.wirelessPower` | `true` | 物质解压器无能源仓时无线供电 |

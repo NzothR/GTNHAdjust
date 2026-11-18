@@ -82,6 +82,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     private static final String PIECE = "main";
     private static final short[] FIELD_BLUE = { 125, 225, 255, 255 };
     private static final String THREADS_NBT = "gtnhadjustCollectorThreads";
+    private static final int COMPRESSION_MODE = 1;
     private final CollectorThreadLedger threads = new CollectorThreadLedger();
     private int wirelessOverclockLimit;
     private int parallelLimit;
@@ -189,7 +190,41 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
 
     @Override
     public RecipeMap<?> getRecipeMap() {
-        return SuperFragmentRecipes.MAP;
+        return isCompressing() ? null : SuperFragmentRecipes.MAP;
+    }
+
+    @Override
+    public boolean supportsMachineModeSwitch() {
+        return GTNHAdjust.collectorMatterCompression;
+    }
+
+    @Override
+    public void setMachineModeIcons() {
+        machineModeIcons.add(GTUITextures.OVERLAY_BUTTON_MACHINEMODE_UNPACKAGER);
+        machineModeIcons.add(GTUITextures.OVERLAY_BUTTON_MACHINEMODE_COMPRESSING);
+    }
+
+    @Override
+    public String getMachineModeName() {
+        return StatCollector.translateToLocal(
+            isCompressing() ? "gtnhadjust.collector.mode.compression" : "gtnhadjust.collector.mode.decompression");
+    }
+
+    /** Drain committed work in the selected mode before switching. */
+    @Override
+    public void setMachineMode(int mode) {
+        IGregTechTileEntity tile = getBaseMetaTileEntity();
+        if (mode == machineMode
+            || (tile != null && tile.isServerSide() && (mMaxProgresstime > 0 || !threads.isEmpty()))) return;
+        super.setMachineMode(mode);
+        if (tile != null && tile.isServerSide()) {
+            for (var bus : mInputBusses) bus.mRecipeMap = getRecipeMap();
+            markDirty();
+        }
+    }
+
+    private boolean isCompressing() {
+        return GTNHAdjust.collectorMatterCompression && machineMode == COMPRESSION_MODE;
     }
 
     @Override
@@ -235,6 +270,11 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
     /** Wireless scheduling uses the representable per-tick power limit without reading grid balance. */
     private long availablePower() {
         return wirelessMode() ? Long.MAX_VALUE - 1 : getMaxInputEu();
+    }
+
+    @Override
+    protected long getActualEnergyUsage() {
+        return isCompressing() && lEUt < 0 ? MatterCompression.POWER : super.getActualEnergyUsage();
     }
 
     @Override
@@ -317,14 +357,35 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         return false;
     }
 
-    /** Thread scheduling is handled by runMachine rather than the single-recipe GT entry point. */
+    /** Commit one compression job through GT's normal input, progress and output lifecycle. */
     @Override
     public CheckRecipeResult checkProcessing() {
-        return CheckRecipeResultRegistry.NO_RECIPE;
+        if (!isCompressing()) return CheckRecipeResultRegistry.NO_RECIPE;
+        List<MatterCompression.Update> updates = MatterCompression.plan(getStoredInputs());
+        if (updates.isEmpty()) return CheckRecipeResultRegistry.NO_RECIPE;
+        if (availablePower() < MatterCompression.POWER)
+            return CheckRecipeResultRegistry.insufficientPower(MatterCompression.POWER);
+        ItemStack[] outputs = updates.stream()
+            .map(update -> update.output)
+            .toArray(ItemStack[]::new);
+        if (protectsExcessItem() && !canOutputAll(outputs)) return CheckRecipeResultRegistry.ITEM_OUTPUT_FULL;
+
+        for (MatterCompression.Update update : updates) update.input.stackSize--;
+        updateSlots();
+        mOutputItems = outputs;
+        mMaxProgresstime = MatterCompression.TICKS;
+        mEfficiencyIncrease = 10000;
+        lEUt = -MatterCompression.POWER;
+        if (GTNHAdjust.debug) GTNHAdjust.LOG.info("Matter compression started with {} cell outputs", outputs.length);
+        return CheckRecipeResultRegistry.SUCCESSFUL;
     }
 
     @Override
     protected void runMachine(IGregTechTileEntity tile, long tick) {
+        if (isCompressing()) {
+            super.runMachine(tile, tick);
+            return;
+        }
         if (!tile.isAllowedToWork()) {
             updateThreadDisplay();
             return;
@@ -638,6 +699,7 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
 
     @Override
     public void stopMachine(ShutDownReason reason) {
+        boolean interruptedCompression = isCompressing() && mMaxProgresstime > 0;
         int cleared = threads.size();
         super.stopMachine(reason);
         threads.clear();
@@ -645,7 +707,9 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
             "Collector stopped ({}); discarded {} thread tasks and their buffered outputs",
             reason.getID(),
             cleared);
-        if (cleared > 0) markDirty();
+        if (interruptedCompression && GTNHAdjust.debug)
+            GTNHAdjust.LOG.info("Matter compression stopped ({}); discarded pending cell outputs", reason.getID());
+        if (cleared > 0 || interruptedCompression) markDirty();
     }
 
     @Override
@@ -665,7 +729,10 @@ public final class SuperFragmentCollector extends MTEExtendedPowerMultiBlockBase
         parallelLimit = Math.max(0, tag.getInteger("collectorParallelLimit"));
         if (tag.hasKey(THREADS_NBT, 9)) threads.load(tag.getTagList(THREADS_NBT, 10));
         else threads.clear();
-        updateThreadDisplay();
+        if (!isCompressing()) {
+            machineMode = 0;
+            updateThreadDisplay();
+        }
     }
 
     @Override

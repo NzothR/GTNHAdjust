@@ -5,6 +5,7 @@ import net.minecraftforge.common.config.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.gtnhadjust.machine.collector.MatterCompression;
 import com.gtnhadjust.machine.collector.SuperFragmentRecipes;
 import com.gtnhadjust.machine.collector.SuperFragmentRegistration;
 import com.gtnhadjust.machine.collector.TierDimensionItem;
@@ -42,6 +43,7 @@ public class GTNHAdjust {
     public static boolean collectorBlackHole;
     public static boolean collectorWirelessPower;
     public static boolean collectorDirectAeOutput = true;
+    public static boolean collectorMatterCompression;
     public static boolean proxyFactoryWirelessPower;
     public static boolean threadedProxyWirelessPower;
     public static boolean proxyExtremeCrafting;
@@ -147,6 +149,13 @@ public class GTNHAdjust {
             "collector",
             true,
             "Connect the controller to AE for direct item/fluid output; fall back to output buses/hatches when inactive. Restart required.");
+        collectorMatterCompression = config.getBoolean(
+            "matterCompression",
+            "collector",
+            true,
+            "Enable the matter compression mode and blank cell recipe. Requires GTNL and Avaritia. Restart required.")
+            && Loader.isModLoaded("sciencenotleisure")
+            && Loader.isModLoaded("Avaritia");
         collectorWirelessPower = config.getBoolean(
             "wirelessPower",
             "collector",
@@ -260,6 +269,7 @@ public class GTNHAdjust {
             && Loader.isModLoaded("mobsinfo")
             && Loader.isModLoaded("EnderIO")) LootSimulatorRegistration.registerMachine(lootSimulatorMteId);
         if (Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech")) {
+            MatterCompression.registerItems();
             SuperFragmentRegistration.registerMachine(superFragmentMteId);
             SuperFragmentRecipes.initialize();
             SuperFragmentRegistration.registerCrafting();
@@ -287,6 +297,7 @@ public class GTNHAdjust {
             CarpenterRecipes.register();
         if (Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech")) {
             SuperFragmentRecipes.register();
+            if (collectorMatterCompression) MatterCompression.registerCrafting();
         }
     }
 }
