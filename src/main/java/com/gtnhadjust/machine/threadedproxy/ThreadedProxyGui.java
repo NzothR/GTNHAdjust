@@ -13,9 +13,11 @@ import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.network.NetworkUtils;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.utils.Alignment;
+import com.cleanroommc.modularui.utils.serialization.ByteBufAdapters;
 import com.cleanroommc.modularui.value.sync.BooleanSyncValue;
 import com.cleanroommc.modularui.value.sync.DynamicSyncHandler;
 import com.cleanroommc.modularui.value.sync.GenericListSyncHandler;
+import com.cleanroommc.modularui.value.sync.GenericSyncValue;
 import com.cleanroommc.modularui.value.sync.IntSyncValue;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.cleanroommc.modularui.widget.EmptyWidget;
@@ -168,14 +170,21 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
                                     "gtnhadjust.threaded_proxy.over_limit",
                                     field == 2 ? globalParallel.getValue() : globalOc.getValue())))));
         }
-        var item = com.cleanroommc.modularui.value.sync.GenericSyncValue.forItem(() -> {
-            var product = editorOutput();
-            return product instanceof appeng.api.storage.data.IAEItemStack stack ? stack.getItemStack() : null;
-        }, ignored -> {});
-        var fluid = com.cleanroommc.modularui.value.sync.GenericSyncValue.forFluid(() -> {
-            var product = editorOutput();
-            return product instanceof appeng.api.storage.data.IAEFluidStack stack ? stack.getFluidStack() : null;
-        }, ignored -> {});
+        // Only the matching product type has a preview, and neither type is present for an unresolved selection.
+        var item = GenericSyncValue.builder(ItemStack.class)
+            .adapter(ByteBufAdapters.ITEM_STACK)
+            .nullable()
+            .getter(
+                () -> editorOutput() instanceof appeng.api.storage.data.IAEItemStack stack ? stack.getItemStack()
+                    : null)
+            .build();
+        var fluid = GenericSyncValue.builder(FluidStack.class)
+            .adapter(ByteBufAdapters.FLUID_STACK)
+            .nullable()
+            .getter(
+                () -> editorOutput() instanceof appeng.api.storage.data.IAEFluidStack stack ? stack.getFluidStack()
+                    : null)
+            .build();
         manager.syncValue("productItem", item);
         manager.syncValue("productFluid", fluid);
         panel.child(
