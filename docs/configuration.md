@@ -32,6 +32,7 @@
 | `hideGtnlShimmerRecipes` | 隐藏 GTNL 微光嬗变 NEI 页面 | 客户端 |
 | `hideGtnrDisassemblerRecipes` | 隐藏 GTNR 拆解机 NEI 页面 | 客户端 |
 | `hologramImprovements` | 全息投影仪生存建造改善总开关 | 两端 |
+| `planetaryEngineProjector` | 初代目行星发动机分区投影、服务端分 tick 建造和结构定义缓存，使用 `structure_render=1` | 两端；默认开启，GTNL dev-290／StructureLib 1.4.47，重启生效 |
 | `structureLibAeAutoPlace` | 生存建造从 AE 取材料与流体 | 两端；受投影仪总开关控制 |
 | `questAeRetrieval` | BetterQuesting 从无线 AE 检索／交付 | 两端 |
 | `soulVialExpandedCapture` | Ender IO 灵魂瓶扩展捕获 | 两端 |

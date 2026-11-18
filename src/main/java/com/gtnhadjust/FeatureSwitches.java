@@ -46,6 +46,7 @@ final class FeatureSwitches {
     private static final String SOUL_VIAL = "soulVialExpandedCapture";
     private static final String STRUCTURELIB_AE_AUTOPLACE = "structureLibAeAutoPlace";
     private static final String AE2THING_TERMINAL_RECIPE_FIX = "ae2thingTerminalRecipeFix";
+    private static final String PLANETARY_ENGINE_PROJECTOR = "planetaryEngineProjector";
 
     boolean substanceReshapingDevice;
     boolean godforgeFreeUpgrades;
@@ -81,6 +82,7 @@ final class FeatureSwitches {
     final boolean soulVialExpandedCapture;
     final boolean structureLibAeAutoPlace;
     final boolean ae2thingTerminalRecipeFix;
+    final boolean planetaryEngineProjector;
 
     private FeatureSwitches(boolean lootSimulator, boolean proxyFactory, boolean cropBreeder, boolean steamGreenhouse,
         boolean carpenterRecipes, boolean quickTerminal, boolean gtsrDiagnostics, boolean gtsrRecipeSpeedCompatibility,
@@ -91,7 +93,8 @@ final class FeatureSwitches {
         boolean proxyDispatchDiagnostics, boolean ysmuAnimatedArms, boolean hologramImprovements,
         boolean questAeRetrieval, boolean gtnlQuickTerminalCraftFix, boolean grandAssemblyAutoMaintenance,
         boolean threadedJointProxy, boolean hideGtnlShimmerRecipes, boolean hideGtnrDisassemblerRecipes,
-        boolean ae2thingTerminalRecipeFix) {
+        boolean ae2thingTerminalRecipeFix, boolean planetaryEngineProjector) {
+        this.planetaryEngineProjector = planetaryEngineProjector;
         this.ae2thingTerminalRecipeFix = ae2thingTerminalRecipeFix;
         this.hideGtnlShimmerRecipes = hideGtnlShimmerRecipes;
         this.hideGtnrDisassemblerRecipes = hideGtnrDisassemblerRecipes;
@@ -160,6 +163,7 @@ final class FeatureSwitches {
         defaults.setProperty(SOUL_VIAL, "true");
         defaults.setProperty(STRUCTURELIB_AE_AUTOPLACE, "true");
         defaults.setProperty(AE2THING_TERMINAL_RECIPE_FIX, "true");
+        defaults.setProperty(PLANETARY_ENGINE_PROJECTOR, "true");
         try {
             Files.createDirectories(file.getParent());
             if (!Files.exists(file)) {
@@ -205,7 +209,8 @@ final class FeatureSwitches {
                 read(values, THREADED_PROXY),
                 read(values, HIDE_SHIMMER),
                 read(values, HIDE_DISASSEMBLER),
-                read(values, AE2THING_TERMINAL_RECIPE_FIX));
+                read(values, AE2THING_TERMINAL_RECIPE_FIX),
+                read(values, PLANETARY_ENGINE_PROJECTOR));
             result.substanceReshapingDevice = read(values, "substanceReshapingDevice");
             result.godforgeFreeUpgrades = read(values, "godforgeFreeUpgrades");
             result.bookmarkMachineGroups = read(values, "bookmarkMachineGroups");
@@ -265,11 +270,14 @@ final class FeatureSwitches {
                     + ", hideGtnrDisassemblerRecipes="
                     + result.hideGtnrDisassemblerRecipes
                     + ", ae2thingTerminalRecipeFix="
-                    + result.ae2thingTerminalRecipeFix);
+                    + result.ae2thingTerminalRecipeFix
+                    + ", planetaryEngineProjector="
+                    + result.planetaryEngineProjector);
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
             return new FeatureSwitches(
+                false,
                 false,
                 false,
                 false,
@@ -318,6 +326,13 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (planetaryEngineProjector && loadedMods.contains("sciencenotleisure")
+            && loadedMods.contains("structurelib")
+            && loadedMods.contains("gregtech")) {
+            mixins.add("gtnl.PlanetaryEngineStructureMixin");
+            mixins.add("gtnl.PlanetaryEngineProjectorMixin");
+            if (client) mixins.add("gtnl.PlanetaryEnginePreviewMixin");
+        }
         if (gtnrVirtualTools && loadedMods.contains("gtneverreset")
             && loadedMods.contains("gregtech")
             && loadedMods.contains("appliedenergistics2")) {

@@ -212,3 +212,9 @@ gtnhadjust.compression_cell.types=已记录 %s 种资源
 gtnhadjust.compression_cell.behavior=已记录的资源可无限取出，存入时直接销毁
 gtnhadjust.collector.mode.compression=物质压缩
 gtnhadjust.collector.mode.decompression=物质解压
+
+gtnhadjust.planetary_engine.range=行星发动机分区编号应在 1～%s 之间。
+gtnhadjust.planetary_engine.unloaded=行星发动机分区 %s 所在的区块（%s, %s）未加载。
+gtnhadjust.planetary_engine.preview=行星发动机投影 %s/%s，区块（%s, %s），Y=%s～%s。
+gtnhadjust.planetary_engine.queued=行星发动机开始建造分区 %s/%s，区块（%s, %s），Y=%s～%s。
+gtnhadjust.planetary_engine.finished=行星发动机分区 %s 本次放置了 %s 个方块。

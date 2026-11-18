@@ -212,3 +212,9 @@ gtnhadjust.compression_cell.types=Recorded resource types: %s
 gtnhadjust.compression_cell.behavior=Provides unlimited recorded resources and voids matching inserts
 gtnhadjust.collector.mode.compression=Matter Compression
 gtnhadjust.collector.mode.decompression=Matter Decompression
+
+gtnhadjust.planetary_engine.range=Planetary Engine section must be between 1 and %s.
+gtnhadjust.planetary_engine.unloaded=Planetary Engine section %s is in unloaded chunk (%s, %s).
+gtnhadjust.planetary_engine.preview=Planetary Engine preview %s/%s, chunk (%s, %s), Y=%s to %s.
+gtnhadjust.planetary_engine.queued=Planetary Engine building section %s/%s, chunk (%s, %s), Y=%s to %s.
+gtnhadjust.planetary_engine.finished=Planetary Engine section %s placed %s blocks.
