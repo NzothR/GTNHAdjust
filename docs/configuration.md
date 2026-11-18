@@ -50,6 +50,7 @@
 | 参数 | 默认值 | 用途 |
 | --- | --- | --- |
 | `general.debug` | `false` | 机器、定位器与配方诊断日志 |
+| `recipeAdjustments.recombinationFusion` | `true` | GTNL 重聚变配方基础耗时 64 秒、耗能 1 MAX/t；两端同步并重启 |
 | `threadedJointProxy.patternSlots` | `1024` | 内部样板容量，范围 1–16384；两端同步并重启 |
 | `threadedJointProxy.wirelessPower` | `true` | 多线程代理无能源仓时无线供电，无玻璃门槛 |
 | `threadedJointProxy.voidUnlistedOutputs` | `true` | 多线程代理丢弃启动样板未列出的物品和流体；两端同步并重启 |
