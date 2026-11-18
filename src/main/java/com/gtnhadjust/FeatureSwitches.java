@@ -45,6 +45,7 @@ final class FeatureSwitches {
     private static final String NEO_ECO_CRAFTING_FIX = "neoEcoCraftingRefreshFix";
     private static final String SOUL_VIAL = "soulVialExpandedCapture";
     private static final String STRUCTURELIB_AE_AUTOPLACE = "structureLibAeAutoPlace";
+    private static final String AE2THING_TERMINAL_RECIPE_FIX = "ae2thingTerminalRecipeFix";
 
     boolean substanceReshapingDevice;
     boolean godforgeFreeUpgrades;
@@ -79,6 +80,7 @@ final class FeatureSwitches {
     final boolean matrixPatternLoadFix;
     final boolean soulVialExpandedCapture;
     final boolean structureLibAeAutoPlace;
+    final boolean ae2thingTerminalRecipeFix;
 
     private FeatureSwitches(boolean lootSimulator, boolean proxyFactory, boolean cropBreeder, boolean steamGreenhouse,
         boolean carpenterRecipes, boolean quickTerminal, boolean gtsrDiagnostics, boolean gtsrRecipeSpeedCompatibility,
@@ -88,7 +90,9 @@ final class FeatureSwitches {
         boolean matrixPatternLoadFix, boolean soulVialExpandedCapture, boolean structureLibAeAutoPlace,
         boolean proxyDispatchDiagnostics, boolean ysmuAnimatedArms, boolean hologramImprovements,
         boolean questAeRetrieval, boolean gtnlQuickTerminalCraftFix, boolean grandAssemblyAutoMaintenance,
-        boolean threadedJointProxy, boolean hideGtnlShimmerRecipes, boolean hideGtnrDisassemblerRecipes) {
+        boolean threadedJointProxy, boolean hideGtnlShimmerRecipes, boolean hideGtnrDisassemblerRecipes,
+        boolean ae2thingTerminalRecipeFix) {
+        this.ae2thingTerminalRecipeFix = ae2thingTerminalRecipeFix;
         this.hideGtnlShimmerRecipes = hideGtnlShimmerRecipes;
         this.hideGtnrDisassemblerRecipes = hideGtnrDisassemblerRecipes;
         this.threadedJointProxy = threadedJointProxy;
@@ -155,6 +159,7 @@ final class FeatureSwitches {
         defaults.setProperty(MATRIX_PATTERN_LOAD_FIX, "true");
         defaults.setProperty(SOUL_VIAL, "true");
         defaults.setProperty(STRUCTURELIB_AE_AUTOPLACE, "true");
+        defaults.setProperty(AE2THING_TERMINAL_RECIPE_FIX, "true");
         try {
             Files.createDirectories(file.getParent());
             if (!Files.exists(file)) {
@@ -199,7 +204,8 @@ final class FeatureSwitches {
                 read(values, GRAND_MAINTENANCE),
                 read(values, THREADED_PROXY),
                 read(values, HIDE_SHIMMER),
-                read(values, HIDE_DISASSEMBLER));
+                read(values, HIDE_DISASSEMBLER),
+                read(values, AE2THING_TERMINAL_RECIPE_FIX));
             result.substanceReshapingDevice = read(values, "substanceReshapingDevice");
             result.godforgeFreeUpgrades = read(values, "godforgeFreeUpgrades");
             result.bookmarkMachineGroups = read(values, "bookmarkMachineGroups");
@@ -257,11 +263,14 @@ final class FeatureSwitches {
                     + ", hideGtnlShimmerRecipes="
                     + result.hideGtnlShimmerRecipes
                     + ", hideGtnrDisassemblerRecipes="
-                    + result.hideGtnrDisassemblerRecipes);
+                    + result.hideGtnrDisassemblerRecipes
+                    + ", ae2thingTerminalRecipeFix="
+                    + result.ae2thingTerminalRecipeFix);
             return result;
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
             return new FeatureSwitches(
+                false,
                 false,
                 false,
                 false,

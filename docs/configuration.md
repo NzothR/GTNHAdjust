@@ -26,6 +26,7 @@
 | `terminalNeiAlwaysShowPresence` | NEI 右上角常驻库存／缺失状态与覆盖按钮提示，可合成样板标记在左上角 | 客户端；依赖库存修复及 NEE，适配 GTNH 2.9.0、NEI 2.8.171、NEE 1.7.50，更新后重启 |
 | `terminalSmartIngredients` | 收藏、电路和网络材料选择优先级 | 两端；依赖 `quickTerminal` |
 | `gtnlQuickTerminalCraftFix` | GTNL NEI 请求合成的终端槽位修复 | 两端 |
+| `ae2thingTerminalRecipeFix` | AE2Thing 1.3.4 和 GTNR 同装时，跳过未注册的无线二合一终端的三处配方注册 | 两端；默认开启，重启生效 |
 | `matrixPatternLoadFix` | 装配矩阵读档样板失效修复 | 两端 |
 | `bookmarkMachineGroups` | V 排序、Shift+V 按池分组 | 客户端 |
 | `hideGtnlShimmerRecipes` | 隐藏 GTNL 微光嬗变 NEI 页面 | 客户端 |
