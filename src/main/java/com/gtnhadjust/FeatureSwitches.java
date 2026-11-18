@@ -48,6 +48,7 @@ final class FeatureSwitches {
     private static final String AE2THING_TERMINAL_RECIPE_FIX = "ae2thingTerminalRecipeFix";
     private static final String AE2THING_INFINITY_CELL_USAGE_FIX = "ae2thingInfinityCellUsageFix";
     private static final String PLANETARY_ENGINE_PROJECTOR = "planetaryEngineProjector";
+    private static final String ANTIMATTER_WIRELESS = "antimatterWireless";
     private static final String PROJECTOR_BUILD_BUDGET = "projectorBuildBudget";
 
     boolean substanceReshapingDevice;
@@ -87,6 +88,7 @@ final class FeatureSwitches {
     final boolean ae2thingInfinityCellUsageFix;
     final boolean planetaryEngineProjector;
     final boolean projectorBuildBudget;
+    final boolean antimatterWireless;
 
     private FeatureSwitches(boolean lootSimulator, boolean proxyFactory, boolean cropBreeder, boolean steamGreenhouse,
         boolean carpenterRecipes, boolean quickTerminal, boolean gtsrDiagnostics, boolean gtsrRecipeSpeedCompatibility,
@@ -98,9 +100,10 @@ final class FeatureSwitches {
         boolean questAeRetrieval, boolean gtnlQuickTerminalCraftFix, boolean grandAssemblyAutoMaintenance,
         boolean threadedJointProxy, boolean hideGtnlShimmerRecipes, boolean hideGtnrDisassemblerRecipes,
         boolean ae2thingTerminalRecipeFix, boolean planetaryEngineProjector, boolean projectorBuildBudget,
-        boolean ae2thingInfinityCellUsageFix) {
+        boolean ae2thingInfinityCellUsageFix, boolean antimatterWireless) {
         this.ae2thingInfinityCellUsageFix = ae2thingInfinityCellUsageFix;
         this.projectorBuildBudget = projectorBuildBudget;
+        this.antimatterWireless = antimatterWireless;
         this.planetaryEngineProjector = planetaryEngineProjector;
         this.ae2thingTerminalRecipeFix = ae2thingTerminalRecipeFix;
         this.hideGtnlShimmerRecipes = hideGtnlShimmerRecipes;
@@ -172,6 +175,7 @@ final class FeatureSwitches {
         defaults.setProperty(AE2THING_TERMINAL_RECIPE_FIX, "true");
         defaults.setProperty(AE2THING_INFINITY_CELL_USAGE_FIX, "true");
         defaults.setProperty(PLANETARY_ENGINE_PROJECTOR, "true");
+        defaults.setProperty(ANTIMATTER_WIRELESS, "true");
         defaults.setProperty(PROJECTOR_BUILD_BUDGET, "true");
         try {
             Files.createDirectories(file.getParent());
@@ -221,7 +225,8 @@ final class FeatureSwitches {
                 read(values, AE2THING_TERMINAL_RECIPE_FIX),
                 read(values, PLANETARY_ENGINE_PROJECTOR),
                 read(values, PROJECTOR_BUILD_BUDGET),
-                read(values, AE2THING_INFINITY_CELL_USAGE_FIX));
+                read(values, AE2THING_INFINITY_CELL_USAGE_FIX),
+                read(values, ANTIMATTER_WIRELESS));
             result.substanceReshapingDevice = read(values, "substanceReshapingDevice");
             result.godforgeFreeUpgrades = read(values, "godforgeFreeUpgrades");
             result.bookmarkMachineGroups = read(values, "bookmarkMachineGroups");
@@ -324,6 +329,7 @@ final class FeatureSwitches {
                 false,
                 false,
                 false,
+                false,
                 false);
         }
     }
@@ -343,6 +349,9 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (antimatterWireless && loadedMods.contains("GoodGenerator")) {
+            mixins.add("goodgenerator.AntimatterWirelessMixin");
+        }
         if (projectorBuildBudget && loadedMods.contains("structurelib")) {
             mixins.add("structurelib.ProjectorBuildBudgetMixin");
             mixins.add("structurelib.ProjectorBuildBudgetWalkerMixin");
