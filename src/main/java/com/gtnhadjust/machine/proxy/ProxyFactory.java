@@ -102,7 +102,6 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
     private AENetworkProxy gridProxy;
     private RecipeMap<?> processingRecipeMap;
     private final ProxyLocatorInventory locatorInventory = new ProxyLocatorInventory(this);
-    private List<RecipeMap<?>> unlockedMaps;
     private List<String> clientRecipeNames;
     private int operationMode = INPUT;
     private final ProxyLocatorPool locatorPool = new ProxyLocatorPool();
@@ -334,6 +333,10 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
 
     @Override
     public void onPostTick(IGregTechTileEntity tile, long tick) {
+        if (tile.isServerSide() && tick % 5 == 0 && locatorPool.refreshIndirect(this)) {
+            patternIssues.clear();
+            scheduleRecipeCheckImmediate();
+        }
         super.onPostTick(tile, tick);
         if (tile.isServerSide() && GTNHAdjust.debug && tick % 200 == 0) {
             GTNHAdjust.LOG.info(
@@ -374,6 +377,11 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
         return locatorInventory;
     }
 
+    @Override
+    public ProxyLocatorPool getLocatorPool() {
+        return locatorPool;
+    }
+
     /** Rebuild only when actual locator slots change; running tasks keep their committed recipe and outputs. */
     public void onLocatorInventoryChanged() {
         IGregTechTileEntity tile = getBaseMetaTileEntity();
@@ -385,7 +393,6 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
             if (stack != null) locators.add(stack);
         }
         locatorPool.replace(locators);
-        unlockedMaps = locatorPool.recipeMaps();
         scheduleRecipeCheckImmediate();
         markDirty();
     }
@@ -456,7 +463,6 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
         voidingMode = gregtech.api.enums.VoidingMode.VOID_NONE;
         onLocatorInventoryChanged();
         wirelessMaxOverclocks = Math.max(0, tag.getInteger("gtnhadjustProxyWirelessOC"));
-        unlockedMaps = null;
         clientRecipeNames = null;
     }
 
@@ -502,8 +508,7 @@ public final class ProxyFactory extends ProxyThreadedMachine<ProxyFactory>
             }
             return maps;
         }
-        if (unlockedMaps == null) unlockedMaps = locatorPool.recipeMaps();
-        return unlockedMaps;
+        return locatorPool.recipeMaps();
     }
 
     @Override

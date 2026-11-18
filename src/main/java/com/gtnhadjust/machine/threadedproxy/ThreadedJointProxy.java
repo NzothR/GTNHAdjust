@@ -123,6 +123,11 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     }
 
     @Override
+    public ProxyLocatorPool getLocatorPool() {
+        return locatorPool;
+    }
+
+    @Override
     public boolean canEditLocators() {
         return operationMode == 1;
     }
@@ -346,7 +351,10 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     /** Pattern configuration is available even before constructing the multiblock. */
     @Override
     public void onPostTick(IGregTechTileEntity tile, long tick) {
-        if (tile.isServerSide() && tick % 5 == 0) refreshDefinitions();
+        if (tile.isServerSide() && tick % 5 == 0) {
+            definitionsDirty |= locatorPool.refreshIndirect(this);
+            refreshDefinitions();
+        }
         super.onPostTick(tile, tick);
     }
 

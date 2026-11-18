@@ -54,6 +54,7 @@
 | `proxyFactory.wirelessPower` | `true` | 代理工厂 UEV+ 玻璃且无能源仓时无线供电 |
 | `proxyFactory.locatorSlots` | `128` | 两种代理共用的定位器容量，范围 1–32730 |
 | `proxyFactory.locatorNavigation` | `true` | 定位器空气右键高亮与潜行传送 |
+| `proxyFactory.indirectLocators` | `true` | 两种代理可通过一台中转代理读取直连多方块定位器；两端同步并重启 |
 | `proxyFactory.extremeCrafting` | `true` | TST 梦魇工作台转换加工样板桥接 |
 | `collector.singularityResourceRecipes` | `true` | 维度／等级标记与资源配方 |
 | `collector.directAeOutput` | `true` | 主机直连 AE 优先输出，节点不可用时回退输出舱室；重启生效 |

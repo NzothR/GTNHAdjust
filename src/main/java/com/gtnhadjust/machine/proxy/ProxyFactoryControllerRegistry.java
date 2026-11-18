@@ -33,7 +33,8 @@ public final class ProxyFactoryControllerRegistry {
     public static List<RecipeMap<?>> unrestrictedMaps(ItemStack stack) {
         if (stack == null || !(stack.getItem() instanceof ItemMachines)) return Collections.emptyList();
         IMetaTileEntity target = ItemMachines.getMetaTileEntity(stack);
-        if (!(target instanceof MTEMultiBlockBase)) return Collections.emptyList();
+        if (!(target instanceof MTEMultiBlockBase) || target instanceof ProxyLocatorHost)
+            return Collections.emptyList();
         Collection<RecipeMap<?>> exposed = ((RecipeMapWorkable) target).getAvailableRecipeMaps();
         List<RecipeMap<?>> result = new ArrayList<>();
         for (RecipeMap<?> map : exposed) {
@@ -41,6 +42,11 @@ public final class ProxyFactoryControllerRegistry {
                 result.add(map);
         }
         return result;
+    }
+
+    static boolean isProxyController(ItemStack stack) {
+        return stack.getItem() instanceof ItemMachines
+            && ItemMachines.getMetaTileEntity(stack) instanceof ProxyLocatorHost;
     }
 
     /** Eye of Harmony requires its own simulation and is never executable by a proxy. */

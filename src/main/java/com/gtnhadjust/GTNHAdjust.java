@@ -47,6 +47,7 @@ public class GTNHAdjust {
     public static boolean proxyFactoryWirelessPower;
     public static boolean threadedProxyWirelessPower;
     public static boolean threadedProxyVoidUnlistedOutputs = true;
+    public static boolean proxyIndirectLocators = true;
     public static boolean proxyExtremeCrafting;
     public static boolean locatorNavigation;
     public static int proxyFactoryLocatorSlots = 128;
@@ -194,6 +195,11 @@ public class GTNHAdjust {
             "proxyFactory",
             true,
             "Allow recorded locators to highlight on air right-click and safely teleport on sneaking air right-click. Restart required.");
+        proxyIndirectLocators = config.getBoolean(
+            "indirectLocators",
+            "proxyFactory",
+            true,
+            "Allow both proxy controllers to read direct locators from one other proxy. Restart required; client and server must match.");
         if (machineLocatorsEnabled && locatorNavigation) com.gtnhadjust.machine.proxy.MachineLocatorNavigation.init();
         // Vanilla slot IDs are signed shorts; reserve 36 player slots and the controller slot.
         proxyFactoryLocatorSlots = config.getInt(

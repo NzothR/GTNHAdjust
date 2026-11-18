@@ -7,6 +7,8 @@ public interface ProxyLocatorHost {
 
     ProxyLocatorInventory getLocatorInventory();
 
+    ProxyLocatorPool getLocatorPool();
+
     void onLocatorInventoryChanged();
 
     int getOperationMode();
