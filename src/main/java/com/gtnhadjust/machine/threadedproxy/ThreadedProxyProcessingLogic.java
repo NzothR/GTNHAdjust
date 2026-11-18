@@ -10,6 +10,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.gtnhadjust.machine.threadedproxy.ThreadedJointProxy.Definition;
 import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadOutputs;
 import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadProcessingLogic;
 
@@ -23,20 +24,21 @@ import gregtech.api.util.ParallelHelper;
 /** Transactional ordinary-input processing for one previously resolved pattern. */
 final class ThreadedProxyProcessingLogic extends RecipeThreadProcessingLogic {
 
-    private GTRecipe selected;
+    private Definition selected;
     private int overclockDuration;
     private RecipeThreadOutputs pendingOutputs;
     private int concurrentParallel;
 
     /** Applies this slot's bounded OC and parallel; native batching runs after the launch parameters are fixed. */
-    void configure(GTRecipe recipe, long budget, long voltage, int parallel, ThreadedProxyAllocation.Plan plan) {
+    void configure(Definition definition, long budget, long voltage, int parallel, ThreadedProxyAllocation.Plan plan) {
         clear();
-        selected = recipe;
+        selected = definition;
         pendingOutputs = null;
         concurrentParallel = 0;
         overclockDuration = plan.duration;
         long unitPower = plan.eut;
-        double multiplier = recipe.mEUt == 0 ? 1 : (double) unitPower / recipe.mEUt;
+        int recipePower = definition.execution.mEUt;
+        double multiplier = recipePower == 0 ? 1 : (double) unitPower / recipePower;
         setEuModifier(multiplier);
         setAvailableVoltage(voltage);
         setAvailableAmperage(1);
@@ -48,7 +50,7 @@ final class ThreadedProxyProcessingLogic extends RecipeThreadProcessingLogic {
     @Override
     @Nonnull
     protected Stream<GTRecipe> findRecipeMatches(RecipeMap<?> map) {
-        return Stream.of(selected);
+        return Stream.of(selected.execution);
     }
 
     @Override
@@ -83,7 +85,7 @@ final class ThreadedProxyProcessingLogic extends RecipeThreadProcessingLogic {
     protected CheckRecipeResult applyRecipe(@Nonnull GTRecipe recipe, @Nonnull ParallelHelper helper,
         @Nonnull OverclockCalculator calculator, @Nonnull CheckRecipeResult result) {
         CheckRecipeResult applied = super.applyRecipe(recipe, helper, calculator, result);
-        if (applied.wasSuccessful()) pendingOutputs = outputs(recipe, helper.getCurrentParallel());
+        if (applied.wasSuccessful()) pendingOutputs = outputs(selected, helper.getCurrentParallel());
         return applied;
     }
 
@@ -106,11 +108,12 @@ final class ThreadedProxyProcessingLogic extends RecipeThreadProcessingLogic {
         concurrentParallel = 0;
     }
 
-    /** Stores large yields compactly, avoiding an array entry for each int-sized slice of a 2.1G-parallel yield. */
-    private static RecipeThreadOutputs outputs(GTRecipe recipe, int parallels) {
+    /** Snapshot the retained yields when the thread starts so later pattern changes cannot affect its delivery. */
+    private static RecipeThreadOutputs outputs(Definition definition, int parallels) {
+        GTRecipe recipe = definition.execution;
         NBTTagCompound saved = new NBTTagCompound();
         NBTTagList items = new NBTTagList(), fluids = new NBTTagList();
-        for (int i = 0; i < recipe.mOutputs.length; i++) {
+        for (int i = definition.itemOutputs.nextSetBit(0); i >= 0; i = definition.itemOutputs.nextSetBit(i + 1)) {
             ItemStack product = recipe.mOutputs[i];
             if (product == null || product.stackSize <= 0) continue;
             long rolls = outputRolls(recipe.getOutputChance(i), parallels);
@@ -124,7 +127,7 @@ final class ThreadedProxyProcessingLogic extends RecipeThreadProcessingLogic {
                     .toString());
             items.appendTag(entry);
         }
-        for (int i = 0; i < recipe.mFluidOutputs.length; i++) {
+        for (int i = definition.fluidOutputs.nextSetBit(0); i >= 0; i = definition.fluidOutputs.nextSetBit(i + 1)) {
             FluidStack product = recipe.mFluidOutputs[i];
             if (product == null || product.amount <= 0) continue;
             long rolls = outputRolls(recipe.getFluidOutputChance(i), parallels);

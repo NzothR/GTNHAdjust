@@ -3,6 +3,7 @@ package com.gtnhadjust.machine.threadedproxy;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -33,6 +34,9 @@ import com.xyp.gtneverreset.common.me.CircuitPatternCodec;
 import com.xyp.gtneverreset.common.me.PatternRecipeMap;
 
 import appeng.api.networking.crafting.ICraftingPatternDetails;
+import appeng.api.storage.data.IAEFluidStack;
+import appeng.api.storage.data.IAEItemStack;
+import appeng.api.storage.data.IAEStack;
 import gregtech.api.enums.GTValues;
 import gregtech.api.enums.Textures;
 import gregtech.api.enums.VoidingMode;
@@ -478,7 +482,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         if (budget < definition.execution.mEUt) return 0;
         ThreadedProxyProcessingLogic logic = (ThreadedProxyProcessingLogic) processingLogic;
         setupProcessingLogic(logic);
-        logic.configure(definition.execution, budget, getMaxInputVoltage(), parallel, plan);
+        logic.configure(definition, budget, getMaxInputVoltage(), parallel, plan);
         logic.setRecipeMap(definition.map)
             .setMachine(this)
             .setRecipeLocking(this, false)
@@ -636,7 +640,13 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                         .setBoolean("resolved", true);
                     markDirty();
                 }
-                Definition definition = new Definition(slot.key, slot.label, map, recipe, hasWaterReservoir);
+                Definition definition = new Definition(
+                    slot.key,
+                    slot.label,
+                    map,
+                    recipe,
+                    hasWaterReservoir,
+                    details.getCondensedAEOutputs());
                 resolved.add(definition);
                 definitionIndex.put(slot.key, definition);
                 if (!allowed.contains(name))
@@ -646,13 +656,15 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                     markDirty();
                 }
                 if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
-                    "[threaded-proxy] matched {}: map={}, exact={}, recipeItems={}, recipeFluids={}, virtualTools={}",
+                    "[threaded-proxy] matched {}: map={}, exact={}, recipeItems={}, recipeFluids={}, virtualTools={}, retainedItemOutputs={}, retainedFluidOutputs={}",
                     slot.label,
                     name,
                     recipe.exact,
                     Arrays.toString(recipe.recipe.mInputs),
                     Arrays.toString(recipe.recipe.mFluidInputs),
-                    Arrays.toString(recipe.virtualTools));
+                    Arrays.toString(recipe.virtualTools),
+                    definition.itemOutputs,
+                    definition.fluidOutputs);
             } else {
                 failures.put(
                     slot.key,
@@ -1036,13 +1048,34 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         final RecipeMap<?> map;
         final ProxyPatternRecipe recipe;
         final GTRecipe execution;
+        final BitSet itemOutputs = new BitSet();
+        final BitSet fluidOutputs = new BitSet();
 
-        Definition(String key, String label, RecipeMap<?> map, ProxyPatternRecipe recipe, boolean reservoir) {
+        /** Keep original recipe indices so each retained output uses its own chance and quantity. */
+        Definition(String key, String label, RecipeMap<?> map, ProxyPatternRecipe recipe, boolean reservoir,
+            IAEStack<?>[] encodedOutputs) {
             this.key = key;
             this.label = label;
             this.map = map;
             this.recipe = recipe;
             execution = recipe.executionRecipe(reservoir);
+            if (!GTNHAdjust.threadedProxyVoidUnlistedOutputs) {
+                itemOutputs.set(0, execution.mOutputs.length);
+                fluidOutputs.set(0, execution.mFluidOutputs.length);
+                return;
+            }
+            for (IAEStack<?> encoded : encodedOutputs) {
+                if (encoded == null || encoded.getStackSize() <= 0) continue;
+                if (encoded instanceof IAEItemStack item) {
+                    ItemStack stack = item.getItemStack();
+                    for (int i = 0; i < execution.mOutputs.length; i++)
+                        if (GTUtility.areStacksEqual(execution.mOutputs[i], stack)) itemOutputs.set(i);
+                } else if (encoded instanceof IAEFluidStack fluid) {
+                    FluidStack stack = fluid.getFluidStack();
+                    for (int i = 0; i < execution.mFluidOutputs.length; i++)
+                        if (stack.isFluidEqual(execution.mFluidOutputs[i])) fluidOutputs.set(i);
+                }
+            }
         }
     }
 
