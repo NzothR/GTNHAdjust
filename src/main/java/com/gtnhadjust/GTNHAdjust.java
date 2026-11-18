@@ -26,6 +26,7 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 
 @Mod(
@@ -67,7 +68,8 @@ public class GTNHAdjust {
     public static boolean machineLocatorsEnabled;
     public static boolean hologramAeMaterials;
     public static int steamGreenhouseMaxSeeds = 64;
-    public static int antimatterCycleTicks = 20;
+    public static volatile int antimatterCycleTicks = 20;
+    private Configuration config;
     private int superFragmentMteId = 31990;
     private int lootSimulatorMteId = 31992;
     private int proxyFactoryMteId = 31993;
@@ -90,7 +92,7 @@ public class GTNHAdjust {
         if (FeatureConfig.get().questAeRetrieval && Loader.isModLoaded("betterquesting")
             && Loader.isModLoaded("appliedenergistics2")) com.gtnhadjust.quest.QuestAeNetwork.init();
         if (FeatureConfig.get().quickTerminal || patternDeduplication) TerminalNotifications.init();
-        Configuration config = new Configuration(event.getSuggestedConfigurationFile());
+        config = new Configuration(event.getSuggestedConfigurationFile());
         debug = config.getBoolean(
             "debug",
             Configuration.CATEGORY_GENERAL,
@@ -274,6 +276,13 @@ public class GTNHAdjust {
             ProxyFactoryRegistration.registerItems(
                 event.getSide()
                     .isClient());
+    }
+
+    @Mod.EventHandler
+    public void serverStarting(FMLServerStartingEvent event) {
+        if (FeatureConfig.get().antimatterCycleInterval && Loader.isModLoaded("GoodGenerator")) {
+            event.registerServerCommand(new SlamCycleCommand(config));
+        }
     }
 
     @Mod.EventHandler

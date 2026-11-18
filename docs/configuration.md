@@ -52,6 +52,8 @@
 
 `antimatterGenerator.cycleTicks` 设置湮灭周期间隔，默认 20 刻，最小 1 刻，100 刻为原版间隔。启用 `antimatterCycleInterval` 时生效，两端同步配置并重启。
 
+启用该功能时，管理员也可用 `/gtnhadjust slam [ticks]` 查询或即时设置服务端的 SLAM 周期。省略刻数只查询，指定刻数会写入服务端配置，立即生效。
+
 | 参数 | 默认值 | 用途 |
 | --- | --- | --- |
 | `general.debug` | `false` | 机器、定位器与配方诊断日志 |
