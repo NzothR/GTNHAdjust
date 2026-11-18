@@ -73,11 +73,6 @@ public class GTNHAdjust {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        if (FeatureConfig.get().planetaryEngineProjector && Loader.isModLoaded("sciencenotleisure")
-            && Loader.isModLoaded("structurelib")
-            && Loader.isModLoaded("gregtech")) {
-            com.gtnhadjust.structurelib.PlanetaryEngineProjector.register();
-        }
         if (FeatureConfig.get().soulVialExpandedCapture && Loader.isModLoaded("EnderIO"))
             net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new SoulVialMultipartHandler());
         patternDeduplication = FeatureConfig.get().patternDeduplication;

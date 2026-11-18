@@ -4,9 +4,11 @@
 
 ## 初代目行星发动机投影
 
-手持多方块机器投影仪，执行 `/sl_channel set structure_render 1`。对发动机主机右键预览，潜行右键开始建造。每次预览选定区块内最多 4 层，切换时替换上一次发动机预览。默认选主机所在分区。用 `/sl_channel set structure_section <编号>` 选其他分区，用 `/sl_channel unset structure_section` 回到主机分区。编号从结构最小坐标起按 X 区块、Z 区块、Y 高度带递增。聊天会显示当前编号、总数、区块及高度。
+手持多方块机器投影仪，执行 `/sl_channel set structure_render 1`，再右键主机。默认的 `structure_preview=1` 在当前区块内预览最多 4 层的全部结构方块，省略粒子和逐块错误检查。用 `/sl_channel set structure_section <编号>` 选其他分区，用 `/sl_channel unset structure_section` 回到主机分区。编号按 X 区块、Z 区块、Y 高度带递增。
 
-服务器只在已加载区块放置，每 tick 最多 32 个方块。生存建造达到单次预算或缺料时结束，继续潜行右键可接着铺。切换投影仪、换维度或下线会结束当前建造。适配 GTNL dev-290 和 StructureLib 1.4.47，`planetaryEngineProjector` 默认开启，两端同步并重启。
+用 `/sl_channel set structure_preview 2` 改看整机外框。它只绘制长方体的边线，聊天显示世界 X、Z 和 Y 的完整尺寸，方便量占地。切换任一模式时替换上一次发动机预览。
+
+潜行右键按 GTNL 原生流程建造，预览模式和分区编号只控制客户端显示。生存建造使用 StructureLib 的投影仪预算和取料方式，每次成功放置后延迟 50 tick 做完整结构检查。连续建造时重新计时。适配 GTNL dev-290 和 StructureLib 1.4.47，`planetaryEngineProjector` 默认开启，两端同步并重启。
 
 ## 两种代理共用的定位机制
 

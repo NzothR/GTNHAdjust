@@ -4,8 +4,10 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -16,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.gtnewhorizon.structurelib.ClientProxy;
+import com.gtnhadjust.structurelib.PlanetaryEngineOutline;
 import com.gtnhadjust.structurelib.PlanetaryEngineProjector.Preview;
 
 @Mixin(value = ClientProxy.class, remap = false)
@@ -33,7 +36,7 @@ public abstract class PlanetaryEnginePreviewMixin implements Preview {
 
     /** Use StructureLib's cleanup so the old preview is removed from both rendering and coordinate lookup. */
     @Override
-    public void gtnhadjust$replaceEnginePreview() {
+    public void gtnhadjust$replaceEnginePreview(World world, AxisAlignedBB outline) {
         Object previous = gtnhadjust$enginePreview == null ? null : gtnhadjust$enginePreview.get();
         if (previous != null && allGroups.remove(previous)) {
             try {
@@ -48,7 +51,21 @@ public abstract class PlanetaryEnginePreviewMixin implements Preview {
             }
         }
         gtnhadjust$enginePreview = null;
-        gtnhadjust$captureEnginePreview = true;
+        PlanetaryEngineOutline.show(world, outline);
+        gtnhadjust$captureEnginePreview = outline == null;
+    }
+
+    /** The hint cube has already been registered here; skip creating its decorative client particle. */
+    @Inject(
+        method = "hintParticleTinted(Lnet/minecraft/world/World;III[Lnet/minecraft/util/IIcon;[S)V",
+        at = @At(
+            value = "FIELD",
+            target = "Lcom/gtnewhorizon/structurelib/ClientProxy;allHintsDirty:Z",
+            opcode = Opcodes.PUTSTATIC,
+            shift = At.Shift.AFTER),
+        cancellable = true)
+    private void gtnhadjust$skipEnginePreviewParticles(CallbackInfo ci) {
+        if (gtnhadjust$captureEnginePreview) ci.cancel();
     }
 
     @Redirect(method = "endHinting", at = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z"))

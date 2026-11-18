@@ -216,5 +216,4 @@ gtnhadjust.collector.mode.decompression=Matter Decompression
 gtnhadjust.planetary_engine.range=Planetary Engine section must be between 1 and %s.
 gtnhadjust.planetary_engine.unloaded=Planetary Engine section %s is in unloaded chunk (%s, %s).
 gtnhadjust.planetary_engine.preview=Planetary Engine preview %s/%s, chunk (%s, %s), Y=%s to %s.
-gtnhadjust.planetary_engine.queued=Planetary Engine building section %s/%s, chunk (%s, %s), Y=%s to %s.
-gtnhadjust.planetary_engine.finished=Planetary Engine section %s placed %s blocks.
+gtnhadjust.planetary_engine.outline=Planetary Engine outline, X by Z footprint %s by %s, height %s blocks.

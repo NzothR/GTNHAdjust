@@ -5,13 +5,13 @@ import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 
 import com.gtnewhorizon.structurelib.alignment.constructable.ChannelDataAccessor;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
-import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.science.gtnl.common.machine.multiblock.GenerationEarthEngine;
 
@@ -22,6 +22,7 @@ public final class PlanetaryEngineStructure {
 
     public static final String RENDER_CHANNEL = "structure_render";
     public static final String SECTION_CHANNEL = "structure_section";
+    public static final String PREVIEW_CHANNEL = "structure_preview";
     private static final String PIECE = "main";
     private static final int OFFSET_A = 321, OFFSET_B = 321, OFFSET_C = 17;
     private static final int SECTION_SHIFT = 2;
@@ -44,8 +45,8 @@ public final class PlanetaryEngineStructure {
         PlanetaryEngineStructure gtnhadjust$getProjectorStructure();
     }
 
-    /** Section numbering is X first, then Z, then four-block Y bands in world coordinates. */
-    Section select(GenerationEarthEngine engine, ItemStack trigger, EntityPlayer player) {
+    /** Use only the shape dimensions and orientation to compute the world-space envelope. */
+    AxisAlignedBB bounds(GenerationEarthEngine engine) {
         IGregTechTileEntity tile = engine.getBaseMetaTileEntity();
         ExtendedFacing facing = engine.getExtendedFacing();
         int x = tile.getXCoord(), y = tile.getYCoord(), z = tile.getZCoord();
@@ -55,15 +56,28 @@ public final class PlanetaryEngineStructure {
             new int[] { shape[0][0].length() - 1 - OFFSET_A, shape.length - 1 - OFFSET_B,
                 shape[0].length - 1 - OFFSET_C },
             last);
-        int minX = (x + Math.min(first[0], last[0])) >> 4;
-        int maxX = (x + Math.max(first[0], last[0])) >> 4;
-        int minZ = (z + Math.min(first[2], last[2])) >> 4;
-        int maxZ = (z + Math.max(first[2], last[2])) >> 4;
-        int minY = Math.max(0, y + Math.min(first[1], last[1]));
+        return AxisAlignedBB.getBoundingBox(
+            x + Math.min(first[0], last[0]),
+            y + Math.min(first[1], last[1]),
+            z + Math.min(first[2], last[2]),
+            x + Math.max(first[0], last[0]) + 1,
+            y + Math.max(first[1], last[1]) + 1,
+            z + Math.max(first[2], last[2]) + 1);
+    }
+
+    /** Section numbering is X first, then Z, then four-block Y bands in world coordinates. */
+    Section select(GenerationEarthEngine engine, ItemStack trigger, EntityPlayer player) {
+        IGregTechTileEntity tile = engine.getBaseMetaTileEntity();
+        int x = tile.getXCoord(), y = tile.getYCoord(), z = tile.getZCoord();
+        ExtendedFacing facing = engine.getExtendedFacing();
+        AxisAlignedBB bounds = bounds(engine);
+        int minX = (int) bounds.minX >> 4, maxX = ((int) bounds.maxX - 1) >> 4;
+        int minZ = (int) bounds.minZ >> 4, maxZ = ((int) bounds.maxZ - 1) >> 4;
+        int minY = Math.max(0, (int) bounds.minY);
         int maxY = Math.min(
             tile.getWorld()
-                .getHeight() - 1,
-            y + Math.max(first[1], last[1]));
+                .getHeight(),
+            (int) bounds.maxY) - 1;
         int lowBand = minY >> SECTION_SHIFT, highBand = maxY >> SECTION_SHIFT;
         int width = maxX - minX + 1, depth = maxZ - minZ + 1;
         int plane = width * depth;
@@ -101,13 +115,13 @@ public final class PlanetaryEngineStructure {
         return lastSection;
     }
 
-    /** A world chunk sliced vertically; native walkers still receive the full piece's containment semantics. */
-    final class Section implements IStructureDefinition<GenerationEarthEngine> {
+    /** Compile only one vertical slice of a world chunk for native block hints. */
+    final class Section {
 
         final ExtendedFacing facing;
         final int x, y, z, chunkX, chunkZ, bottom, top, number, total;
-        private final int a, b, c, sizeA, sizeB, sizeC;
-        private final IStructureElement<GenerationEarthEngine>[] elements;
+        private final int a, b, c;
+        private final IStructureDefinition<GenerationEarthEngine> definition;
 
         Section(ExtendedFacing facing, int x, int y, int z, int chunkX, int chunkZ, int bottom, int top, int number,
             int total) {
@@ -130,9 +144,7 @@ public final class PlanetaryEngineStructure {
             int endA = Math.min(shape[0][0].length(), 1 + OFFSET_A + Math.max(first[0], last[0]));
             int endB = Math.min(shape.length, 1 + OFFSET_B + Math.max(first[1], last[1]));
             int endC = Math.min(shape[0].length, 1 + OFFSET_C + Math.max(first[2], last[2]));
-            sizeA = endA - a;
-            sizeB = endB - b;
-            sizeC = endC - c;
+            int sizeB = endB - b, sizeC = endC - c;
             String[][] clipped = new String[sizeC][sizeB];
             for (int slice = 0; slice < sizeC; slice++) {
                 for (int row = 0; row < sizeB; row++) {
@@ -142,75 +154,11 @@ public final class PlanetaryEngineStructure {
             StructureDefinition.Builder<GenerationEarthEngine> builder = StructureDefinition.builder();
             builder.addShape(PIECE, clipped);
             palette.forEach((symbol, element) -> builder.addElement(symbol.charValue(), element));
-            elements = builder.build()
-                .getStructureFor(PIECE);
-        }
-
-        @Override
-        public IStructureElement<GenerationEarthEngine>[] getStructureFor(String name) {
-            return elements;
-        }
-
-        @Override
-        public boolean isContainedInStructure(String name, int offsetA, int offsetB, int offsetC) {
-            int fullA = a + offsetA, fullB = b + offsetB, fullC = c + offsetC;
-            return fullA >= 0 && fullA < shape[0][0].length()
-                && fullB >= 0
-                && fullB < shape.length
-                && fullC >= 0
-                && fullC < shape[0].length
-                && shape[fullB][fullC].charAt(fullA) != ' ';
+            definition = builder.build();
         }
 
         void project(GenerationEarthEngine engine, ItemStack trigger, World world) {
-            hints(engine, trigger, PIECE, world, facing, x, y, z, OFFSET_A - a, OFFSET_B - b, OFFSET_C - c);
-        }
-
-        int build(GenerationEarthEngine engine, ItemStack trigger, World world, int budget,
-            ISurvivalBuildEnvironment environment) {
-            return survivalBuild(
-                engine,
-                trigger,
-                PIECE,
-                world,
-                facing,
-                x,
-                y,
-                z,
-                OFFSET_A - a,
-                OFFSET_B - b,
-                OFFSET_C - c,
-                budget,
-                environment,
-                false);
-        }
-
-        int volume() {
-            return sizeA * sizeB * sizeC;
-        }
-
-        /** Creative placement visits a bounded number of cells and leaves occupied blocks for the player. */
-        int buildCreative(GenerationEarthEngine engine, ItemStack trigger, World world, EntityPlayer player, int start,
-            int end) {
-            int[] abc = new int[3], xyz = new int[3];
-            int built = 0;
-            for (int index = start; index < end; index++) {
-                int localA = a + index % sizeA;
-                int localB = b + index / sizeA % sizeB;
-                int localC = c + index / (sizeA * sizeB);
-                IStructureElement<GenerationEarthEngine> element = palette.get(shape[localB][localC].charAt(localA));
-                if (element == null) continue;
-                abc[0] = localA - OFFSET_A;
-                abc[1] = localB - OFFSET_B;
-                abc[2] = localC - OFFSET_C;
-                facing.getWorldOffset(abc, xyz);
-                int blockX = x + xyz[0], blockY = y + xyz[1], blockZ = z + xyz[2];
-                if (!world.getBlock(blockX, blockY, blockZ)
-                    .isReplaceable(world, blockX, blockY, blockZ) || !world.canMineBlock(player, blockX, blockY, blockZ)
-                    || !player.canPlayerEdit(blockX, blockY, blockZ, 1, trigger)) continue;
-                if (element.placeBlock(engine, world, blockX, blockY, blockZ, trigger)) built++;
-            }
-            return built;
+            definition.hints(engine, trigger, PIECE, world, facing, x, y, z, OFFSET_A - a, OFFSET_B - b, OFFSET_C - c);
         }
     }
 }

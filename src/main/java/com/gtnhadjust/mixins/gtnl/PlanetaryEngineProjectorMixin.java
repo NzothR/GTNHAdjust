@@ -19,6 +19,6 @@ public abstract class PlanetaryEngineProjectorMixin {
     @Inject(method = "handle0", at = @At("HEAD"), cancellable = true)
     private static void gtnhadjust$handleEngineSection(ItemStack stack, EntityPlayer player, World world, int x, int y,
         int z, int side, CallbackInfoReturnable<Boolean> cir) {
-        if (PlanetaryEngineProjector.handle(stack, player, world, x, y, z)) cir.setReturnValue(!world.isRemote);
+        if (PlanetaryEngineProjector.handle(stack, player, world, x, y, z)) cir.setReturnValue(false);
     }
 }

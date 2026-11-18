@@ -1,17 +1,23 @@
 package com.gtnhadjust.mixins.gtnl;
 
+import net.minecraft.item.ItemStack;
+
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
+import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.gtnewhorizon.structurelib.structure.StructureUtility;
+import com.gtnhadjust.structurelib.PlanetaryEngineProjector;
 import com.gtnhadjust.structurelib.PlanetaryEngineStructure;
 import com.science.gtnl.common.machine.multiblock.GenerationEarthEngine;
 
@@ -61,8 +67,32 @@ public abstract class PlanetaryEngineStructureMixin implements PlanetaryEngineSt
     private IStructureDefinition<GenerationEarthEngine> gtnhadjust$registerProjectorChannels(
         StructureDefinition.Builder<GenerationEarthEngine> builder) {
         return builder.addChannel(PlanetaryEngineStructure.RENDER_CHANNEL, 1, 1)
+            .addChannel(PlanetaryEngineStructure.PREVIEW_CHANNEL, 1, 2)
             .addChannel(PlanetaryEngineStructure.SECTION_CHANNEL, 1, Integer.MAX_VALUE)
             .build();
+    }
+
+    @Redirect(method = "survivalConstruct", at = @At(value = "INVOKE", target = "Ljava/lang/Math;min(II)I"))
+    private int gtnhadjust$useProjectorPlacementBudget(int cap, int scaled, ItemStack trigger, int budget,
+        ISurvivalBuildEnvironment environment) {
+        return PlanetaryEngineProjector.isEnabled(trigger) ? budget : Math.min(cap, scaled);
+    }
+
+    /** Let native placement finish without starting a synchronous full structure check. */
+    @ModifyArgs(
+        method = "survivalConstruct",
+        at = @At(
+            value = "INVOKE",
+            target = "Lcom/science/gtnl/common/machine/multiblock/GenerationEarthEngine;survivalBuildPiece(Ljava/lang/String;Lnet/minecraft/item/ItemStack;IIIILcom/gtnewhorizon/structurelib/structure/ISurvivalBuildEnvironment;ZZ)I"))
+    private void gtnhadjust$deferFullStructureCheck(Args args) {
+        if (PlanetaryEngineProjector.isEnabled(args.get(1))) args.set(8, false);
+    }
+
+    @Inject(method = "survivalConstruct", at = @At("RETURN"))
+    private void gtnhadjust$scheduleStructureCheck(ItemStack trigger, int budget, ISurvivalBuildEnvironment environment,
+        CallbackInfoReturnable<Integer> cir) {
+        if (cir.getReturnValueI() > 0 && PlanetaryEngineProjector.isEnabled(trigger))
+            ((GenerationEarthEngine) (Object) this).setStructureUpdateTime(50);
     }
 
     @Override

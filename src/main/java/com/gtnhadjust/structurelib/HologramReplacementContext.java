@@ -26,6 +26,9 @@ public final class HologramReplacementContext {
 
     public static int construct(ISurvivalConstructable target, ItemStack trigger, int budget,
         ISurvivalBuildEnvironment env, java.util.function.IntSupplier original) {
+        // The engine schedules its own delayed structure check after native placement.
+        if (target instanceof PlanetaryEngineStructure.Provider && PlanetaryEngineProjector.isEnabled(trigger))
+            return original.getAsInt();
         if (CURRENT.get() != null || !(target instanceof MTEMultiBlockBase machine)
             || !(env.getActor() instanceof EntityPlayerMP player)
             || !ChannelDataAccessor.hasSubChannel(trigger)) {
