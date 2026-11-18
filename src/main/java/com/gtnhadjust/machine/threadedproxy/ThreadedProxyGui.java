@@ -58,14 +58,8 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
         grid.size(getTerminalWidgetWidth() - 16, getTerminalWidgetHeight() - 46);
         for (int i = 0; i < count; i++) {
             final int index = i;
-            var action = new com.cleanroommc.modularui.value.sync.InteractionSyncHandler().setOnMousePressed(mouse -> {
-                if (mouse.mouseButton != 2 || multiblock.patterns()
-                    .getStackInSlot(index) == null || !multiblock.canEditLocators()) return;
-                editingSlot = index;
-                if (mouse.isClient()) {
-                    editor.openPanel();
-                }
-            });
+            var action = new com.cleanroommc.modularui.value.sync.InteractionSyncHandler().setOnMousePressed(
+                mouse -> { if (mouse.mouseButton == 2) editingSlot = canEditPattern(index) ? index : -1; });
             manager.syncValue("editPattern", i, action);
             var slot = new com.cleanroommc.modularui.widgets.slot.ModularSlot(multiblock.patterns(), i) {
 
@@ -84,12 +78,13 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
                 i,
                 com.cleanroommc.modularui.value.sync.ItemSlotSH.class,
                 () -> new com.cleanroommc.modularui.value.sync.ItemSlotSH(slot));
-            ThreadPatternSlot widget = new ThreadPatternSlot(
-                multiblock,
-                i,
-                patternSearch,
-                action,
-                () -> { if (editor.isPanelOpen()) editor.closePanel(); });
+            ThreadPatternSlot widget = new ThreadPatternSlot(multiblock, i, patternSearch, () -> {
+                if (!canEditPattern(index)) return;
+                if (editor.isPanelOpen()) editor.closePanel();
+                // The server must receive the slot before the synced panel initializes its getters.
+                action.onMousePressed(2);
+                editor.openPanel();
+            });
             widget.syncHandler(sync);
             grid.addSlot(widget);
         }
@@ -104,6 +99,18 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
                 .pos(i == 2 ? getTerminalWidgetWidth() / 2 + 2 : 4, i == 0 ? 2 : 20)
                 .size(getTerminalWidgetWidth() / 2 - 6, 16));
         return page.child(grid.pos(8, 40));
+    }
+
+    private boolean canEditPattern(int slot) {
+        return multiblock.canEditLocators() && multiblock.patterns()
+            .getStackInSlot(slot) != null;
+    }
+
+    /** A removed or rejected selection leaves the editor with no editable pattern. */
+    private ItemStack selectedPattern() {
+        return editingSlot < 0 ? null
+            : multiblock.patterns()
+                .getStackInSlot(editingSlot);
     }
 
     /** Reuses the right-hand settings position; every committed field is written to the physical pattern. */
@@ -124,7 +131,7 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
         for (int i = 0; i < fields.length; i++) {
             final int field = i;
             var value = new com.cleanroommc.modularui.value.sync.StringSyncValue(
-                () -> parameterText(editingSlot, field),
+                () -> parameterText(field),
                 expression -> multiblock.editPattern(editingSlot, field, expression)).allowC2S();
             manager.syncValue("parameter", i, value);
             panel.child(
@@ -189,9 +196,7 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
                 .setEnabledIf(w -> fluid.getValue() != null));
         var estimate = new com.cleanroommc.modularui.value.sync.StringSyncValue(() -> {
             ProxyPatternRecipe recipe = multiblock.patternRecipe(editingSlot);
-            ThreadPatternSettings settings = ThreadPatternSettings.read(
-                multiblock.patterns()
-                    .getStackInSlot(editingSlot));
+            ThreadPatternSettings settings = ThreadPatternSettings.read(selectedPattern());
             if (recipe == null || settings.parallel < 1 || settings.oc < 0) return "";
             var plan = ThreadedProxyAllocation
                 .plan(recipe.recipe.mEUt, recipe.recipe.mDuration, Long.MAX_VALUE, settings.oc);
@@ -224,9 +229,7 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
 
     /** Decode the selected product only when the selected physical stack changes. */
     private appeng.api.storage.data.IAEStack<?> editorOutput() {
-        ItemStack pattern = editingSlot < 0 ? null
-            : multiblock.patterns()
-                .getStackInSlot(editingSlot);
+        ItemStack pattern = selectedPattern();
         if (!ItemStack.areItemStacksEqual(editorPattern, pattern)) {
             editorPattern = pattern == null ? null : pattern.copy();
             editorProduct = null;
@@ -244,10 +247,8 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
         return editorProduct;
     }
 
-    private String parameterText(int slot, int field) {
-        ThreadPatternSettings settings = ThreadPatternSettings.read(
-            multiblock.patterns()
-                .getStackInSlot(slot));
+    private String parameterText(int field) {
+        ThreadPatternSettings settings = ThreadPatternSettings.read(selectedPattern());
         if (field == 0) return Double.toString(settings.target);
         return Long.toString(field == 1 ? settings.power : field == 2 ? settings.parallel : settings.oc);
     }

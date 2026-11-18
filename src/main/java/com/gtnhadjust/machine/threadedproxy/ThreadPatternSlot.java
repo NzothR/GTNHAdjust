@@ -8,7 +8,6 @@ import net.minecraft.util.StatCollector;
 
 import com.cleanroommc.modularui.api.widget.Interactable.Result;
 import com.cleanroommc.modularui.value.StringValue;
-import com.cleanroommc.modularui.value.sync.InteractionSyncHandler;
 import com.cleanroommc.modularui.widgets.slot.ItemSlot;
 import com.gtnhadjust.machine.proxy.ProxyLocatorSearch;
 import com.xyp.gtneverreset.common.me.CircuitPatternCodec;
@@ -25,29 +24,24 @@ final class ThreadPatternSlot extends ItemSlot {
     private final ThreadedJointProxy owner;
     private final int index;
     private final StringValue[] searches;
-    private final InteractionSyncHandler edit;
-    private final Runnable beforeEdit;
+    private final Runnable openEditor;
     private ItemStack cached;
     private final List<List<String>> names = new ArrayList<>();
     private String previousQuery;
     private boolean matches;
 
-    ThreadPatternSlot(ThreadedJointProxy owner, int index, StringValue[] searches, InteractionSyncHandler edit,
-        Runnable beforeEdit) {
+    ThreadPatternSlot(ThreadedJointProxy owner, int index, StringValue[] searches, Runnable openEditor) {
         this.owner = owner;
         this.index = index;
         this.searches = searches;
-        this.edit = edit;
-        this.beforeEdit = beforeEdit;
+        this.openEditor = openEditor;
         for (int i = 0; i < 3; i++) names.add(new ArrayList<>());
     }
 
     @Override
     public Result onMousePressed(int button) {
         if (button == 2) {
-            // Commit the old field before the selection action is sent to the server.
-            beforeEdit.run();
-            edit.onMousePressed(button);
+            openEditor.run();
             return Result.SUCCESS;
         }
         return super.onMousePressed(button);
