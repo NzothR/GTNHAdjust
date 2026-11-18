@@ -3,11 +3,12 @@ package com.gtnhadjust.machine.reshaping;
 
 import static bartworks.system.material.WerkstoffLoader.*;
 import static com.gtnhadjust.machine.reshaping.ReshapingRegistration.MAP;
+import static com.gtnhadjust.machine.reshaping.ReshapingRegistration.PROCESSING_EUT;
+import static com.gtnhadjust.machine.reshaping.ReshapingRegistration.PROCESSING_TICKS;
 import static goodgenerator.items.GGMaterial.*;
 import static gregtech.api.enums.Materials.*;
 import static gregtech.api.enums.Mods.*;
 import static gregtech.api.util.GTModHandler.getModItem;
-import static gregtech.api.util.GTRecipeBuilder.SECONDS;
 import static gtPlusPlus.core.material.MaterialMisc.MUTATED_LIVING_SOLDER;
 import static gtPlusPlus.core.material.MaterialsElements.STANDALONE.ASTRAL_TITANIUM;
 import static gtPlusPlus.core.material.MaterialsElements.STANDALONE.CELESTIAL_TUNGSTEN;
@@ -27,7 +28,7 @@ import gtnhlanth.common.register.WerkstoffMaterialPool;
 
 public class SubstanceReshapingDeviceRecipes {
 
-    /** Register all seventeen retained upstream recipes with GTNH 2.9.0 material names. */
+    /** Register the sixteen retained processing recipes for GTNH 2.9.0. */
     public void loadRecipes() {
 
         /*
@@ -47,10 +48,9 @@ public class SubstanceReshapingDeviceRecipes {
             .fluidOutputs(
                 Materials.RubberSilicone.getMolten(Integer.MAX_VALUE),
                 Materials.StyreneButadieneRubber.getMolten(Integer.MAX_VALUE),
-                Materials.Rubber.getMolten(Integer.MAX_VALUE),
-                new net.minecraftforge.fluids.FluidStack(ReshapingRegistration.ptmegElastomer, Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+                Materials.Rubber.getMolten(Integer.MAX_VALUE))
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(1)
             .addTo(MAP);
 
@@ -64,8 +64,8 @@ public class SubstanceReshapingDeviceRecipes {
                 setStackSize(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Osmium, 1), Integer.MAX_VALUE),
                 WerkstoffLoader.Rhodium.get(OrePrefixes.dust, Integer.MAX_VALUE),
                 WerkstoffLoader.Ruthenium.get(OrePrefixes.dust, Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(4)
             .addTo(MAP);
 
@@ -86,8 +86,8 @@ public class SubstanceReshapingDeviceRecipes {
                 setStackSize(WerkstoffLoader.Zirconium.get(OrePrefixes.dust, 1), Integer.MAX_VALUE),
                 setStackSize(MaterialsElements.getInstance().HAFNIUM.getDust(1), Integer.MAX_VALUE),
                 setStackSize(WerkstoffMaterialPool.Hafnia.get(OrePrefixes.dust, 1), Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(5)
             .addTo(MAP);
 
@@ -99,8 +99,8 @@ public class SubstanceReshapingDeviceRecipes {
             .itemOutputs(
                 setStackSize(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Silicon, 1), Integer.MAX_VALUE),
                 setStackSize(GTOreDictUnificator.get(OrePrefixes.dust, Materials.SiliconSG, 1), Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(2)
             .addTo(MAP);
 
@@ -112,8 +112,8 @@ public class SubstanceReshapingDeviceRecipes {
             .itemOutputs(
                 setStackSize(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Tungsten, 1), Integer.MAX_VALUE),
                 setStackSize(CELESTIAL_TUNGSTEN.getDust(1), Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(3)
             .addTo(MAP);
 
@@ -126,8 +126,8 @@ public class SubstanceReshapingDeviceRecipes {
                 setStackSize(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Titanium, 1), Integer.MAX_VALUE),
                 setStackSize(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Tritanium, 1), Integer.MAX_VALUE),
                 setStackSize(ASTRAL_TITANIUM.getDust(1), Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(3)
             .addTo(MAP);
 
@@ -139,8 +139,8 @@ public class SubstanceReshapingDeviceRecipes {
                 GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uranium, 1))
             .fluidInputs(Materials.Air.getGas(1))
             .fluidOutputs(Materials.Radon.getGas(Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(3)
             .addTo(MAP);
 
@@ -155,8 +155,8 @@ public class SubstanceReshapingDeviceRecipes {
                 setStackSize(extremelyUnstableNaquadah.get(OrePrefixes.dust, 1), Integer.MAX_VALUE),
                 setStackSize(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Trinium, 1), Integer.MAX_VALUE),
                 setStackSize(GTOreDictUnificator.get(OrePrefixes.dust, Materials.Adamantium, 1), Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(6)
             .addTo(MAP);
 
@@ -175,8 +175,8 @@ public class SubstanceReshapingDeviceRecipes {
                 GrowthMediumRaw.getFluid(Integer.MAX_VALUE),
                 BioMediumSterilized.getFluid(Integer.MAX_VALUE),
                 BioMediumRaw.getFluid(Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(7)
             .addTo(MAP);
 
@@ -195,8 +195,8 @@ public class SubstanceReshapingDeviceRecipes {
                 Krypton.getFluidOrGas(Integer.MAX_VALUE),
                 Hydrogen.getGas(Integer.MAX_VALUE),
                 Xenon.getFluidOrGas(Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(3)
             .addTo(MAP);
 
@@ -208,8 +208,8 @@ public class SubstanceReshapingDeviceRecipes {
                 setStackSize(getModItem(GalaxySpace.ID, "tcetiedandelions", 1, 4), Integer.MAX_VALUE),
                 setStackSize(getModItem(NewHorizonsCoreMod.ID, "TCetiESeaweedExtract", 1), Integer.MAX_VALUE))
             .fluidOutputs(Iodine.getFluidOrGas(Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(8)
             .addTo(MAP);
 
@@ -225,8 +225,8 @@ public class SubstanceReshapingDeviceRecipes {
                 Materials.Polytetrafluoroethylene.getMolten(Integer.MAX_VALUE),
                 Materials.Epoxid.getMolten(Integer.MAX_VALUE),
                 Materials.Polybenzimidazole.getMolten(Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(4)
             .addTo(MAP);
 
@@ -238,8 +238,8 @@ public class SubstanceReshapingDeviceRecipes {
                 setStackSize(ItemList.StableAdhesive.get(1), Integer.MAX_VALUE),
                 setStackSize(ItemList.SuperconductorComposite.get(1), Integer.MAX_VALUE),
                 setStackSize(ItemList.NaquadriaSupersolid.get(1), Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(9)
             .addTo(MAP);
 
@@ -253,10 +253,9 @@ public class SubstanceReshapingDeviceRecipes {
                 Materials.ExcitedDTEC.getFluid(Integer.MAX_VALUE),
                 Materials.ExcitedDTPC.getFluid(Integer.MAX_VALUE),
                 Materials.ExcitedDTSC.getFluid(Integer.MAX_VALUE),
-                Materials.StargateCrystalSlurry.getFluid(Integer.MAX_VALUE),
                 Materials.PrimordialMatter.getFluid(Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(10)
             .addTo(MAP);
 
@@ -267,12 +266,10 @@ public class SubstanceReshapingDeviceRecipes {
             .fluidOutputs(
                 Materials.BlackDwarfMatter.getMolten(Integer.MAX_VALUE),
                 Materials.WhiteDwarfMatter.getMolten(Integer.MAX_VALUE),
-                Materials.Universium.getMolten(Integer.MAX_VALUE),
                 Materials.RawStarMatter.getFluid(Integer.MAX_VALUE),
-                Materials.MHDCSM.getMolten(Integer.MAX_VALUE),
                 Materials.SpaceTime.getMolten(Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(11)
             .addTo(MAP);
 
@@ -280,37 +277,9 @@ public class SubstanceReshapingDeviceRecipes {
         GTValues.RA.stdBuilder()
             .itemInputs(GTUtility.getIntegratedCircuit(1), getModItem(Avaritia.ID, "Resource", 1, 5))
             .fluidInputs(Water.getFluid(1000))
-            .fluidOutputs(
-                Infinity.getMolten(Integer.MAX_VALUE),
-                Materials.Eternity.getMolten(Integer.MAX_VALUE),
-                Materials.MagMatter.getMolten(Integer.MAX_VALUE),
-                Materials.QuarkGluonPlasma.getFluid(Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
-            .specialValue(9)
-            .addTo(MAP);
-
-        // 电路板
-        GTValues.RA.stdBuilder()
-            .itemInputs(GTUtility.getIntegratedCircuit(2), getModItem(IndustrialCraft2.ID, "itemPartCircuit", 1))
-            .itemOutputs(
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitULV", 1), Integer.MAX_VALUE),
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitLV", 1), Integer.MAX_VALUE),
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitMV", 1), Integer.MAX_VALUE),
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitHV", 1), Integer.MAX_VALUE),
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitEV", 1), Integer.MAX_VALUE),
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitIV", 1), Integer.MAX_VALUE),
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitLuV", 1), Integer.MAX_VALUE),
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitZPM", 1), Integer.MAX_VALUE),
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitUV", 1), Integer.MAX_VALUE),
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitUHV", 1), Integer.MAX_VALUE),
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitUEV", 1), Integer.MAX_VALUE),
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitUIV", 1), Integer.MAX_VALUE),
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitUMV", 1), Integer.MAX_VALUE),
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitUXV", 1), Integer.MAX_VALUE),
-                setStackSize(getModItem(NewHorizonsCoreMod.ID, "CircuitMAX", 1), Integer.MAX_VALUE))
-            .eut(0)
-            .duration(5 * SECONDS)
+            .fluidOutputs(Infinity.getMolten(Integer.MAX_VALUE), Materials.Eternity.getMolten(Integer.MAX_VALUE))
+            .eut(PROCESSING_EUT)
+            .duration(PROCESSING_TICKS)
             .specialValue(9)
             .addTo(MAP);
     }

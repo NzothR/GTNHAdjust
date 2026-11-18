@@ -3,6 +3,8 @@ package com.gtnhadjust.machine.reshaping;
 
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.transpose;
+import static gregtech.api.enums.HatchElement.Energy;
+import static gregtech.api.enums.HatchElement.ExoticEnergy;
 import static gregtech.api.enums.HatchElement.InputBus;
 import static gregtech.api.enums.HatchElement.InputHatch;
 import static gregtech.api.enums.HatchElement.OutputBus;
@@ -44,7 +46,7 @@ import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.OverclockCalculator;
 import gtPlusPlus.core.block.ModBlocks;
 
-/** Original EV structure and unrestricted recipe pool; ten recipe passes per five-second cycle. */
+/** EV structure with ten recipe passes per fixed 64-second cycle. */
 public final class SubstanceReshapingDevice extends MTEExtendedPowerMultiBlockBase<SubstanceReshapingDevice>
     implements ISurvivalConstructable {
 
@@ -72,7 +74,8 @@ public final class SubstanceReshapingDevice extends MTEExtendedPowerMultiBlockBa
             .addElement('B', ofBlock(GregTechAPI.sBlockCasings4, 0))
             .addElement(
                 'C',
-                buildHatchAdder(SubstanceReshapingDevice.class).atLeast(InputBus, OutputBus, InputHatch, OutputHatch)
+                buildHatchAdder(SubstanceReshapingDevice.class)
+                    .atLeast(InputBus, OutputBus, InputHatch, OutputHatch, Energy.or(ExoticEnergy))
                     .casingIndex(TAE.GTPP_INDEX(11))
                     .hint(1)
                     .buildAndChain(ofBlock(ModBlocks.blockCasings2Misc, 4)))
@@ -111,7 +114,7 @@ public final class SubstanceReshapingDevice extends MTEExtendedPowerMultiBlockBa
         }.setMaxParallelSupplier(() -> 10);
     }
 
-    /** Upstream wireless mode ignores voltage; all dedicated recipes consume zero EU. */
+    /** Reserve real power per cycle and let GT calculate its parallel outputs independently. */
     @Override
     protected void setProcessingLogicPower(ProcessingLogic logic) {
         logic.setAvailableVoltage(Long.MAX_VALUE)
@@ -122,6 +125,8 @@ public final class SubstanceReshapingDevice extends MTEExtendedPowerMultiBlockBa
     /** Preserve the upstream ten sequential recipe-selection passes, including native separated buses. */
     @Override
     public CheckRecipeResult checkProcessing() {
+        if (getMaxInputEu() < ReshapingRegistration.PROCESSING_EUT)
+            return CheckRecipeResultRegistry.insufficientPower(ReshapingRegistration.PROCESSING_EUT);
         List<ItemStack> items = new ArrayList<>();
         List<FluidStack> fluids = new ArrayList<>();
         CheckRecipeResult result = CheckRecipeResultRegistry.NO_RECIPE;
@@ -151,8 +156,8 @@ public final class SubstanceReshapingDevice extends MTEExtendedPowerMultiBlockBa
         mOutputFluids = fluids.toArray(new FluidStack[0]);
         mEfficiency = 10000;
         mEfficiencyIncrease = 10000;
-        mMaxProgresstime = 100;
-        lEUt = 0;
+        mMaxProgresstime = ReshapingRegistration.PROCESSING_TICKS;
+        lEUt = -ReshapingRegistration.PROCESSING_EUT;
         return CheckRecipeResultRegistry.SUCCESSFUL;
     }
 
@@ -243,6 +248,7 @@ public final class SubstanceReshapingDevice extends MTEExtendedPowerMultiBlockBa
         };
         tt.addMachineType(text("Tooltip_SubstanceReshapingDevice_MachineType"))
             .addInfo(text("Tooltip_SubstanceReshapingDevice_Controller"))
+            .addInfo(text("processing_power"))
             .addInfo(text("EOHB_Starry_Miracle_Project"))
             .addInfo(text("EOHB_Text_SeparatingLine"));
         for (int i = 0; i <= 10; i++) {
@@ -256,6 +262,7 @@ public final class SubstanceReshapingDevice extends MTEExtendedPowerMultiBlockBa
             .addInputHatch(text("add_inputHatch"))
             .addOutputBus(text("add_OutputBus"))
             .addOutputHatch(text("add_outputHatch"))
+            .addEnergyHatch(text("add_energyHatch"), 1)
             .toolTipFinisher();
     }
 
