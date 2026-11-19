@@ -18,7 +18,7 @@ import com.gtnhadjust.machine.threadedproxy.ThreadedProxyRegistration;
 import com.gtnhadjust.recipe.CarpenterRecipes;
 import com.gtnhadjust.soul.SoulVialMultipartHandler;
 import com.gtnhadjust.structurelib.PlanetaryEngineStructure;
-import com.gtnhadjust.structurelib.ProjectorBuildBudget;
+import com.gtnhadjust.structurelib.ProjectorDismantle;
 import com.gtnhadjust.terminal.TerminalNotifications;
 
 import cpw.mods.fml.common.Loader;
@@ -289,10 +289,8 @@ public class GTNHAdjust {
     public void init(FMLInitializationEvent event) {
         if (Loader.isModLoaded("structurelib")) {
             FeatureSwitches features = FeatureConfig.get();
-            if (features.projectorBuildBudget) StructureLibAPI.registerChannelDescription(
-                ProjectorBuildBudget.CHANNEL,
-                MOD_ID,
-                "gtnhadjust.channel.placement_budget");
+            if (features.projectorDismantle) StructureLibAPI
+                .registerChannelDescription(ProjectorDismantle.CHANNEL, MOD_ID, "gtnhadjust.channel.dismantle");
             if (features.planetaryEngineProjector && Loader.isModLoaded("sciencenotleisure")
                 && Loader.isModLoaded("gregtech")) {
                 StructureLibAPI.registerChannelDescription(

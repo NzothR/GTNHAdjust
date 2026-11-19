@@ -197,6 +197,24 @@ public final class AeAutoPlaceItemSource implements IItemSource {
         }
     }
 
+    /** Return recovered fluid to the player's AE network when it accepts the fluid. */
+    public static void returnFluidToNetwork(EntityPlayerMP player, FluidStack fluid) {
+        try {
+            Access access = new AeAutoPlaceItemSource(null, player).findAccess(SecurityPermissions.INJECT);
+            if (access == null) return;
+            IMEMonitor<IAEFluidStack> monitor = access.host.getFluidInventory();
+            if (monitor == null) return;
+            IAEFluidStack request = AEFluidStack.create(fluid);
+            IAEFluidStack remaining = monitor.injectItems(request.copy(), Actionable.SIMULATE, access.actionSource);
+            if (remaining != null && remaining.getStackSize() >= request.getStackSize()) return;
+            if (access.host.extractAEPower(ACCESS_POWER, Actionable.MODULATE, PowerMultiplier.CONFIG)
+                < ACCESS_POWER * 0.99) return;
+            monitor.injectItems(request, Actionable.MODULATE, access.actionSource);
+        } catch (RuntimeException failure) {
+            if (GTNHAdjust.debug) GTNHAdjust.LOG.warn("Hologram AE fluid return failed", failure);
+        }
+    }
+
     private static void addTerminal(List<ItemStack> terminals, ItemStack candidate) {
         if (candidate == null || !AEApi.instance()
             .registries()

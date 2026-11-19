@@ -50,7 +50,7 @@ final class FeatureSwitches {
     private static final String PLANETARY_ENGINE_PROJECTOR = "planetaryEngineProjector";
     private static final String ANTIMATTER_CYCLE_INTERVAL = "antimatterCycleInterval";
     private static final String ANTIMATTER_WIRELESS = "antimatterWireless";
-    private static final String PROJECTOR_BUILD_BUDGET = "projectorBuildBudget";
+    private static final String PROJECTOR_DISMANTLE = "projectorDismantle";
 
     boolean substanceReshapingDevice;
     boolean godforgeFreeUpgrades;
@@ -88,7 +88,7 @@ final class FeatureSwitches {
     final boolean ae2thingTerminalRecipeFix;
     final boolean ae2thingInfinityCellUsageFix;
     final boolean planetaryEngineProjector;
-    final boolean projectorBuildBudget;
+    final boolean projectorDismantle;
     final boolean antimatterWireless;
     final boolean antimatterCycleInterval;
 
@@ -101,10 +101,10 @@ final class FeatureSwitches {
         boolean proxyDispatchDiagnostics, boolean ysmuAnimatedArms, boolean hologramImprovements,
         boolean questAeRetrieval, boolean gtnlQuickTerminalCraftFix, boolean grandAssemblyAutoMaintenance,
         boolean threadedJointProxy, boolean hideGtnlShimmerRecipes, boolean hideGtnrDisassemblerRecipes,
-        boolean ae2thingTerminalRecipeFix, boolean planetaryEngineProjector, boolean projectorBuildBudget,
+        boolean ae2thingTerminalRecipeFix, boolean planetaryEngineProjector, boolean projectorDismantle,
         boolean ae2thingInfinityCellUsageFix, boolean antimatterWireless, boolean antimatterCycleInterval) {
         this.ae2thingInfinityCellUsageFix = ae2thingInfinityCellUsageFix;
-        this.projectorBuildBudget = projectorBuildBudget;
+        this.projectorDismantle = projectorDismantle;
         this.antimatterWireless = antimatterWireless;
         this.antimatterCycleInterval = antimatterCycleInterval;
         this.planetaryEngineProjector = planetaryEngineProjector;
@@ -180,7 +180,7 @@ final class FeatureSwitches {
         defaults.setProperty(PLANETARY_ENGINE_PROJECTOR, "true");
         defaults.setProperty(ANTIMATTER_CYCLE_INTERVAL, "true");
         defaults.setProperty(ANTIMATTER_WIRELESS, "true");
-        defaults.setProperty(PROJECTOR_BUILD_BUDGET, "true");
+        defaults.setProperty(PROJECTOR_DISMANTLE, "true");
         try {
             Files.createDirectories(file.getParent());
             if (!Files.exists(file)) {
@@ -228,7 +228,7 @@ final class FeatureSwitches {
                 read(values, HIDE_DISASSEMBLER),
                 read(values, AE2THING_TERMINAL_RECIPE_FIX),
                 read(values, PLANETARY_ENGINE_PROJECTOR),
-                read(values, PROJECTOR_BUILD_BUDGET),
+                read(values, PROJECTOR_DISMANTLE),
                 read(values, AE2THING_INFINITY_CELL_USAGE_FIX),
                 read(values, ANTIMATTER_WIRELESS),
                 read(values, ANTIMATTER_CYCLE_INTERVAL));
@@ -294,8 +294,8 @@ final class FeatureSwitches {
                     + result.ae2thingTerminalRecipeFix
                     + ", planetaryEngineProjector="
                     + result.planetaryEngineProjector
-                    + ", projectorBuildBudget="
-                    + result.projectorBuildBudget
+                    + ", projectorDismantle="
+                    + result.projectorDismantle
                     + ", ae2thingInfinityCellUsageFix="
                     + result.ae2thingInfinityCellUsageFix);
             return result;
@@ -361,9 +361,10 @@ final class FeatureSwitches {
         if (antimatterWireless && loadedMods.contains("GoodGenerator")) {
             mixins.add("goodgenerator.AntimatterWirelessMixin");
         }
-        if (projectorBuildBudget && loadedMods.contains("structurelib")) {
-            mixins.add("structurelib.ProjectorBuildBudgetMixin");
-            mixins.add("structurelib.ProjectorBuildBudgetWalkerMixin");
+        if (projectorDismantle && loadedMods.contains("structurelib")) {
+            mixins.add("structurelib.ProjectorDismantleMixin");
+            mixins.add("structurelib.ProjectorDismantleWalkerMixin");
+            if (loadedMods.contains("gregtech")) mixins.add("structurelib.ProjectorHatchDropsMixin");
         }
         if (planetaryEngineProjector && loadedMods.contains("sciencenotleisure")
             && loadedMods.contains("structurelib")

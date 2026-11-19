@@ -145,7 +145,7 @@ public final class HologramReplacement {
         return success ? PlaceResult.ACCEPT : PlaceResult.REJECT;
     }
 
-    private static Collection<String> channels(IStructureElement<?> element) {
+    static Collection<String> channels(IStructureElement<?> element) {
         Set<String> result = new LinkedHashSet<>();
         Set<IStructureElement<?>> visited = Collections.newSetFromMap(new IdentityHashMap<>());
         collectChannels(element, result, visited, 0);

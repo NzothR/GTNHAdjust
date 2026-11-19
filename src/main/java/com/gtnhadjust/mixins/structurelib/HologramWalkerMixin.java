@@ -13,6 +13,7 @@ import com.gtnhadjust.GTNHAdjust;
 import com.gtnhadjust.structurelib.HologramFluidPlacement;
 import com.gtnhadjust.structurelib.HologramReplacement;
 import com.gtnhadjust.structurelib.HologramReplacementContext;
+import com.gtnhadjust.structurelib.ProjectorDismantle;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 
@@ -26,6 +27,7 @@ public abstract class HologramWalkerMixin<T> {
             target = "Lcom/gtnewhorizon/structurelib/structure/IStructureElement;survivalPlaceBlock(Ljava/lang/Object;Lnet/minecraft/world/World;IIILnet/minecraft/item/ItemStack;Lcom/gtnewhorizon/structurelib/structure/AutoPlaceEnvironment;)Lcom/gtnewhorizon/structurelib/structure/IStructureElement$PlaceResult;"))
     private PlaceResult gtnhadjust$replace(IStructureElement<T> element, T context, World world, int x, int y, int z,
         ItemStack stack, AutoPlaceEnvironment env, Operation<PlaceResult> original) {
+        if (ProjectorDismantle.current() != null) return original.call(element, context, world, x, y, z, stack, env);
         PlaceResult result;
         try {
             result = HologramFluidPlacement.tryPlace(element, context, world, x, y, z, stack, env);

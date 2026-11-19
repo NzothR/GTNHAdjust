@@ -217,6 +217,8 @@ gtnhadjust.planetary_engine.range=Planetary Engine section must be between 1 and
 gtnhadjust.planetary_engine.unloaded=Planetary Engine section %s is in unloaded chunk (%s, %s).
 gtnhadjust.planetary_engine.preview=Planetary Engine preview %s/%s, chunk (%s, %s), Y=%s to %s.
 gtnhadjust.planetary_engine.outline=Planetary Engine outline, X by Z footprint %s by %s, height %s blocks.
-gtnhadjust.channel.placement_budget=Maximum blocks per sneak-right-click in survival, from 1 to 2,100,000,000. Remove this channel to use the projector configuration.
+gtnhadjust.channel.dismantle=Set to 1 to dismantle matching structure blocks on sneak-right-click. Set gt_hatch to 1 to include matching hatches. Uses the survival placement budget.
+gtnhadjust.dismantle.active=Stop the machine before dismantling its structure.
+gtnhadjust.dismantle.removed=Dismantled %s structure blocks.
 gtnhadjust.channel.structure_preview=Planetary Engine preview mode. Use 1 for block-by-block section hints or 2 for the full outline.
 gtnhadjust.channel.structure_section=Planetary Engine section number for block-by-block previews. Remove this channel to preview the controller section.
