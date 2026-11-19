@@ -23,14 +23,16 @@ public class LateMixinsLoader implements ILateMixinLoader {
         boolean client = FMLLaunchHandler.side()
             .isClient();
         List<String> mixins = features.selectMixins(loadedMods, client);
-        if (loadedMods.contains("ae2thing") && "1.3.4".equals(
-            Loader.instance()
+        if (loadedMods.contains("ae2thing")) {
+            String version = Loader.instance()
                 .getIndexedModList()
                 .get("ae2thing")
-                .getVersion())) {
-            if (features.ae2thingTerminalRecipeFix && loadedMods.contains("gtneverreset"))
+                .getVersion();
+            if ("1.3.4".equals(version) && features.ae2thingTerminalRecipeFix && loadedMods.contains("gtneverreset"))
                 mixins.add("fix.Ae2ThingTerminalRecipeMixin");
-            if (client && features.ae2thingInfinityCellUsageFix && loadedMods.contains("NotEnoughItems"))
+            if (client && features.ae2thingInfinityCellUsageFix
+                && loadedMods.contains("NotEnoughItems")
+                && ("1.3.4".equals(version) || "1.3.5".equals(version)))
                 mixins.add("fix.Ae2ThingInfinityCellUsageMixin");
         }
         return mixins;
