@@ -63,6 +63,7 @@
 | `threadedJointProxy.patternSlots` | `1024` | 内部样板容量，范围 1–16384；两端同步并重启 |
 | `threadedJointProxy.wirelessPower` | `true` | 多线程代理无能源仓时无线供电，无玻璃门槛 |
 | `threadedJointProxy.voidUnlistedOutputs` | `true` | 多线程代理丢弃启动样板未列出的物品和流体；两端同步并重启 |
+| `threadedJointProxy.exportIngredients` | `true` | 样板栏按钮追加物品和流体标记到 ME 输入舱空槽，跳过已有标记；GTNH 2.9.0，两端同步并重启 |
 | `proxyFactory.wirelessPower` | `true` | 代理工厂 UEV+ 玻璃且无能源仓时无线供电 |
 | `proxyFactory.locatorSlots` | `128` | 两种代理共用的定位器容量，范围 1–32730 |
 | `proxyFactory.locatorNavigation` | `true` | 定位器空气右键高亮与潜行传送 |

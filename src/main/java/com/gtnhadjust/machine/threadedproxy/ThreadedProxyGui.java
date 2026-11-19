@@ -100,6 +100,21 @@ final class ThreadedProxyGui extends ProxyLocatorGui<ThreadedJointProxy> {
                 .hintText(StatCollector.translateToLocal("gtnhadjust.threaded_proxy.search." + hints[i]))
                 .pos(i == 2 ? getTerminalWidgetWidth() / 2 + 2 : 4, i == 0 ? 2 : 20)
                 .size(getTerminalWidgetWidth() / 2 - 6, 16));
+        if (com.gtnhadjust.GTNHAdjust.threadedProxyExportIngredients) {
+            var export = new com.cleanroommc.modularui.value.sync.InteractionSyncHandler().setOnMousePressed(
+                mouse -> { if (mouse.mouseButton == 0) ThreadedProxyIngredientExport.append(multiblock); });
+            manager.syncValue("exportPatternIngredients", export);
+            page.child(
+                new ButtonWidget<>().overlay(IKey.lang("gtnhadjust.threaded_proxy.export"))
+                    .tooltipBuilder(t -> t.addLine(IKey.lang("gtnhadjust.threaded_proxy.export.tooltip")))
+                    .onMousePressed(mouse -> {
+                        if (mouse != 0) return false;
+                        export.onMousePressed(mouse);
+                        return true;
+                    })
+                    .pos(getTerminalWidgetWidth() / 2 + 2, 2)
+                    .size(getTerminalWidgetWidth() / 2 - 6, 16));
+        }
         return page.child(grid.pos(8, 40));
     }
 

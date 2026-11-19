@@ -52,6 +52,7 @@ public class GTNHAdjust {
     public static boolean proxyFactoryWirelessPower;
     public static boolean threadedProxyWirelessPower;
     public static boolean threadedProxyVoidUnlistedOutputs = true;
+    public static boolean threadedProxyExportIngredients = true;
     public static boolean proxyIndirectLocators = true;
     public static boolean proxyExtremeCrafting;
     public static boolean locatorNavigation;
@@ -199,6 +200,11 @@ public class GTNHAdjust {
             "threadedJointProxy",
             true,
             "Discard recipe outputs absent from the thread's encoded pattern. Restart required; client and server must match.");
+        threadedProxyExportIngredients = config.getBoolean(
+            "exportIngredients",
+            "threadedJointProxy",
+            true,
+            "Show the button that appends pattern ingredients to attached ME stocking inputs. Restart required; client and server must match.");
         proxyExtremeCrafting = config.getBoolean(
             "extremeCrafting",
             "proxyFactory",
