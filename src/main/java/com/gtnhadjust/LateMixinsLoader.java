@@ -23,6 +23,20 @@ public class LateMixinsLoader implements ILateMixinLoader {
         boolean client = FMLLaunchHandler.side()
             .isClient();
         List<String> mixins = features.selectMixins(loadedMods, client);
+        if (features.offhandPickupFix && loadedMods.contains("backhand")
+            && loadedMods.contains("gtneverreset")
+            && "1.8.18".equals(
+                Loader.instance()
+                    .getIndexedModList()
+                    .get("backhand")
+                    .getVersion())
+            && "0.1.50".equals(
+                Loader.instance()
+                    .getIndexedModList()
+                    .get("gtneverreset")
+                    .getVersion())) {
+            mixins.add("gtnr.UniversalWandOffhandPickupMixin");
+        }
         if (loadedMods.contains("ae2thing")) {
             String version = Loader.instance()
                 .getIndexedModList()
