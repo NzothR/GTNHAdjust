@@ -67,6 +67,8 @@
 
 ## 配方调整与模组兼容
 
+123Technology 噬魂监狱优先读取主机槽的已绑定动力刷怪笼。主机槽没有可用标记时，从输入总线读第一个已绑定的动力刷怪笼，标记物不消耗。适配 GTNH 2.9.0、OTHTechnology 2.2.1.3，`soulPrisonBusMarker` 默认开启，两端同步更新并重启。
+
 屏蔽拉格朗日湮灭矩阵默认每 20 刻湮灭一次（20 TPS 时为 1 秒），有线和无线共用周期。可在 `config/gtnhadjust.cfg` 的 `antimatterGenerator.cycleTicks` 调整周期，设为 100 可恢复原版间隔。启动开关 `antimatterCycleInterval` 默认开启，适配 GTNH 2.9.0、GregTech 5.09.54.265（含 GoodGenerator），两端同步配置并重启。
 
 管理员可用 `/gtnhadjust slam` 查询当前 SLAM 湮灭周期，或用 `/gtnhadjust slam 1` 立即改为每刻一次。命令同时保存服务端配置，对所有矩阵生效。专用服务端控制台可省略开头的斜杠。

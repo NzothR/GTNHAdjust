@@ -50,6 +50,7 @@ final class FeatureSwitches {
     private static final String PLANETARY_ENGINE_PROJECTOR = "planetaryEngineProjector";
     private static final String ANTIMATTER_CYCLE_INTERVAL = "antimatterCycleInterval";
     private static final String ANTIMATTER_WIRELESS = "antimatterWireless";
+    private static final String SOUL_PRISON_BUS_MARKER = "soulPrisonBusMarker";
     private static final String PROJECTOR_DISMANTLE = "projectorDismantle";
 
     boolean substanceReshapingDevice;
@@ -89,6 +90,7 @@ final class FeatureSwitches {
     final boolean ae2thingInfinityCellUsageFix;
     final boolean planetaryEngineProjector;
     final boolean projectorDismantle;
+    final boolean soulPrisonBusMarker;
     final boolean antimatterWireless;
     final boolean antimatterCycleInterval;
 
@@ -102,9 +104,11 @@ final class FeatureSwitches {
         boolean questAeRetrieval, boolean gtnlQuickTerminalCraftFix, boolean grandAssemblyAutoMaintenance,
         boolean threadedJointProxy, boolean hideGtnlShimmerRecipes, boolean hideGtnrDisassemblerRecipes,
         boolean ae2thingTerminalRecipeFix, boolean planetaryEngineProjector, boolean projectorDismantle,
-        boolean ae2thingInfinityCellUsageFix, boolean antimatterWireless, boolean antimatterCycleInterval) {
+        boolean ae2thingInfinityCellUsageFix, boolean antimatterWireless, boolean antimatterCycleInterval,
+        boolean soulPrisonBusMarker) {
         this.ae2thingInfinityCellUsageFix = ae2thingInfinityCellUsageFix;
         this.projectorDismantle = projectorDismantle;
+        this.soulPrisonBusMarker = soulPrisonBusMarker;
         this.antimatterWireless = antimatterWireless;
         this.antimatterCycleInterval = antimatterCycleInterval;
         this.planetaryEngineProjector = planetaryEngineProjector;
@@ -180,6 +184,7 @@ final class FeatureSwitches {
         defaults.setProperty(PLANETARY_ENGINE_PROJECTOR, "true");
         defaults.setProperty(ANTIMATTER_CYCLE_INTERVAL, "true");
         defaults.setProperty(ANTIMATTER_WIRELESS, "true");
+        defaults.setProperty(SOUL_PRISON_BUS_MARKER, "true");
         defaults.setProperty(PROJECTOR_DISMANTLE, "true");
         try {
             Files.createDirectories(file.getParent());
@@ -231,7 +236,8 @@ final class FeatureSwitches {
                 read(values, PROJECTOR_DISMANTLE),
                 read(values, AE2THING_INFINITY_CELL_USAGE_FIX),
                 read(values, ANTIMATTER_WIRELESS),
-                read(values, ANTIMATTER_CYCLE_INTERVAL));
+                read(values, ANTIMATTER_CYCLE_INTERVAL),
+                read(values, SOUL_PRISON_BUS_MARKER));
             result.substanceReshapingDevice = read(values, "substanceReshapingDevice");
             result.godforgeFreeUpgrades = read(values, "godforgeFreeUpgrades");
             result.bookmarkMachineGroups = read(values, "bookmarkMachineGroups");
@@ -336,6 +342,7 @@ final class FeatureSwitches {
                 false,
                 false,
                 false,
+                false,
                 false);
         }
     }
@@ -360,6 +367,10 @@ final class FeatureSwitches {
         }
         if (antimatterWireless && loadedMods.contains("GoodGenerator")) {
             mixins.add("goodgenerator.AntimatterWirelessMixin");
+        }
+        if (soulPrisonBusMarker && loadedMods.contains("gregtech")
+            && (loadedMods.contains("123technology") || loadedMods.contains("123Technology"))) {
+            mixins.add("fix.SoulPrisonBusMarkerMixin");
         }
         if (projectorDismantle && loadedMods.contains("structurelib")) {
             mixins.add("structurelib.ProjectorDismantleMixin");

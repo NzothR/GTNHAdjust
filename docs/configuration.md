@@ -35,6 +35,7 @@
 | `hologramImprovements` | 全息投影仪生存建造改善总开关 | 两端 |
 | `planetaryEngineProjector` | 初代目行星发动机无粒子预览、整机外框、结构定义缓存和延后检查，使用 `structure_render=1` | 两端；默认开启，GTNL dev-290／StructureLib 1.4.47，重启生效 |
 | `projectorDismantle` | 投影仪 `dismantle=1` 拆除匹配的结构，`gt_hatch=1` 时包含匹配舱室。每次使用 StructureLib 生存放置配置的预算 | 两端；默认开启，GTNH 2.9.0／StructureLib 1.4.47，重启生效 |
+| `soulPrisonBusMarker` | 噬魂监狱主机槽没有已绑定动力刷怪笼时，从输入总线读取标记 | 两端；默认开启，GTNH 2.9.0／OTHTechnology 2.2.1.3，重启生效 |
 | `antimatterWireless` | 屏蔽拉格朗日湮灭矩阵默认无线，原版催化剂均可无线输出，激光源仓仅有线模式必需 | 两端；默认开启，GTNH 2.9.0／GregTech 5.09.54.265，重启生效 |
 | `antimatterCycleInterval` | 启用可配置的湮灭周期 | 两端；默认开启，GTNH 2.9.0／GregTech 5.09.54.265，重启生效 |
 | `structureLibAeAutoPlace` | 生存建造从 AE 取材料与流体 | 两端；受投影仪总开关控制 |
