@@ -29,6 +29,7 @@ final class FeatureSwitches {
     private static final String PROXY_TRACE = "proxyDispatchDiagnostics";
     private static final String CROP = "cropBreeder";
     private static final String GREENHOUSE = "steamGreenhouse";
+    private static final String MANA_CONVERSION = "manaConversionRecipes";
     private static final String CARPENTER = "carpenterRecipes";
     private static final String TERMINAL = "quickTerminal";
     private static final String GTSR_DIAGNOSTICS = "gtsrDiagnostics";
@@ -71,6 +72,7 @@ final class FeatureSwitches {
     final boolean cropBreeder;
     final boolean steamGreenhouse;
     final boolean carpenterRecipes;
+    final boolean manaConversionRecipes;
     final boolean quickTerminal;
     final boolean gtsrDiagnostics;
     final boolean gtsrRecipeSpeedCompatibility;
@@ -105,7 +107,7 @@ final class FeatureSwitches {
         boolean threadedJointProxy, boolean hideGtnlShimmerRecipes, boolean hideGtnrDisassemblerRecipes,
         boolean ae2thingTerminalRecipeFix, boolean planetaryEngineProjector, boolean projectorDismantle,
         boolean ae2thingInfinityCellUsageFix, boolean antimatterWireless, boolean antimatterCycleInterval,
-        boolean soulPrisonBusMarker) {
+        boolean soulPrisonBusMarker, boolean manaConversionRecipes) {
         this.ae2thingInfinityCellUsageFix = ae2thingInfinityCellUsageFix;
         this.projectorDismantle = projectorDismantle;
         this.soulPrisonBusMarker = soulPrisonBusMarker;
@@ -127,6 +129,7 @@ final class FeatureSwitches {
         this.cropBreeder = cropBreeder;
         this.steamGreenhouse = steamGreenhouse;
         this.carpenterRecipes = carpenterRecipes;
+        this.manaConversionRecipes = manaConversionRecipes;
         this.quickTerminal = quickTerminal;
         this.gtsrDiagnostics = gtsrDiagnostics;
         this.gtsrRecipeSpeedCompatibility = gtsrRecipeSpeedCompatibility;
@@ -163,6 +166,7 @@ final class FeatureSwitches {
         defaults.setProperty(GRAND_MAINTENANCE, "true");
         defaults.setProperty(GTNL_CRAFT_FIX, "true");
         defaults.setProperty(GREENHOUSE, "true");
+        defaults.setProperty(MANA_CONVERSION, "true");
         defaults.setProperty(CARPENTER, "true");
         defaults.setProperty(TERMINAL, "true");
         defaults.setProperty(GTSR_DIAGNOSTICS, "true");
@@ -237,7 +241,8 @@ final class FeatureSwitches {
                 read(values, AE2THING_INFINITY_CELL_USAGE_FIX),
                 read(values, ANTIMATTER_WIRELESS),
                 read(values, ANTIMATTER_CYCLE_INTERVAL),
-                read(values, SOUL_PRISON_BUS_MARKER));
+                read(values, SOUL_PRISON_BUS_MARKER),
+                read(values, MANA_CONVERSION));
             result.substanceReshapingDevice = read(values, "substanceReshapingDevice");
             result.godforgeFreeUpgrades = read(values, "godforgeFreeUpgrades");
             result.bookmarkMachineGroups = read(values, "bookmarkMachineGroups");
@@ -308,6 +313,7 @@ final class FeatureSwitches {
         } catch (IOException | RuntimeException failure) {
             LOG.warning("Cannot read feature switches from " + file + "; all features are disabled: " + failure);
             return new FeatureSwitches(
+                false,
                 false,
                 false,
                 false,

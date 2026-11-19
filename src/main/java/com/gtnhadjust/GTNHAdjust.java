@@ -16,6 +16,7 @@ import com.gtnhadjust.machine.loot.LootSimulatorRegistration;
 import com.gtnhadjust.machine.proxy.ProxyFactoryRegistration;
 import com.gtnhadjust.machine.threadedproxy.ThreadedProxyRegistration;
 import com.gtnhadjust.recipe.CarpenterRecipes;
+import com.gtnhadjust.recipe.ManaConversionRecipes;
 import com.gtnhadjust.soul.SoulVialMultipartHandler;
 import com.gtnhadjust.structurelib.PlanetaryEngineStructure;
 import com.gtnhadjust.structurelib.ProjectorDismantle;
@@ -343,6 +344,8 @@ public class GTNHAdjust {
             && Loader.isModLoaded("EnderIO")) LootSimulatorRegistration.registerCrafting();
         if (FeatureConfig.get().carpenterRecipes && Loader.isModLoaded("Forestry") && Loader.isModLoaded("gregtech"))
             CarpenterRecipes.register();
+        if (FeatureConfig.get().manaConversionRecipes && Loader.isModLoaded("gregtech"))
+            ManaConversionRecipes.register();
         if (Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech")) {
             SuperFragmentRecipes.register();
             if (collectorMatterCompression) MatterCompression.registerCrafting();
