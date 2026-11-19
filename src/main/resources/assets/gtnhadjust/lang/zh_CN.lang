@@ -25,6 +25,7 @@ gtnhadjust.threaded_proxy.status=线程 %s；已装样板 %s / 有效 %s；超�
 gtnhadjust.threaded_proxy.reservoir=蓄水仓已接入：配方用水免消耗
 gtnhadjust.threaded_proxy.missing_assembly=需要至少一个超级跨配方类型样板输入总成 (ME)
 gtnhadjust.threaded_proxy.idle=样板%s：%s
+gtnhadjust.threaded_proxy.idle_product=样板%s：%s · %s
 gtnhadjust.threaded_proxy.reason.missing_map=样板缺少配方池信息
 gtnhadjust.threaded_proxy.reason.wrong_map=没有定位器提供样板所需的配方池
 gtnhadjust.threaded_proxy.reason.invalid_pattern=样板无效或不是受支持的加工样板

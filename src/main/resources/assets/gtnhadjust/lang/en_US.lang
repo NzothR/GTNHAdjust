@@ -25,6 +25,7 @@ gtnhadjust.threaded_proxy.status=Threads %s; installed patterns %s / valid %s; O
 gtnhadjust.threaded_proxy.reservoir=Water reservoir connected: recipe water is not consumed
 gtnhadjust.threaded_proxy.missing_assembly=Requires at least one Super Cross-Recipe ME Pattern Input Assembly
 gtnhadjust.threaded_proxy.idle=Pattern %s: %s
+gtnhadjust.threaded_proxy.idle_product=Pattern %s: %s · %s
 gtnhadjust.threaded_proxy.reason.missing_map=Pattern has no recipe map information
 gtnhadjust.threaded_proxy.reason.wrong_map=No locator provides the pattern recipe map
 gtnhadjust.threaded_proxy.reason.invalid_pattern=Invalid or unsupported processing pattern

@@ -616,6 +616,9 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         failures.clear();
         definitionIndex.clear();
         for (PatternSlot slot : current) {
+            ICraftingPatternDetails details = CircuitPatternCodec
+                .decode(slot.pattern.copy(), getBaseMetaTileEntity().getWorld());
+            slot.firstProduct = ThreadedProxyDisplay.RunInfo.firstProduct(details);
             String name = PatternRecipeMap.name(slot.pattern);
             if (name == null || PatternRecipeMap.resolve(name) == null) {
                 failures.put(
@@ -632,8 +635,6 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 failures.put(slot.key, new Failure("blocked_map"));
                 continue;
             }
-            ICraftingPatternDetails details = CircuitPatternCodec
-                .decode(slot.pattern.copy(), getBaseMetaTileEntity().getWorld());
             ProxyPatternRecipe recipe = ProxyPatternRecipe.find(map, details);
             if (recipe != null) {
                 ItemStack installed = patterns.getStackInSlot(Integer.parseInt(slot.key));
@@ -956,8 +957,11 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 if (paused) failure = new Failure("paused");
             }
             rows.add(
-                ThreadedProxyDisplay.Row
-                    .idle(i + 1, failure == null ? "queued" : failure.reason, failure == null ? null : failure.result));
+                ThreadedProxyDisplay.Row.idle(
+                    i + 1,
+                    failure == null ? "queued" : failure.reason,
+                    failure == null ? null : failure.result,
+                    slot.firstProduct));
         }
         tasks.forEach((key, task) -> {
             if (!shown.contains(key)) rows.add(
@@ -1106,6 +1110,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
 
         final String key, label;
         final ItemStack pattern;
+        ThreadedProxyDisplay.RunInfo firstProduct;
 
         PatternSlot(String key, String label, ItemStack pattern) {
             this.key = key;

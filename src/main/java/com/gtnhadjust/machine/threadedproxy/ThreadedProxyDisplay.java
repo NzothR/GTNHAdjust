@@ -13,6 +13,7 @@ import net.minecraftforge.fluids.FluidStack;
 import com.gtnewhorizons.modularui.common.internal.network.NetworkUtils;
 import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadTask;
 
+import appeng.api.networking.crafting.ICraftingPatternDetails;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 import gregtech.api.recipe.check.CheckRecipeResult;
@@ -40,6 +41,19 @@ final class ThreadedProxyDisplay {
             this.estimated = estimated;
             this.parallel = parallel;
             this.overclocks = overclocks;
+        }
+
+        /** Keep a single stack for client-side name lookup on idle rows. */
+        static RunInfo firstProduct(ICraftingPatternDetails details) {
+            if (details == null) return null;
+            for (var output : details.getAEOutputs()) {
+                if (output == null || output.getStackSize() <= 0) continue;
+                if (output instanceof IAEItemStack item)
+                    return new RunInfo(GTUtility.copyAmount(1, item.getItemStack()), null, "", false, -1, -1);
+                if (output instanceof IAEFluidStack fluid)
+                    return new RunInfo(null, GTUtility.copyAmount(1, fluid.getFluidStack()), "", false, -1, -1);
+            }
+            return null;
         }
 
         /**
@@ -153,8 +167,8 @@ final class ThreadedProxyDisplay {
             this.eut = eut;
         }
 
-        static Row idle(int index, String reason, CheckRecipeResult result) {
-            return new Row(index, reason, result, null, 0, 0, 0);
+        static Row idle(int index, String reason, CheckRecipeResult result, RunInfo product) {
+            return new Row(index, reason, result, product, 0, 0, 0);
         }
 
         static Row running(int index, RecipeThreadTask task, RunInfo info, boolean paused) {
@@ -177,8 +191,12 @@ final class ThreadedProxyDisplay {
         String details() {
             String state = result != null ? result.getDisplayString()
                 : reason.isEmpty() ? "" : StatCollector.translateToLocal("gtnhadjust.threaded_proxy.reason." + reason);
-            if (duration == 0)
-                return StatCollector.translateToLocalFormatted("gtnhadjust.threaded_proxy.idle", index, state);
+            if (duration == 0) {
+                return info == null
+                    ? StatCollector.translateToLocalFormatted("gtnhadjust.threaded_proxy.idle", index, state)
+                    : StatCollector
+                        .translateToLocalFormatted("gtnhadjust.threaded_proxy.idle_product", index, name(), state);
+            }
             String product = info == null ? "?"
                 : (info.estimated ? "~" : "") + info.amount + (info.item != null ? "x" : "L");
             String row = String.format(
