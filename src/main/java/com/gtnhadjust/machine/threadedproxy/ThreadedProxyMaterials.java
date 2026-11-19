@@ -62,7 +62,7 @@ final class ThreadedProxyMaterials {
         }
     }
 
-    private static boolean consumes(GTRecipe recipe, ItemStack item) {
+    static boolean consumes(GTRecipe recipe, ItemStack item) {
         for (RecipeItemInput required : recipe.getCachedCombinedItemInputs())
             if (required.inputAmount > 0 && required.matchesRecipe(GTOreDictUnificator.getAssociation(item), item))
                 return true;

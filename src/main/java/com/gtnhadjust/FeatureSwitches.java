@@ -23,6 +23,7 @@ final class FeatureSwitches {
     private static final String YSMU_ARMS = "ysmuAnimatedArms";
     private static final String LOOT_SIMULATOR = "lootSimulator";
     private static final String PROXY_FACTORY = "proxyFactory";
+    private static final String THREADED_PROXY_AE_OUTPUT = "threadedProxyAeOutput";
     private static final String THREADED_PROXY = "threadedJointProxy";
     private static final String HIDE_SHIMMER = "hideGtnlShimmerRecipes";
     private static final String HIDE_DISASSEMBLER = "hideGtnrDisassemblerRecipes";
@@ -67,6 +68,7 @@ final class FeatureSwitches {
     final boolean lootSimulator;
     final boolean proxyFactory;
     final boolean threadedJointProxy;
+    final boolean threadedProxyAeOutput;
     final boolean hideGtnlShimmerRecipes;
     final boolean hideGtnrDisassemblerRecipes;
     final boolean proxyDispatchDiagnostics;
@@ -109,7 +111,8 @@ final class FeatureSwitches {
         boolean threadedJointProxy, boolean hideGtnlShimmerRecipes, boolean hideGtnrDisassemblerRecipes,
         boolean ae2thingTerminalRecipeFix, boolean planetaryEngineProjector, boolean projectorDismantle,
         boolean ae2thingInfinityCellUsageFix, boolean antimatterWireless, boolean antimatterCycleInterval,
-        boolean soulPrisonBusMarker, boolean manaConversionRecipes, boolean offhandPickupFix) {
+        boolean soulPrisonBusMarker, boolean manaConversionRecipes, boolean offhandPickupFix,
+        boolean threadedProxyAeOutput) {
         this.ae2thingInfinityCellUsageFix = ae2thingInfinityCellUsageFix;
         this.projectorDismantle = projectorDismantle;
         this.soulPrisonBusMarker = soulPrisonBusMarker;
@@ -120,6 +123,7 @@ final class FeatureSwitches {
         this.hideGtnlShimmerRecipes = hideGtnlShimmerRecipes;
         this.hideGtnrDisassemblerRecipes = hideGtnrDisassemblerRecipes;
         this.threadedJointProxy = threadedJointProxy;
+        this.threadedProxyAeOutput = threadedProxyAeOutput;
         this.grandAssemblyAutoMaintenance = grandAssemblyAutoMaintenance;
         this.gtnlQuickTerminalCraftFix = gtnlQuickTerminalCraftFix;
         this.questAeRetrieval = questAeRetrieval;
@@ -160,6 +164,7 @@ final class FeatureSwitches {
         defaults.setProperty(YSMU_ARMS, "true");
         defaults.setProperty(LOOT_SIMULATOR, "true");
         defaults.setProperty(PROXY_FACTORY, "true");
+        defaults.setProperty(THREADED_PROXY_AE_OUTPUT, "true");
         defaults.setProperty(THREADED_PROXY, "true");
         defaults.setProperty(HIDE_SHIMMER, "true");
         defaults.setProperty(HIDE_DISASSEMBLER, "true");
@@ -247,7 +252,8 @@ final class FeatureSwitches {
                 read(values, ANTIMATTER_CYCLE_INTERVAL),
                 read(values, SOUL_PRISON_BUS_MARKER),
                 read(values, MANA_CONVERSION),
-                read(values, OFFHAND_PICKUP));
+                read(values, OFFHAND_PICKUP),
+                read(values, THREADED_PROXY_AE_OUTPUT));
             result.substanceReshapingDevice = read(values, "substanceReshapingDevice");
             result.godforgeFreeUpgrades = read(values, "godforgeFreeUpgrades");
             result.bookmarkMachineGroups = read(values, "bookmarkMachineGroups");
@@ -355,6 +361,7 @@ final class FeatureSwitches {
                 false,
                 false,
                 false,
+                false,
                 false);
         }
     }
@@ -374,6 +381,12 @@ final class FeatureSwitches {
 
     List<String> selectMixins(Set<String> loadedMods, boolean client) {
         List<String> mixins = new ArrayList<>();
+        if (threadedJointProxy && threadedProxyAeOutput
+            && loadedMods.contains("gtneverreset")
+            && loadedMods.contains("gregtech")
+            && loadedMods.contains("appliedenergistics2")) {
+            mixins.add("gtnr.ThreadedProxyOutputAccessor");
+        }
         if (antimatterCycleInterval && loadedMods.contains("GoodGenerator")) {
             mixins.add("goodgenerator.AntimatterCycleMixin");
         }

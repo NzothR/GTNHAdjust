@@ -53,6 +53,7 @@ public class GTNHAdjust {
     public static boolean threadedProxyWirelessPower;
     public static boolean threadedProxyVoidUnlistedOutputs = true;
     public static boolean threadedProxyExportIngredients = true;
+    public static boolean threadedProxyAeOutput;
     public static boolean proxyIndirectLocators = true;
     public static boolean proxyExtremeCrafting;
     public static boolean locatorNavigation;
@@ -84,6 +85,7 @@ public class GTNHAdjust {
         if (FeatureConfig.get().soulVialExpandedCapture && Loader.isModLoaded("EnderIO"))
             net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(new SoulVialMultipartHandler());
         patternDeduplication = FeatureConfig.get().patternDeduplication;
+        threadedProxyAeOutput = FeatureConfig.get().threadedProxyAeOutput;
         gtnrVirtualTools = FeatureConfig.get().gtnrVirtualTools && Loader.isModLoaded("gtneverreset")
             && Loader.isModLoaded("appliedenergistics2");
         if (gtnrVirtualTools)

@@ -17,7 +17,7 @@ public final class ThreadedProxyRegistration {
     public static void registerMachine(int id) {
         if (GregTechAPI.METATILEENTITIES[id] != null)
             throw new IllegalStateException("Threaded joint proxy MTE ID is already in use: " + id);
-        controller = new ThreadedJointProxy(id, "gtnhadjust.threaded_joint_proxy", "Threaded Joint Proxy")
+        controller = new ThreadedJointProxy(id, "gtnhadjust.threaded_joint_proxy", "Pattern Computation Matrix")
             .getStackForm(1);
     }
 

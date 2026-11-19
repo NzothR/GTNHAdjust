@@ -25,10 +25,14 @@ import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructa
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnhadjust.GTNHAdjust;
+import com.gtnhadjust.compat.GtnrToolNetwork;
 import com.gtnhadjust.machine.proxy.ProxyLocatorHost;
 import com.gtnhadjust.machine.proxy.ProxyLocatorInventory;
 import com.gtnhadjust.machine.proxy.ProxyLocatorPool;
+import com.gtnhadjust.machine.proxy.ProxyThreadOutputs;
+import com.gtnhadjust.mixins.gtnr.ThreadedProxyOutputAccessor;
 import com.xyp.gtneverreset.common.machine.hatch.CrossRecipeMEPatternBuffer;
+import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadOutputs;
 import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadTask;
 import com.xyp.gtneverreset.common.me.CircuitPatternCodec;
 import com.xyp.gtneverreset.common.me.PatternRecipeMap;
@@ -37,6 +41,7 @@ import appeng.api.networking.crafting.ICraftingPatternDetails;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.storage.data.IAEStack;
+import appeng.me.helpers.AENetworkProxy;
 import gregtech.api.enums.GTValues;
 import gregtech.api.enums.Textures;
 import gregtech.api.enums.VoidingMode;
@@ -65,6 +70,8 @@ import gregtech.api.util.shutdown.ShutDownReason;
 import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.common.misc.WirelessNetworkManager;
 import gregtech.common.tileentities.machines.IDualInputHatch;
+import gregtech.common.tileentities.machines.MTEHatchInputBusME;
+import gregtech.common.tileentities.machines.MTEHatchInputME;
 import gtPlusPlus.xmod.gregtech.api.metatileentity.implementations.MTEHatchReservoir;
 
 /** One physical pattern slot defines one thread; crafting-buffer deliveries are never machine ingredients. */
@@ -381,8 +388,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         for (Iterator<RecipeThreadTask> it = tasks.values()
             .iterator(); it.hasNext();) {
             RecipeThreadTask task = it.next();
-            if (task.isFinished() && task.getOutputs()
-                .flush(this)) {
+            if (task.isFinished() && flushOutputs(task.getOutputs())) {
                 it.remove();
                 recipesDone += task.getParallels();
                 outputAfterRecipe();
@@ -405,6 +411,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         try {
             long remaining = Math.max(0, getMaxInputEu() - runningPower());
             long voltage = getMaxInputVoltage();
+            List<AENetworkProxy> toolNetworks = GTNHAdjust.gtnrVirtualTools ? toolNetworks() : Collections.emptyList();
             for (Definition definition : definitions) {
                 if (tasks.containsKey(definition.key)) continue;
                 CheckRecipeResult source = locatorPool.checkStart(this, definition.map, definition.recipe.recipe);
@@ -412,7 +419,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                     failures.put(definition.key, new Failure(source));
                     continue;
                 }
-                ThreadInputs input = selectInputs(definition, getStoredInputs(), getStoredFluids());
+                ThreadInputs input = selectInputs(definition, getStoredInputs(), getStoredFluids(), toolNetworks);
                 if (!hasReadyInputs(input)) continue;
                 ThreadPatternSettings settings = ThreadPatternSettings
                     .read(patterns.getStackInSlot(Integer.parseInt(definition.key)));
@@ -445,9 +452,41 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         }
     }
 
+    /** Use the controller network for direct delivery only when the structure has no output hatches. */
+    private boolean flushOutputs(RecipeThreadOutputs outputs) {
+        if (!GTNHAdjust.threadedProxyAeOutput || GTUtility.validMTEList(mOutputBusses)
+            .iterator()
+            .hasNext()
+            || GTUtility.validMTEList(mOutputHatches)
+                .iterator()
+                .hasNext())
+            return outputs.flush(this);
+        ThreadedProxyOutputAccessor ledger = (ThreadedProxyOutputAccessor) (Object) outputs;
+        return ProxyThreadOutputs.flushAe(
+            this,
+            getProxy(),
+            ledger.gtnhadjust$getItems(),
+            ledger.gtnhadjust$getFluids(),
+            ledger.gtnhadjust$getItemAmounts(),
+            ledger.gtnhadjust$getFluidAmounts());
+    }
+
+    /** Use the controller and the same AE connections that supply the machine's inputs. */
+    private List<AENetworkProxy> toolNetworks() {
+        var networks = new java.util.LinkedHashSet<AENetworkProxy>();
+        AENetworkProxy controller = getProxy();
+        if (controller != null) networks.add(controller);
+        for (CrossRecipeMEPatternBuffer hatch : GTUtility.validMTEList(patternHatches)) networks.add(hatch.getProxy());
+        for (MTEHatchInputBus input : GTUtility.validMTEList(mInputBusses))
+            if (input instanceof MTEHatchInputBusME bus) networks.add(bus.getProxy());
+        for (MTEHatchInput input : GTUtility.validMTEList(mInputHatches))
+            if (input instanceof MTEHatchInputME hatch) networks.add(hatch.getProxy());
+        return new ArrayList<>(networks);
+    }
+
     /** Select physical inputs for this pattern; reservoir water never enters allocation or consumption views. */
     private ThreadInputs selectInputs(Definition definition, List<ItemStack> ordinaryItems,
-        List<FluidStack> ordinaryFluids) {
+        List<FluidStack> ordinaryFluids, List<AENetworkProxy> toolNetworks) {
         ProxyPatternRecipe match = definition.recipe;
         List<ItemStack> inputs = ordinaryItems.stream()
             .filter(item -> item != null && item.stackSize > 0)
@@ -460,13 +499,17 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             if (isRequiredTool(match, item)) inputs.add(GTUtility.copyAmount(1, item));
         }
         Collections.addAll(inputs, match.virtualTools);
-        if (GTNHAdjust.gtnrVirtualTools) {
-            for (ItemStack tool : com.gtnhadjust.compat.GtnrToolPatterns.recorded(match.pattern)) {
-                if (com.gtnhadjust.compat.GtnrToolPatterns.builtIn(tool) || inputs.stream()
-                    .anyMatch(item -> GTUtility.areStacksEqual(item, tool, false))) continue;
-                if (com.gtnhadjust.compat.GtnrToolNetwork
-                    .available(tool, inputs.toArray(new ItemStack[0]), getProxy(), getBaseMetaTileEntity().getTimer()))
-                    inputs.add(GTUtility.copyAmount(1, tool));
+        for (ItemStack tool : match.externalTools) {
+            if (toolNetworks.isEmpty() || ThreadedProxyMaterials.consumes(definition.execution, tool)
+                || inputs.stream()
+                    .anyMatch(item -> GTUtility.areStacksEqual(item, tool, false)))
+                continue;
+            for (AENetworkProxy network : toolNetworks) {
+                if (!GtnrToolNetwork
+                    .available(tool, GTValues.emptyItemStackArray, network, getBaseMetaTileEntity().getTimer()))
+                    continue;
+                inputs.add(GTUtility.copyAmount(1, tool));
+                break;
             }
         }
         FluidStack[] fluids = ordinaryFluids.stream()

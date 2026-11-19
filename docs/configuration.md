@@ -9,8 +9,9 @@
 | 开关 | 功能 | 范围 |
 | --- | --- | --- |
 | `gtnrVirtualTools` | 完整 NC 元数据、虚拟工具目录与 PH 可用状态桥接 | 两端；默认开启，关闭不加载本组六个共用 Mixin 和一个客户端导入 Mixin |
-| `proxyFactory` | 代理联合工厂 | 两端 |
-| `threadedJointProxy` | 多线程联合代理 | 两端 |
+| `threadedProxyAeOutput` | 样板演算矩阵没有输出舱室时，使用主机连接的 AE 网络交付产物 | 两端；默认开启，GTNH 2.9.0／GTNR 0.1.48／0.1.50，重启生效 |
+| `proxyFactory` | 总线仲裁核心 | 两端 |
+| `threadedJointProxy` | 样板演算矩阵 | 两端 |
 | `substanceReshapingDevice` | EyeOfHarmonyBuffer EV 物质重塑仪、控制器制作及 17 条加工配方，ID 31996 | 两端；默认开启，GTNH 2.9.0，重启生效 |
 | `godforgeFreeUpgrades` | 诸神之锻炉升级无前置、环数、碎片或材料限制 | 两端；默认开启，GregTech 5.09.54.265，关闭后不加载对应两项 Mixin，重启生效 |
 | `lootSimulator` | 战利品模拟室 | 两端 |

@@ -89,7 +89,13 @@ public final class ProxyThreadOutputs {
 
     /** Commit long-sized AE transfers directly; reduce each balance only by the accepted amount. */
     public boolean flushAe(MTEMultiBlockBase machine, appeng.me.helpers.AENetworkProxy network) {
-        if (largest().signum() == 0) return true;
+        return flushAe(machine, network, items, fluids, itemAmounts, fluidAmounts);
+    }
+
+    /** Reuse direct AE delivery for a native GTNR ledger without converting its persisted amounts. */
+    public static boolean flushAe(MTEMultiBlockBase machine, appeng.me.helpers.AENetworkProxy network,
+        ItemStack[] items, FluidStack[] fluids, BigInteger[] itemAmounts, BigInteger[] fluidAmounts) {
+        if (!hasPending(itemAmounts) && !hasPending(fluidAmounts)) return true;
         if (network == null || !network.isActive()) return false;
         try {
             MachineSource source = new MachineSource((IActionHost) machine.getBaseMetaTileEntity());
@@ -133,7 +139,12 @@ public final class ProxyThreadOutputs {
         } catch (GridAccessException e) {
             if (GTNHAdjust.debug) GTNHAdjust.LOG.info("[proxy-ae] network unavailable during output");
         }
-        return largest().signum() == 0;
+        return !hasPending(itemAmounts) && !hasPending(fluidAmounts);
+    }
+
+    private static boolean hasPending(BigInteger[] amounts) {
+        for (BigInteger amount : amounts) if (amount.signum() > 0) return true;
+        return false;
     }
 
     /** Native transactional item/fluid bus fallback for machines without an active AE node. */

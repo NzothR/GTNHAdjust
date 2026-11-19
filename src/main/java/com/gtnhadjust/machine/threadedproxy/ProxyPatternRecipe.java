@@ -31,17 +31,19 @@ public final class ProxyPatternRecipe {
     final ItemStack[] consumedItems;
     final FluidStack[] consumedFluids;
     final ItemStack[] virtualTools;
+    final ItemStack[] externalTools;
     final boolean exact;
     final IAEStack<?> displayOutput;
 
     private ProxyPatternRecipe(GTRecipe recipe, ItemStack[] items, FluidStack[] fluids, ItemStack[] tools,
-        boolean exact, ICraftingPatternDetails details) {
+        ItemStack[] externalTools, boolean exact, ICraftingPatternDetails details) {
         this.recipe = recipe;
         pattern = details.getPattern()
             .copy();
         consumedItems = items;
         consumedFluids = fluids;
         virtualTools = tools;
+        this.externalTools = externalTools;
         this.exact = exact;
         // The uncondensed array retains the player's encoded output order.
         displayOutput = Arrays.stream(details.getAEOutputs())
@@ -156,6 +158,7 @@ public final class ProxyPatternRecipe {
             }
         }
         List<ItemStack> virtual = new ArrayList<>();
+        List<ItemStack> external = new ArrayList<>();
         List<ItemStack> simulation = new ArrayList<>(consumed);
         boolean exact = true;
         for (RecipeItemInput input : required) if (input.inputAmount == 0) {
@@ -170,6 +173,7 @@ public final class ProxyPatternRecipe {
             tool.stackSize = 1;
             simulation.add(tool);
             if (isVirtual(tool)) virtual.add(tool);
+            else external.add(tool);
         }
         if (com.gtnhadjust.compat.GtnrToolPatterns.hasRecord(details.getPattern()) && !exact) return null;
         List<FluidStack> consumedLiquid = new ArrayList<>();
@@ -226,6 +230,7 @@ public final class ProxyPatternRecipe {
             consumedItems,
             consumedFluids,
             virtual.toArray(new ItemStack[0]),
+            external.toArray(new ItemStack[0]),
             exact,
             details);
     }
