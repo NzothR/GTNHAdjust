@@ -37,6 +37,7 @@
 | `planetaryEngineProjector` | 初代目行星发动机无粒子预览、整机外框、结构定义缓存和延后检查，使用 `structure_render=1` | 两端；默认开启，GTNL dev-290／StructureLib 1.4.47，重启生效 |
 | `projectorDismantle` | 投影仪 `dismantle=1` 拆除匹配的结构，`gt_hatch=1` 时包含匹配舱室。每次使用 StructureLib 生存放置配置的预算 | 两端；默认开启，GTNH 2.9.0／StructureLib 1.4.47，重启生效 |
 | `soulPrisonBusMarker` | 噬魂监狱主机槽没有已绑定动力刷怪笼时，从输入总线读取标记 | 两端；默认开启，GTNH 2.9.0／OTHTechnology 2.2.1.3，重启生效 |
+| `othComputerCryotheum` | 异星量子超级计算机在超级冷却液不足时可等量改用极寒之凛冰 | 两端；默认开启，GTNH 2.9.0／OTHTechnology 2.2.1.3，重启生效 |
 | `manaConversionRecipes` | 流体加热机的两条液态魔力 1:1 转换配方，每批 1,000,000 L、20 刻、HV | 两端；默认开启，GTNH 2.9.0，两种流体需已注册，重启生效 |
 | `offhandPickupFix` | 无用之杖自动收集跳过空副手槽 | 两端；默认开启，GTNH 2.9.0／GTNR 0.1.50／Backhand 1.8.18，重启生效 |
 | `antimatterWireless` | 屏蔽拉格朗日湮灭矩阵默认无线，原版催化剂均可无线输出，激光源仓仅有线模式必需 | 两端；默认开启，GTNH 2.9.0／GregTech 5.09.54.265，重启生效 |
