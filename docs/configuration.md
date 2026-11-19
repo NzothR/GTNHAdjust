@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | `gtnrVirtualTools` | 完整 NC 元数据、虚拟工具目录与 PH 可用状态桥接 | 两端；默认开启，关闭不加载本组六个共用 Mixin 和一个客户端导入 Mixin |
 | `threadedProxyAeOutput` | 样板演算矩阵没有输出舱室时，使用主机连接的 AE 网络交付产物 | 两端；默认开启，GTNH 2.9.0／GTNR 0.1.48／0.1.50，重启生效 |
-| `proxyFactory` | 总线仲裁核心 | 两端 |
+| `proxyFactory` | 样板集成矩阵 | 两端 |
 | `threadedJointProxy` | 样板演算矩阵 | 两端 |
 | `substanceReshapingDevice` | EyeOfHarmonyBuffer EV 物质重塑仪、控制器制作及 17 条加工配方，ID 31996 | 两端；默认开启，GTNH 2.9.0，重启生效 |
 | `godforgeFreeUpgrades` | 诸神之锻炉升级无前置、环数、碎片或材料限制 | 两端；默认开启，GregTech 5.09.54.265，关闭后不加载对应两项 Mixin，重启生效 |
@@ -38,6 +38,7 @@
 | `projectorDismantle` | 投影仪 `dismantle=1` 拆除匹配的结构，`gt_hatch=1` 时包含匹配舱室。每次使用 StructureLib 生存放置配置的预算 | 两端；默认开启，GTNH 2.9.0／StructureLib 1.4.47，重启生效 |
 | `soulPrisonBusMarker` | 噬魂监狱主机槽没有已绑定动力刷怪笼时，从输入总线读取标记 | 两端；默认开启，GTNH 2.9.0／OTHTechnology 2.2.1.3，重启生效 |
 | `othComputerCryotheum` | 异星量子超级计算机在超级冷却液不足时可等量改用极寒之凛冰 | 两端；默认开启，GTNH 2.9.0／OTHTechnology 2.2.1.3，重启生效 |
+| `messTechSuperElevator` | 混乱科技模块识别 GTNL 超级太空电梯并可使用其算力和流体 | 两端；默认开启，GTNH 2.9.0／MessTech 3.3／GTNL dev-290，重启生效 |
 | `manaConversionRecipes` | 流体加热机的两条液态魔力 1:1 转换配方，每批 1,000,000 L、20 刻、HV | 两端；默认开启，GTNH 2.9.0，两种流体需已注册，重启生效 |
 | `offhandPickupFix` | 无用之杖自动收集跳过空副手槽 | 两端；默认开启，GTNH 2.9.0／GTNR 0.1.50／Backhand 1.8.18，重启生效 |
 | `antimatterWireless` | 屏蔽拉格朗日湮灭矩阵默认无线，原版催化剂均可无线输出，激光源仓仅有线模式必需 | 两端；默认开启，GTNH 2.9.0／GregTech 5.09.54.265，重启生效 |

@@ -40,6 +40,7 @@ dependencies {
     compileOnly(files("ref/libs/gtnrlib-0.1.35.jar"))
     compileOnly(files("ref/libs/ysmu-1.9.jar"))
     compileOnly(files("ref/libs/gtnl-instance.jar"))
+    compileOnly(files("ref/libs/fastutil-8.5.18.jar"))
     compileOnly(files("ref/libs/gtnllib-1.1.5.jar"))
     compileOnly(files("ref/libs/modularui2-instance.jar"))
     compileOnly(files("ref/libs/nech-instance.jar"))

@@ -39,6 +39,8 @@ Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅�
 
 ## 补充本地编译依赖
 
+超级太空电梯兼容编译使用 Prism 实例的 Minecraft 库 `fastutil-8.5.18.jar`，保存为 `ref/libs/fastutil-8.5.18.jar`。该库只用于编译，不打包进模组。
+
 `dependencies.gradle` 中的 `ref/libs/` 依赖需从对应游戏实例准备，仅供编译，不打包进本模组。包括 NEI 2.8.171、AE2 rv3-beta-1095、NotEnoughEnergistics 1.7.50、GTSteamReborn 2.1.9、NECH 等，完整文件名以该 Gradle 文件为准。参考源码保存在不提交的 `ref/`。
 
 新增玩法功能及配置时同步维护 README 或对应使用说明；历史变化记录到 [history.md](history.md)。运行时验证由游戏端完成，构建和静态检查不代表游戏测试通过。

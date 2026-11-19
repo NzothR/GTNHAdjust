@@ -2,7 +2,7 @@ package com.gtnhadjust.machine.threadedproxy;
 
 import net.minecraft.item.ItemStack;
 
-import com.science.gtnl.utils.enums.GTNLItemList;
+import com.gtnhadjust.machine.proxy.ProxyFactoryRegistration;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.util.GTModHandler;
@@ -22,8 +22,9 @@ public final class ThreadedProxyRegistration {
     }
 
     public static void registerCrafting() {
-        if (!GTModHandler
-            .addShapelessCraftingRecipe(controller.copy(), new Object[] { GTNLItemList.SmeltingMixingFurnace.get(1) }))
+        ItemStack integrationMatrix = ProxyFactoryRegistration.controllerStack();
+        if (integrationMatrix == null) return;
+        if (!GTModHandler.addShapelessCraftingRecipe(controller.copy(), new Object[] { integrationMatrix }))
             throw new IllegalStateException("Cannot register threaded joint proxy controller recipe");
     }
 }
