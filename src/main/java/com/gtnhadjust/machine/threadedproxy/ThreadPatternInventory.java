@@ -42,9 +42,6 @@ final class ThreadPatternInventory extends ItemStackHandler {
 
     @Override
     protected void onContentsChanged(int slot) {
-        ItemStack stack = getStackInSlot(slot);
-        if (stack != null && (!stack.hasTagCompound() || !stack.getTagCompound()
-            .hasKey(ThreadPatternSettings.KEY))) new ThreadPatternSettings().write(stack);
         owner.patternsChanged();
     }
 

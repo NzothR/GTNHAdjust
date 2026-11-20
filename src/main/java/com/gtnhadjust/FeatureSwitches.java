@@ -399,8 +399,7 @@ final class FeatureSwitches {
             mixins.add("gtnl.SuperElevatorMessTechMixin");
             mixins.add("fix.MessTechElevatorModuleMixin");
         }
-        if (threadedJointProxy && threadedProxyAeOutput
-            && loadedMods.contains("gtneverreset")
+        if (threadedJointProxy && loadedMods.contains("gtneverreset")
             && loadedMods.contains("gregtech")
             && loadedMods.contains("appliedenergistics2")) {
             mixins.add("gtnr.ThreadedProxyOutputAccessor");
