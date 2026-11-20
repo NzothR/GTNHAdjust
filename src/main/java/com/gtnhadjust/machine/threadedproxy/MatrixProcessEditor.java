@@ -3,7 +3,6 @@ package com.gtnhadjust.machine.threadedproxy;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import net.minecraft.item.ItemStack;
@@ -157,25 +156,33 @@ final class MatrixProcessEditor {
             }
             case "settings" -> {
                 int parallel = positive(a[3]), oc = Math.max(0, Integer.parseInt(a[4]));
-                long power = Long.parseLong(a[5]);
                 node.parallel = parallel;
                 node.oc = oc;
-                node.power = power < 1 ? -1 : power;
             }
             case "target" -> {
                 Definition definition = machine.nodeDefinition(node);
                 if (definition == null) return;
-                int index = Integer.parseInt(a[3]);
-                Port port = ports(definition, true).get(index);
-                if (port.chance <= 0 || graph.edges.values()
-                    .stream()
-                    .anyMatch(edge -> edge.source == node.id && edge.material.matches(port.material))) return;
-                if (graph.target != node.id || graph.targetPort != index) {
+                boolean enabled = "1".equals(a[3]);
+                if (!enabled && graph.target != node.id) return;
+                int index = 0;
+                if (enabled) {
+                    List<Port> outputs = ports(definition, true);
+                    while (index < outputs.size()) {
+                        Port port = outputs.get(index);
+                        if (port.chance > 0 && graph.edges.values()
+                            .stream()
+                            .noneMatch(edge -> edge.source == node.id && edge.material.matches(port.material))) break;
+                        index++;
+                    }
+                    if (index == outputs.size()) return;
+                }
+                int target = enabled ? node.id : 0;
+                if (graph.target != target || graph.targetPort != index) {
                     graph.production.clear();
                     graph.produced = 0;
                     graph.measuredSince = -1;
                 }
-                graph.target = node.id;
+                graph.target = target;
                 graph.targetPort = index;
             }
             default -> {}
@@ -273,7 +280,7 @@ final class MatrixProcessEditor {
                 if (yield > 0) needed = Math.max(needed, entry.getValue() / yield);
             }
             if (needed <= 0) continue;
-            long budget = machine.nodeBudget(node);
+            long budget = machine.getMaxInputEu();
             double bestRate = -1;
             long bestPower = Long.MAX_VALUE;
             int bestDuration = 0;
@@ -348,10 +355,10 @@ final class MatrixProcessEditor {
     private double operations(Node node) {
         Definition definition = machine.nodeDefinition(node);
         if (definition == null) return 0;
-        var plan = machine.nodePlan(definition, node.oc, machine.nodeBudget(node));
+        var plan = machine.nodePlan(definition, node.oc, machine.getMaxInputEu());
         if (plan == null) return 0;
         long parallel = ThreadedJointProxy.scaled(node.parallel, model.parallelMultiplier);
-        if (plan.eut > 0) parallel = Math.min(parallel, machine.nodeBudget(node) / plan.eut);
+        if (plan.eut > 0) parallel = Math.min(parallel, machine.getMaxInputEu() / plan.eut);
         return 20.0 * parallel / plan.duration;
     }
 
@@ -432,7 +439,7 @@ final class MatrixProcessEditor {
         for (Node node : graph.nodes.values()) {
             Definition definition = definitions.get(node.id);
             if (definition == null) continue;
-            var plan = machine.nodePlan(definition, node.oc, machine.nodeBudget(node));
+            var plan = machine.nodePlan(definition, node.oc, machine.getMaxInputEu());
             if (plan != null) totalPower += attainable.getOrDefault(node.id, 0.0) * plan.duration * plan.eut / 20.0;
         }
         double scale = totalPower > machine.getMaxInputEu() ? machine.getMaxInputEu() / totalPower : 1;
@@ -479,53 +486,12 @@ final class MatrixProcessEditor {
             tag.setInteger("y", node.y);
             tag.setInteger("parallel", node.parallel);
             tag.setInteger("oc", node.oc);
-            tag.setLong("power", node.power);
             tag.setString("state", machine.nodeState(node));
             Definition definition = machine.nodeDefinition(node);
             tag.setBoolean("valid", definition != null);
             if (definition != null) {
-                tag.setString("map", definition.map.unlocalizedName);
                 tag.setTag("in", describe(ports(definition, false)));
                 tag.setTag("out", describe(ports(definition, true)));
-                NBTTagList catalysts = new NBTTagList();
-                for (ItemStack tool : definition.recipe.virtualTools) catalysts.appendTag(describeTool(tool));
-                for (ItemStack tool : definition.recipe.externalTools) catalysts.appendTag(describeTool(tool));
-                for (var fluid : definition.execution.mFluidInputs)
-                    if (fluid != null && fluid.amount == 0) catalysts.appendTag(new Material(null, fluid).save());
-                NBTTagList discarded = new NBTTagList();
-                for (int i = 0; i < definition.execution.mOutputs.length; i++) {
-                    ItemStack output = definition.execution.mOutputs[i];
-                    if (output != null && !definition.itemOutputs.get(i)) discarded.appendTag(
-                        describe(
-                            new Port(
-                                new Material(output, null),
-                                output.stackSize,
-                                definition.execution.getOutputChance(i))));
-                }
-                for (int i = 0; i < definition.execution.mFluidOutputs.length; i++) {
-                    var output = definition.execution.mFluidOutputs[i];
-                    if (output != null && !definition.fluidOutputs.get(i)) discarded.appendTag(
-                        describe(
-                            new Port(
-                                new Material(null, output),
-                                output.amount,
-                                definition.execution.getFluidOutputChance(i))));
-                }
-                tag.setTag("discarded", discarded);
-                tag.setTag("tools", catalysts);
-                var plan = machine.nodePlan(definition, node.oc, machine.nodeBudget(node));
-                if (plan != null) {
-                    double ops = operations(node);
-                    tag.setString(
-                        "estimate",
-                        String.format(
-                            Locale.ROOT,
-                            "%.1f EU/t · %.2f s · %.2f ops/s",
-                            ops * plan.duration / 20.0 * plan.eut,
-                            plan.duration / 20.0,
-                            ops));
-                    tag.setDouble("ops", ops);
-                }
             }
             nodes.appendTag(tag);
         }
@@ -540,10 +506,6 @@ final class MatrixProcessEditor {
             tag.setLong("amount", edge.amount);
             edges.appendTag(tag);
         }
-    }
-
-    private static NBTTagCompound describeTool(ItemStack tool) {
-        return new Material(tool, null).save();
     }
 
     private static NBTTagList describe(List<Port> ports) {

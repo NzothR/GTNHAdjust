@@ -109,7 +109,6 @@ final class MatrixProcessGraphs {
         final int id, slot;
         final ItemStack pattern;
         int x, y, oc, parallel = 1;
-        long power = -1;
 
         Node(int id, int slot, ItemStack pattern) {
             this.id = id;
@@ -369,7 +368,6 @@ final class MatrixProcessGraphs {
                 tag.setInteger("y", node.y);
                 tag.setInteger("parallel", node.parallel);
                 tag.setInteger("oc", node.oc);
-                tag.setLong("power", node.power);
                 nodes.appendTag(tag);
             }
             for (Edge edge : graph.edges.values()) {
@@ -416,7 +414,6 @@ final class MatrixProcessGraphs {
                 node.y = data.getInteger("y");
                 node.parallel = data.getInteger("parallel");
                 node.oc = data.getInteger("oc");
-                node.power = data.getLong("power");
                 graph.nodes.put(node.id, node);
             }
             for (int e = 0; e < edges.tagCount(); e++) {

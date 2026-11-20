@@ -484,7 +484,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 return 0;
             }
         }
-        long budget = node.power < 0 ? remaining : Math.min(remaining, node.power);
+        long budget = remaining;
         var plan = nodePlan(definition, node.oc, budget);
         if (plan == null) {
             failures
@@ -592,10 +592,6 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         Failure failure = failures.get(node.key());
         if (failure != null && failure.result != null) return failure.result.getDisplayString();
         return failure == null ? "idle" : failure.reason;
-    }
-
-    long nodeBudget(Node node) {
-        return node.power < 0 ? getMaxInputEu() : Math.min(getMaxInputEu(), node.power);
     }
 
     private boolean finishNode(String key, RecipeThreadTask task, boolean working) {
