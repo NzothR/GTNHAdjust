@@ -179,6 +179,9 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     @Nonnull
     protected ParallelHelper createParallelHelper(@Nonnull GTRecipe recipe) {
         ParallelHelper helper = super.createParallelHelper(recipe);
+        GTRecipe parallelRecipe = combineFixedFluidInputs(recipe);
+        if (parallelRecipe != recipe) helper.setMaxParallelCalculator(
+            (current, limit, fluids, items) -> parallelRecipe.maxParallelCalculatedByInputs(limit, fluids, items));
         if (!controller.isWirelessMode()) return helper;
         RecipeMap<?> map = controller.getRecipeMap();
         planWirelessOverclocks(
@@ -215,6 +218,37 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
                 }
                 return GTValues.emptyFluidStackArray;
             });
+    }
+
+    /**
+     * Count repeated fixed fluid slots together so the first slot cannot reserve stock needed by later slots.
+     * Keep the original recipe for input consumption and output calculation.
+     */
+    private static GTRecipe combineFixedFluidInputs(GTRecipe recipe) {
+        FluidStack[] inputs = recipe.mFluidInputs;
+        if (inputs.length < 2 || recipe.mAltFluidInputs != null) return recipe;
+        FluidStack[] combined = null;
+        for (int i = 1; i < inputs.length; i++) {
+            FluidStack input = inputs[i];
+            if (input == null || input.amount <= 0) continue;
+            for (int j = 0; j < i; j++) {
+                FluidStack previous = combined == null ? inputs[j] : combined[j];
+                if (previous == null || previous.amount <= 0 || !previous.isFluidEqual(input)) continue;
+                long total = (long) previous.amount + input.amount;
+                if (total > Integer.MAX_VALUE) return recipe;
+                if (combined == null) combined = inputs.clone();
+                combined[j] = previous.copy();
+                combined[j].amount = (int) total;
+                combined[i] = null;
+                break;
+            }
+        }
+        if (combined == null) return recipe;
+        GTRecipe result = recipe.copyShallow();
+        result.mFluidInputs = Arrays.stream(combined)
+            .filter(stack -> stack != null)
+            .toArray(FluidStack[]::new);
+        return result;
     }
 
     /** Keep guaranteed chance multiples out of the native int multiplication at MAX parallel. */
