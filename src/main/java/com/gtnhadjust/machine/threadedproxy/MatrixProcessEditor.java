@@ -87,11 +87,10 @@ final class MatrixProcessEditor {
                 return;
             }
             if (!machine.canEditProcesses()) return;
-            if ("new".equals(a[0])) {
-                if (model.graphs.size() < 32) {
-                    Graph created = new Graph(model.nextId++);
-                    model.graphs.put(created.id, created);
-                }
+            if ("add".equals(a[0])) {
+                addNode(Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]));
+            } else if ("link".equals(a[0])) {
+                link(Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]));
             } else if ("multipliers".equals(a[0])) {
                 int parallel = positive(a[2]), oc = positive(a[3]);
                 model.parallelMultiplier = parallel;
@@ -114,33 +113,18 @@ final class MatrixProcessEditor {
                     .forEach(model::drain);
                 model.graphs.remove(graph.id);
             }
-            case "add" -> {
-                int slot = Integer.parseInt(a[2]);
-                if (slot < 0 || slot >= machine.patterns()
-                    .getSlots() || graph.nodes.size() >= 128) return;
-                ItemStack pattern = machine.patterns()
-                    .getStackInSlot(slot);
-                if (pattern == null || machine.patternRecipe(slot) == null) return;
-                Node node = new Node(model.nextId++, slot, pattern);
-                node.x = Integer.parseInt(a[3]);
-                node.y = Integer.parseInt(a[4]);
-                graph.nodes.put(node.id, node);
-            }
             case "unlink" -> {
                 Edge edge = graph.edges.remove(Integer.parseInt(a[2]));
-                if (edge != null) model.drain(edge);
+                if (edge != null) {
+                    model.drain(edge);
+                    model.split(graph);
+                }
             }
             case "water" -> {
                 Edge edge = graph.edges.get(Integer.parseInt(a[2]));
                 if (edge != null) edge.highWater = Math.max(0, Integer.parseInt(a[3]));
             }
             case "balance" -> balance(graph);
-            case "link" -> link(
-                graph,
-                Integer.parseInt(a[2]),
-                Integer.parseInt(a[3]),
-                Integer.parseInt(a[4]),
-                Integer.parseInt(a[5]));
             default -> editNode(graph, graph.nodes.get(Integer.parseInt(a[2])), a);
         }
         graph.updateTargetChain();
@@ -163,7 +147,13 @@ final class MatrixProcessEditor {
                         return true;
                     });
                 graph.nodes.remove(node.id);
-                if (graph.target == node.id) graph.target = 0;
+                if (graph.target == node.id) {
+                    graph.target = 0;
+                    graph.production.clear();
+                    graph.produced = 0;
+                    graph.measuredSince = -1;
+                }
+                model.split(graph);
             }
             case "settings" -> {
                 int parallel = positive(a[3]), oc = Math.max(0, Integer.parseInt(a[4]));
@@ -192,21 +182,43 @@ final class MatrixProcessEditor {
         }
     }
 
-    private void link(Graph graph, int source, int output, int destination, int input) {
-        Node fromNode = graph.nodes.get(source), toNode = graph.nodes.get(destination);
-        if (fromNode == null || toNode == null || !graph.canLink(source, destination)) return;
-        Definition from = machine.nodeDefinition(fromNode), to = machine.nodeDefinition(toNode);
+    private void addNode(int slot, int x, int y) {
+        if (slot < 0 || slot >= machine.patterns()
+            .getSlots() || machine.patternRecipe(slot) == null) return;
+        if (model.graphs.values()
+            .stream()
+            .mapToInt(graph -> graph.nodes.size())
+            .sum() >= 128) return;
+        ItemStack pattern = machine.patterns()
+            .getStackInSlot(slot);
+        if (pattern == null) return;
+        Node node = new Node(model.nextId++, slot, pattern);
+        node.x = x;
+        node.y = y;
+        Graph graph = new Graph(node.id);
+        graph.nodes.put(node.id, node);
+        model.graphs.put(graph.id, graph);
+    }
+
+    private void link(int source, int output, int destination, int input) {
+        Graph fromGraph = model.component(source), toGraph = model.component(destination);
+        if (fromGraph == null || toGraph == null || (fromGraph == toGraph && !fromGraph.canLink(source, destination)))
+            return;
+        Definition from = machine.nodeDefinition(fromGraph.nodes.get(source));
+        Definition to = machine.nodeDefinition(toGraph.nodes.get(destination));
         if (from == null || to == null) return;
         Port produced = ports(from, true).get(output);
         Port consumed = ports(to, false).get(input);
         if (produced.chance <= 0 || !produced.material.matches(consumed.material)) return;
-        if (graph.target == source && produced.material.matches(ports(from, true).get(graph.targetPort).material))
-            return;
-        if (graph.edges.values()
+        if (toGraph.edges.values()
             .stream()
             .anyMatch(edge -> edge.destination == destination && edge.material.matches(consumed.material))) return;
-        Edge edge = new Edge(model.nextId++, source, destination, consumed.material);
-        graph.edges.put(edge.id, edge);
+        Port previousTarget = targetPort(fromGraph);
+        boolean consumesTarget = fromGraph.target == source && previousTarget != null
+            && previousTarget.material.matches(produced.material);
+        model
+            .join(fromGraph, toGraph, new Edge(model.nextId++, source, destination, consumed.material), consumesTarget);
+        updateWater(toGraph);
     }
 
     void updateWater(Graph graph) {
@@ -434,32 +446,34 @@ final class MatrixProcessEditor {
     }
 
     /** A bounded view for the editor. Inventories and configuration stay server-authoritative. */
-    NBTTagCompound snapshot(int selectedGraph) {
+    NBTTagCompound snapshot() {
         NBTTagCompound result = new NBTTagCompound();
         result.setBoolean("edit", machine.canEditProcesses());
         result.setInteger("parallel", model.parallelMultiplier);
         result.setInteger("oc", model.overclockMultiplier);
-        NBTTagList list = new NBTTagList();
+        result.setInteger("components", model.graphs.size());
+        NBTTagList nodes = new NBTTagList(), edges = new NBTTagList(), components = new NBTTagList();
         for (Graph graph : model.graphs.values()) {
-            NBTTagCompound label = new NBTTagCompound();
-            label.setInteger("id", graph.id);
-            label.setBoolean("paused", graph.paused);
-            list.appendTag(label);
+            NBTTagCompound info = new NBTTagCompound();
+            info.setInteger("id", graph.id);
+            info.setBoolean("paused", graph.paused);
+            info.setInteger("size", graph.nodes.size());
+            estimateGraph(info, graph);
+            components.appendTag(info);
+            appendComponent(graph, nodes, edges);
         }
-        result.setTag("list", list);
-        Graph graph = model.graphs.get(selectedGraph);
-        if (graph == null && !model.graphs.isEmpty()) graph = model.graphs.values()
-            .iterator()
-            .next();
-        if (graph == null) return result;
-        result.setInteger("graph", graph.id);
-        result.setInteger("target", graph.target);
-        result.setInteger("targetPort", graph.targetPort);
-        result.setBoolean("paused", graph.paused);
-        NBTTagList nodes = new NBTTagList(), edges = new NBTTagList();
+        result.setTag("nodes", nodes);
+        result.setTag("edges", edges);
+        result.setTag("list", components);
+        return result;
+    }
+
+    private void appendComponent(Graph graph, NBTTagList nodes, NBTTagList edges) {
         for (Node node : graph.nodes.values()) {
             NBTTagCompound tag = new NBTTagCompound();
             tag.setInteger("id", node.id);
+            tag.setInteger("graph", graph.id);
+            tag.setBoolean("target", graph.target == node.id);
             tag.setInteger("slot", node.slot);
             tag.setInteger("x", node.x);
             tag.setInteger("y", node.y);
@@ -518,6 +532,7 @@ final class MatrixProcessEditor {
         for (Edge edge : graph.edges.values()) {
             NBTTagCompound tag = edge.material.save();
             tag.setInteger("id", edge.id);
+            tag.setInteger("graph", graph.id);
             tag.setInteger("source", edge.source);
             tag.setInteger("destination", edge.destination);
             tag.setInteger("high", edge.highWater);
@@ -525,10 +540,6 @@ final class MatrixProcessEditor {
             tag.setLong("amount", edge.amount);
             edges.appendTag(tag);
         }
-        estimateGraph(result, graph);
-        result.setTag("nodes", nodes);
-        result.setTag("edges", edges);
-        return result;
     }
 
     private static NBTTagCompound describeTool(ItemStack tool) {

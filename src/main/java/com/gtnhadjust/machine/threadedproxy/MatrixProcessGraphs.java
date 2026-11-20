@@ -39,6 +39,7 @@ final class MatrixProcessGraphs {
         /** Classify links and nodes by whether their downstream can reach the target. */
         void updateTargetChain() {
             targetChain.clear();
+            for (Edge edge : edges.values()) edge.feedsTarget = false;
             if (!nodes.containsKey(target)) return;
             ArrayDeque<Integer> queue = new ArrayDeque<>();
             queue.add(target);
@@ -188,6 +189,75 @@ final class MatrixProcessGraphs {
         long space() {
             return Math.max(0, capacity - amount);
         }
+    }
+
+    /** Split a disconnected component without changing node IDs, route IDs or buffered inventories. */
+    void split(Graph graph) {
+        Map<Integer, Node> remaining = new LinkedHashMap<>(graph.nodes);
+        if (remaining.isEmpty()) {
+            graphs.remove(graph.id);
+            return;
+        }
+        var edges = new ArrayList<>(graph.edges.values());
+        graph.nodes.clear();
+        graph.edges.clear();
+        boolean first = true;
+        while (!remaining.isEmpty()) {
+            Graph part = first ? graph : new Graph(nextId++);
+            part.paused = graph.paused;
+            int seed = first && remaining.containsKey(graph.target) ? graph.target
+                : remaining.keySet()
+                    .iterator()
+                    .next();
+            first = false;
+            var pending = new ArrayDeque<Integer>();
+            pending.add(seed);
+            while (!pending.isEmpty()) {
+                int id = pending.removeFirst();
+                Node node = remaining.remove(id);
+                if (node == null) continue;
+                part.nodes.put(id, node);
+                for (Edge edge : edges) {
+                    if (edge.source == id) {
+                        part.edges.put(edge.id, edge);
+                        pending.addLast(edge.destination);
+                    } else if (edge.destination == id) {
+                        pending.addLast(edge.source);
+                    }
+                }
+            }
+            part.updateTargetChain();
+            graphs.put(part.id, part);
+        }
+    }
+
+    Graph component(int node) {
+        for (Graph graph : graphs.values()) if (graph.nodes.containsKey(node)) return graph;
+        return null;
+    }
+
+    /** The downstream target takes precedence when joining two previously independent components. */
+    void join(Graph source, Graph destination, Edge edge, boolean consumesSourceTarget) {
+        if (source != destination) {
+            destination.nodes.putAll(source.nodes);
+            destination.edges.putAll(source.edges);
+            if (destination.target == 0 && !consumesSourceTarget) {
+                destination.target = source.target;
+                destination.targetPort = source.targetPort;
+                destination.production.addAll(source.production);
+                destination.produced = source.produced;
+                destination.measuredSince = source.measuredSince;
+            }
+            destination.paused |= source.paused;
+            graphs.remove(source.id);
+        } else if (consumesSourceTarget) {
+            destination.target = 0;
+            destination.production.clear();
+            destination.produced = 0;
+            destination.measuredSince = -1;
+        }
+        destination.edges.put(edge.id, edge);
+        destination.updateTargetChain();
     }
 
     private long deliverySequence;
@@ -366,6 +436,7 @@ final class MatrixProcessGraphs {
             graph.updateTargetChain();
             graphs.put(graph.id, graph);
         }
+        for (Graph graph : new ArrayList<>(graphs.values())) split(graph);
         NBTTagList output = saved.getTagList("exports", 10);
         for (int i = 0; i < output.tagCount(); i++) exports.add(RecipeThreadOutputs.load(output.getCompoundTagAt(i)));
     }

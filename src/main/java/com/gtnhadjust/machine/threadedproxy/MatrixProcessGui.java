@@ -23,21 +23,12 @@ final class MatrixProcessGui {
     private MatrixProcessGui() {}
 
     static ModularPanel create(ThreadedJointProxy machine, PanelSyncManager manager, IPanelHandler handler) {
-        int[] graph = { 0 };
         long[] refreshAt = { Long.MIN_VALUE };
         NBTTagCompound[] lastView = { new NBTTagCompound() };
         NBTTagCompound[] lastChoices = { new NBTTagCompound() };
         int[] lastPatternRevision = { -1 };
         StringSyncValue edits = new StringSyncValue(() -> "", command -> {
-            if (command.startsWith("view ")) {
-                try {
-                    graph[0] = Integer.parseInt(command.substring(5));
-                } catch (NumberFormatException ignored) {
-                    return;
-                }
-            } else {
-                machine.processEditor.edit(command);
-            }
+            machine.processEditor.edit(command);
             refreshAt[0] = Long.MIN_VALUE;
         }).allowC2S();
         var view = GenericSyncValue.builder(NBTTagCompound.class)
@@ -46,7 +37,7 @@ final class MatrixProcessGui {
                 long tick = machine.getBaseMetaTileEntity()
                     .getTimer();
                 if (tick >= refreshAt[0]) {
-                    lastView[0] = machine.processEditor.snapshot(graph[0]);
+                    lastView[0] = machine.processEditor.snapshot();
                     refreshAt[0] = tick + 10;
                 }
                 return lastView[0];
@@ -78,49 +69,53 @@ final class MatrixProcessGui {
         ModularPanel panel = new ModularPanel("matrixProcessGraph").size(414, 240);
         panel.child(
             canvas.pos(4, 4)
-                .size(406, 186));
+                .size(406, 232));
         panel.child(button("close", 387, 6, 20, handler::closePanel));
-        panel.child(button("previous", 9, 25, 18, () -> canvas.cycle(-1)));
-        panel.child(button("next", 30, 25, 18, () -> canvas.cycle(1)));
-        panel.child(button("new", 53, 25, 43, () -> send.accept("new 0")));
-        panel.child(button("add", 98, 25, 66, canvas::togglePicker));
-        panel.child(button("pause", 166, 25, 55, () -> canvas.graphEdit("pause")));
-        panel.child(button("balance", 223, 25, 50, () -> canvas.graphEdit("balance")));
-        panel.child(button("removeGraph", 275, 25, 65, () -> canvas.graphEdit("deleteGraph")));
-        panel.child(button("remove", 342, 25, 62, canvas::deleteSelection));
-        panel.child(field("parallel", parallel, 8, 55));
-        panel.child(field("oc", oc, 68, 50));
-        panel.child(field("power", power, 123, 74));
-        panel.child(field("water", water, 202, 67));
+        panel.child(button("add", 338, 34, 65, canvas::togglePicker));
+        panel.child(button("pause", 338, 55, 65, () -> canvas.graphEdit("pause")));
+        panel.child(button("balance", 338, 76, 65, () -> canvas.graphEdit("balance")));
+        panel.child(button("multipliersButton", 338, 97, 65, canvas::toggleMultipliers));
+        panel.child(button("remove", 338, 118, 65, canvas::deleteSelection));
+        panel.child(button("removeGraph", 338, 139, 65, () -> {
+            canvas.graphEdit("deleteGraph");
+            canvas.closePopup();
+        }));
+        panel.child(button("close", 289, 43, 16, canvas::closePopup).setEnabledIf(w -> canvas.hasPopup()));
+        panel.child(
+            IKey.lang("gtnhadjust.matrix.nodeParameters")
+                .asWidget()
+                .pos(33, 192)
+                .setEnabledIf(w -> canvas.nodePopup()));
+        panel.child(field("parallel", parallel, 33, 49).setEnabledIf(w -> canvas.nodePopup()));
+        panel.child(field("oc", oc, 86, 44).setEnabledIf(w -> canvas.nodePopup()));
+        panel.child(field("power", power, 134, 94).setEnabledIf(w -> canvas.nodePopup()));
+        panel.child(field("water", water, 33, 94).setEnabledIf(w -> canvas.edgePopup()));
         panel.child(
             button(
                 "apply",
-                274,
-                203,
-                59,
+                235,
+                204,
+                65,
                 () -> canvas.apply(
                     parallel.getStringValue(),
                     oc.getStringValue(),
                     power.getStringValue(),
-                    water.getStringValue())));
+                    water.getStringValue())).setEnabledIf(w -> canvas.canApply() && !canvas.multiplierPopup()));
         panel.child(
-            IKey.lang("gtnhadjust.matrix.parameters")
-                .asWidget()
-                .pos(9, 193));
+            field("parallel", parallelMultiplier, 33, 54).top(85)
+                .setEnabledIf(w -> canvas.multiplierPopup()));
         panel.child(
-            IKey.lang("gtnhadjust.matrix.multipliers")
-                .asWidget()
-                .pos(8, 226));
-        panel.child(field("parallel", parallelMultiplier, 146, 52).top(222));
-        panel.child(field("oc", ocMultiplier, 203, 52).top(222));
+            field("oc", ocMultiplier, 92, 54).top(85)
+                .setEnabledIf(w -> canvas.multiplierPopup()));
         panel.child(
             button(
                 "multiply",
-                274,
-                222,
-                110,
+                156,
+                85,
+                108,
                 () -> send.accept(
-                    "multipliers 0 " + parallelMultiplier.getStringValue() + " " + ocMultiplier.getStringValue())));
+                    "multipliers 0 " + parallelMultiplier.getStringValue() + " " + ocMultiplier.getStringValue()))
+                        .setEnabledIf(w -> canvas.multiplierPopup()));
         return panel;
     }
 
@@ -167,7 +162,7 @@ final class MatrixProcessGui {
 
     private static TextFieldWidget field(String key, StringValue value, int x, int width) {
         return new TextFieldWidget().value(value)
-            .pos(x, 203)
+            .pos(x, 204)
             .size(width, 16)
             .setMaxLength(19)
             .tooltipBuilder(t -> t.addLine(StatCollector.translateToLocal("gtnhadjust.matrix." + key)));

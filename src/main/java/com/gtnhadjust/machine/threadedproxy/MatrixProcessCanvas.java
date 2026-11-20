@@ -24,16 +24,17 @@ import com.gtnhadjust.machine.threadedproxy.MatrixProcessGraphs.Material;
 /** Dark node canvas with local zoom, pan, drag preview and a sampled-pattern picker. */
 final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements Interactable {
 
-    private static final int LEFT = 5, TOP = 42, RIGHT = 247, BOTTOM = 181;
+    private static final int LEFT = 5, TOP = 24, RIGHT = 325, BOTTOM = 226;
     private static final int TEAL = 0xff62e4d3, INK = 0xffe7eef8, MUTED = 0xffaabacf, AMBER = 0xffffce82;
     private final Supplier<NBTTagCompound> view, patterns;
     private final Consumer<String> send;
     private final Consumer<NBTTagCompound> selectionChanged;
     private final List<Hit> hits = new ArrayList<>();
-    private int graph, selected, selectedEdge, source, output, dragNode, dragX, dragY, anchorX, anchorY;
+    private int selected, selectedEdge, source, output, dragNode, dragX, dragY, anchorX, anchorY;
     private int panX, panY, lastX, lastY, scroll, pickerScroll;
     private double zoom = 1;
-    private boolean picker, panning, dragged;
+    private boolean picker, popup, multipliers, panning, dragged;
+    private int pressedNode;
     private NBTTagCompound snapshot = new NBTTagCompound();
 
     MatrixProcessCanvas(Supplier<NBTTagCompound> view, Supplier<NBTTagCompound> patterns, Consumer<String> send,
@@ -80,18 +81,18 @@ final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements I
     public void draw(ModularGuiContext context, WidgetThemeEntry<?> theme) {
         NBTTagCompound current = view.get();
         if (current != null) snapshot = current;
-        if (graph != snapshot.getInteger("graph")) {
-            graph = snapshot.getInteger("graph");
-            selected = selectedEdge = source = scroll = panX = panY = 0;
-            picker = false;
-            zoom = 1;
-        }
         hits.clear();
-        GuiDraw.drawRoundedRect(0, 0, 406, 186, 5, 8, 0xff121b2a);
-        text(tr("title") + "  ·  " + (graph == 0 ? "—" : "#" + graph), 7, 6, 210, INK);
+        GuiDraw.drawRoundedRect(0, 0, 406, 232, 5, 8, 0xff121b2a);
+        text(tr("title") + "  ·  " + snapshot.getInteger("components"), 7, 6, 210, INK);
         text("×" + snapshot.getInteger("parallel") + " P  ·  ×" + snapshot.getInteger("oc") + " OC", 225, 6, 140, TEAL);
         GuiDraw.drawRect(LEFT, TOP, RIGHT - LEFT, BOTTOM - TOP, 0xff0a1220);
-        GuiDraw.drawRect(253, TOP, 149, BOTTOM - TOP, 0xff1b283b);
+        GuiDraw.drawRect(330, TOP, 72, BOTTOM - TOP, 0xff1b283b);
+        NBTTagCompound info = indexed(snapshot.getTagList("list", 10)).get(component());
+        if (info != null) {
+            text(tr(info.getBoolean("paused") ? "paused" : "active"), 335, 161, 62, TEAL);
+            text(tr("componentNodes") + " " + info.getInteger("size"), 335, 173, 62, MUTED);
+        }
+        if (!editable()) text(tr("readOnly"), 335, 211, 62, AMBER);
         for (int x = LEFT + Math.floorMod(panX, 14); x < RIGHT; x += 14)
             for (int y = TOP + Math.floorMod(panY, 14); y < BOTTOM; y += 14) GuiDraw.drawRect(x, y, 1, 1, 0xff233247);
         Map<Integer, NBTTagCompound> nodes = indexed(snapshot.getTagList("nodes", 10));
@@ -104,8 +105,24 @@ final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements I
             if (insideCanvas(mx, my)) line(from, new Point(mx, my), TEAL);
         }
         if (nodes.isEmpty()) text(tr("empty"), LEFT + 9, TOP + 10, RIGHT - LEFT - 18, MUTED);
-        drawInspector(nodes.get(selected), edges.get(selectedEdge));
         if (picker) drawPicker();
+        else if (multipliers) {
+            modal();
+            text(tr("multipliers"), 31, 47, 240, TEAL);
+            text(
+                "×" + snapshot.getInteger("parallel") + " P  ·  ×" + snapshot.getInteger("oc") + " OC",
+                31,
+                64,
+                240,
+                INK);
+        } else if (popup) {
+            NBTTagCompound node = nodes.get(selected), edge = edges.get(selectedEdge);
+            if (node == null && edge == null) popup = false;
+            else {
+                modal();
+                drawInspector(node, edge);
+            }
+        }
     }
 
     private static Map<Integer, NBTTagCompound> indexed(NBTTagList list) {
@@ -132,6 +149,7 @@ final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements I
                 selectedEdge = id;
                 scroll = 0;
                 selectionChanged.accept(edge);
+                popup = true;
             }));
         }
     }
@@ -182,7 +200,7 @@ final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements I
         NBTTagList in = node.getTagList("in", 10), out = node.getTagList("out", 10);
         int h = (int) ((28 + 11 * Math.max(1, Math.max(in.tagCount(), out.tagCount()))) * zoom);
         if (x + w < LEFT || x >= RIGHT || y + h < TOP || y >= BOTTOM) return;
-        boolean target = id == snapshot.getInteger("target");
+        boolean target = node.getBoolean("target");
         clipRect(x, y, w, h, target ? 0xff254640 : 0xff26354a);
         clipRect(x, y, w, 2, id == selected || target ? TEAL : 0xff54708f);
         if (insideCanvas(x + 4, y + 6) && x + w <= RIGHT && y + 23 <= BOTTOM) {
@@ -225,6 +243,7 @@ final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements I
         selectedEdge = 0;
         scroll = 0;
         selectionChanged.accept(node);
+        pressedNode = selected;
         if (drag && editable()) {
             dragNode = selected;
             dragX = anchorX = node.getInteger("x");
@@ -238,34 +257,42 @@ final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements I
             source = id;
             output = index;
         } else if (source != 0) {
-            send.accept("link " + graph + " " + source + " " + output + " " + id + " " + index);
+            send.accept("link 0 " + source + " " + output + " " + id + " " + index);
             source = 0;
         }
     }
 
     private void drawInspector(NBTTagCompound node, NBTTagCompound edge) {
-        int x = 259, y = TOP + 6;
+        int x = 31, y = 46;
+        NBTTagCompound component = indexed(snapshot.getTagList("list", 10)).get(component());
         if (edge != null) {
-            text(tr("buffer"), x, y, 135, TEAL);
-            text(materialName(edge), x, y + 13, 135, INK);
-            text(edge.getLong("amount") + " / " + edge.getInteger("capacity"), x, y + 26, 135, MUTED);
-            text(tr("water"), x, y + 39, 135, MUTED);
+            text(tr("buffer"), x, y, 263, TEAL);
+            text(materialName(edge), x, y + 13, 263, INK);
+            text(edge.getLong("amount") + " / " + edge.getInteger("capacity"), x, y + 26, 263, MUTED);
+            text(tr("water"), x, y + 39, 263, MUTED);
             return;
         }
-        if (node == null) {
-            text(!editable() ? tr("readOnly") : tr("select"), x, y, 135, TEAL);
-            text(snapshot.getBoolean("paused") ? tr("paused") : tr("active"), x, y + 13, 135, MUTED);
-            if (snapshot.hasKey("targetRate")) {
-                text(tr("targetRate") + " " + rate(snapshot.getDouble("targetRate")), x, y + 29, 135, INK);
-                text(tr("feasibleRate") + " " + rate(snapshot.getDouble("feasibleRate")), x, y + 42, 135, INK);
-                text(tr("actualRate") + " " + rate(snapshot.getDouble("actualRate")), x, y + 55, 135, INK);
-            }
-            return;
+        text("#" + (node.getInteger("slot") + 1) + "  " + state(node), x, y, 263, TEAL);
+        text(StatCollector.translateToLocal(node.getString("map")), x, y + 11, 263, MUTED);
+        text(node.getString("estimate"), x, y + 22, 263, INK);
+        if (component != null && component.hasKey("targetRate")) {
+            text(
+                tr("targetRate") + " "
+                    + rate(component.getDouble("targetRate"))
+                    + "  ·  "
+                    + tr("feasibleRate")
+                    + " "
+                    + rate(component.getDouble("feasibleRate"))
+                    + "  ·  "
+                    + tr("actualRate")
+                    + " "
+                    + rate(component.getDouble("actualRate")),
+                x,
+                y + 34,
+                263,
+                MUTED);
         }
-        text("#" + (node.getInteger("slot") + 1) + "  " + state(node), x, y, 135, TEAL);
-        text(StatCollector.translateToLocal(node.getString("map")), x, y + 11, 135, MUTED);
-        text(node.getString("estimate"), x, y + 22, 135, INK);
-        y += 36;
+        y += 48;
         List<Runnable> actions = new ArrayList<>();
         List<String> lines = new ArrayList<>();
         for (String kind : new String[] { "in", "out", "tools", "discarded" }) {
@@ -281,7 +308,8 @@ final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements I
                 lines.add((out ? "→ " : tool ? "◇ " : discarded ? "× " : "← ") + count + materialName(tag) + chance);
                 int index = i;
                 actions.add(
-                    out && editable() ? () -> send.accept("target " + graph + " " + node.getInteger("id") + " " + index)
+                    out && editable()
+                        ? () -> send.accept("target " + component() + " " + node.getInteger("id") + " " + index)
                         : null);
                 if (out) {
                     lines.add("    " + rate(expected) + (editable() ? " · " + tr("setTarget") : ""));
@@ -290,10 +318,10 @@ final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements I
             }
         }
         int first = Math.min(scroll, Math.max(0, lines.size() - 1));
-        for (int i = first; i < lines.size() && y + 9 < BOTTOM; i++, y += 11) {
+        for (int i = first; i < lines.size() && y + 9 < 185; i++, y += 11) {
             boolean active = actions.get(i) != null;
-            text(lines.get(i), x, y, 136, active ? TEAL : INK);
-            if (active) hits.add(new Hit(x, y, 136, 10, actions.get(i)));
+            text(lines.get(i), x, y, 263, active ? TEAL : INK);
+            if (active) hits.add(new Hit(x, y, 263, 10, actions.get(i)));
         }
     }
 
@@ -306,29 +334,27 @@ final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements I
         if (choices == null) return;
         NBTTagList slots = choices.getTagList("slots", 10);
         hits.clear();
-        GuiDraw.drawRect(LEFT, TOP, 397, BOTTOM - TOP, 0xe9121b2a);
-        GuiDraw.drawRoundedRect(69, 50, 266, 124, 6, 8, 0xff25354b);
-        text(tr("picker"), 79, 59, 244, TEAL);
-        for (int i = pickerScroll, y = 73; i < slots.tagCount() && y < 165; i++, y += 14) {
+        GuiDraw.drawRect(LEFT, TOP, RIGHT - LEFT, BOTTOM - TOP, 0xe9121b2a);
+        GuiDraw.drawRoundedRect(24, 42, 282, 167, 6, 8, 0xff25354b);
+        text(tr("picker"), 34, 51, 264, TEAL);
+        for (int i = pickerScroll, y = 67; i < slots.tagCount() && y < 193; i++, y += 14) {
             NBTTagCompound tag = slots.getCompoundTagAt(i);
             int slot = tag.getInteger("slot");
-            GuiDraw.drawRect(78, y, 248, 13, (i & 1) == 0 ? 0xff2d4058 : 0xff26384e);
-            text("#" + (slot + 1) + "  " + tag.getString("name"), 83, y + 2, 237, INK);
-            hits.add(new Hit(78, y, 248, 13, () -> {
+            GuiDraw.drawRect(33, y, 264, 13, (i & 1) == 0 ? 0xff2d4058 : 0xff26384e);
+            text("#" + (slot + 1) + "  " + tag.getString("name"), 38, y + 2, 252, INK);
+            hits.add(new Hit(33, y, 264, 13, () -> {
                 int n = snapshot.getTagList("nodes", 10)
                     .tagCount();
                 send.accept(
-                    "add " + graph
+                    "add 0 " + slot
                         + " "
-                        + slot
+                        + (int) ((12 + n % 3 * 100 - panX) / zoom)
                         + " "
-                        + (int) ((12 + n % 2 * 110 - panX) / zoom)
-                        + " "
-                        + (int) ((10 + n / 2 * 53 - panY) / zoom));
+                        + (int) ((10 + n / 3 * 53 - panY) / zoom));
                 picker = false;
             }));
         }
-        if (slots.tagCount() == 0) text(tr("noPatterns"), 83, 77, 237, MUTED);
+        if (slots.tagCount() == 0) text(tr("noPatterns"), 38, 73, 250, MUTED);
     }
 
     private static String state(NBTTagCompound node) {
@@ -354,39 +380,77 @@ final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements I
         return snapshot.getBoolean("edit");
     }
 
+    private void modal() {
+        hits.clear();
+        GuiDraw.drawRect(LEFT, TOP, RIGHT - LEFT, BOTTOM - TOP, 0xb90a1220);
+        GuiDraw.drawRoundedRect(23, 36, 284, 180, 6, 8, 0xff25354b);
+    }
+
     void togglePicker() {
-        if (editable() && graph != 0) {
-            picker = !picker;
+        if (editable()) {
+            boolean open = !picker;
+            closePopup();
+            picker = open;
             pickerScroll = 0;
         }
     }
 
-    void cycle(int delta) {
-        NBTTagList graphs = snapshot.getTagList("list", 10);
-        if (graphs.tagCount() < 2) return;
-        for (int i = 0; i < graphs.tagCount(); i++) if (graphs.getCompoundTagAt(i)
-            .getInteger("id") == graph) {
-                int index = Math.floorMod(i + delta, graphs.tagCount());
-                send.accept(
-                    "view " + graphs.getCompoundTagAt(index)
-                        .getInteger("id"));
-                return;
-            }
+    void toggleMultipliers() {
+        if (!editable()) return;
+        boolean open = !multipliers;
+        closePopup();
+        multipliers = open;
+    }
+
+    void closePopup() {
+        picker = popup = multipliers = false;
+        source = 0;
+    }
+
+    boolean nodePopup() {
+        return popup && selected != 0;
+    }
+
+    boolean edgePopup() {
+        return popup && selectedEdge != 0;
+    }
+
+    boolean multiplierPopup() {
+        return multipliers;
+    }
+
+    boolean hasPopup() {
+        return popup || multipliers || picker;
+    }
+
+    boolean canApply() {
+        return editable() && (popup || multipliers);
+    }
+
+    private int component() {
+        boolean edge = selectedEdge != 0;
+        NBTTagCompound entry = indexed(snapshot.getTagList(edge ? "edges" : "nodes", 10))
+            .get(edge ? selectedEdge : selected);
+        return entry == null ? 0 : entry.getInteger("graph");
     }
 
     void graphEdit(String action) {
+        int graph = component();
         if (graph != 0 && (editable() || "pause".equals(action))) send.accept(action + " " + graph);
     }
 
     void deleteSelection() {
-        if (!editable()) return;
+        int graph = component();
+        if (graph == 0 || !editable()) return;
         if (selectedEdge != 0) send.accept("unlink " + graph + " " + selectedEdge);
         else if (selected != 0) send.accept("remove " + graph + " " + selected);
         selectedEdge = selected = 0;
+        closePopup();
     }
 
     void apply(String parallel, String oc, String power, String water) {
-        if (!editable()) return;
+        int graph = component();
+        if (graph == 0 || !editable()) return;
         if (selectedEdge != 0) send.accept("water " + graph + " " + selectedEdge + " " + water.trim());
         else if (selected != 0) send.accept(
             "settings " + graph + " " + selected + " " + parallel.trim() + " " + oc.trim() + " " + power.trim());
@@ -411,6 +475,7 @@ final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements I
         lastX = x;
         lastY = y;
         dragged = false;
+        pressedNode = 0;
         if (button == 0) for (int i = hits.size() - 1; i >= 0; i--) {
             Hit hit = hits.get(i);
             if (hit.contains(x, y)) {
@@ -418,10 +483,7 @@ final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements I
                 return Result.SUCCESS;
             }
         }
-        if (picker) {
-            picker = false;
-            return Result.SUCCESS;
-        }
+        if (hasPopup()) return Result.SUCCESS;
         if (insideCanvas(x, y) && (button == 0 || button == 2)) {
             if (button == 0) selected = selectedEdge = source = 0;
             panning = true;
@@ -449,13 +511,14 @@ final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements I
 
     @Override
     public boolean onMouseRelease(int button) {
-        if (dragNode != 0 && dragged) send.accept("move " + graph + " " + dragNode + " " + dragX + " " + dragY);
+        if (dragNode != 0 && dragged) send.accept("move " + component() + " " + dragNode + " " + dragX + " " + dragY);
         if (button == 0 && source != 0 && dragged) for (int i = hits.size() - 1; i >= 0; i--) if (hits.get(i)
             .contains(mouseX(), mouseY())) {
                 hits.get(i).action.run();
                 break;
             }
-        dragNode = 0;
+        if (button == 0 && pressedNode != 0 && !dragged) popup = true;
+        pressedNode = dragNode = 0;
         panning = false;
         return false;
     }
@@ -468,8 +531,8 @@ final class MatrixProcessCanvas extends Widget<MatrixProcessCanvas> implements I
             int size = choices == null ? 0
                 : choices.getTagList("slots", 10)
                     .tagCount();
-            pickerScroll = Math.max(0, Math.min(Math.max(0, size - 7), pickerScroll + delta));
-        } else if (mouseX() >= 253) {
+            pickerScroll = Math.max(0, Math.min(Math.max(0, size - 9), pickerScroll + delta));
+        } else if (popup) {
             scroll = Math.max(0, Math.min(100, scroll + delta));
         } else if (insideCanvas(mouseX(), mouseY())) {
             double changed = Math.max(0.65, Math.min(1.6, zoom - delta * 0.1));

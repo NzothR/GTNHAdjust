@@ -1082,7 +1082,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     }
 
     boolean canEditProcesses() {
-        return canEditLocators() && getBaseMetaTileEntity() != null && !getBaseMetaTileEntity().isAllowedToWork();
+        return canEditLocators();
     }
 
     int overclockMultiplier() {
