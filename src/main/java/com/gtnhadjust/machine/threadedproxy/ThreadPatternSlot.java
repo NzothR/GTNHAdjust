@@ -6,6 +6,7 @@ import java.util.List;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 
+import com.cleanroommc.modularui.api.widget.Interactable.Result;
 import com.cleanroommc.modularui.value.StringValue;
 import com.cleanroommc.modularui.widgets.slot.ItemSlot;
 import com.gtnhadjust.machine.proxy.ProxyLocatorSearch;
@@ -17,22 +18,33 @@ import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.storage.data.IAEStack;
 
-/** Encoded-pattern slot with cached ingredient names. */
+/** Encoded-pattern slot with cached ingredient names and an independent middle-click editor action. */
 final class ThreadPatternSlot extends ItemSlot {
 
     private final ThreadedJointProxy owner;
     private final int index;
     private final StringValue[] searches;
+    private final Runnable openEditor;
     private ItemStack cached;
     private final List<List<String>> names = new ArrayList<>();
     private String previousQuery;
     private boolean matches;
 
-    ThreadPatternSlot(ThreadedJointProxy owner, int index, StringValue[] searches) {
+    ThreadPatternSlot(ThreadedJointProxy owner, int index, StringValue[] searches, Runnable openEditor) {
         this.owner = owner;
         this.index = index;
         this.searches = searches;
+        this.openEditor = openEditor;
         for (int i = 0; i < 3; i++) names.add(new ArrayList<>());
+    }
+
+    @Override
+    public Result onMousePressed(int button) {
+        if (button == 2) {
+            openEditor.run();
+            return Result.SUCCESS;
+        }
+        return super.onMousePressed(button);
     }
 
     @Override

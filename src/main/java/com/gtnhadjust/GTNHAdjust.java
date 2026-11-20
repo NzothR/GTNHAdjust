@@ -51,6 +51,7 @@ public class GTNHAdjust {
     public static boolean collectorMatterCompression;
     public static boolean proxyFactoryWirelessPower;
     public static boolean threadedProxyWirelessPower;
+    public static boolean threadedProxyVoidUnlistedOutputs = true;
     public static boolean threadedProxyExportIngredients = true;
     public static boolean threadedProxyAeOutput;
     public static boolean proxyIndirectLocators = true;
@@ -196,6 +197,11 @@ public class GTNHAdjust {
             "threadedJointProxy",
             true,
             "Use the owner's wireless EU network when no energy hatch is installed. Restart required; client and server must match.");
+        threadedProxyVoidUnlistedOutputs = config.getBoolean(
+            "voidUnlistedOutputs",
+            "threadedJointProxy",
+            true,
+            "Discard recipe outputs absent from the thread's encoded pattern. Restart required; client and server must match.");
         threadedProxyExportIngredients = config.getBoolean(
             "exportIngredients",
             "threadedJointProxy",

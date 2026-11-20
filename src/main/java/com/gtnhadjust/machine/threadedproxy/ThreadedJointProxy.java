@@ -30,9 +30,6 @@ import com.gtnhadjust.machine.proxy.ProxyLocatorHost;
 import com.gtnhadjust.machine.proxy.ProxyLocatorInventory;
 import com.gtnhadjust.machine.proxy.ProxyLocatorPool;
 import com.gtnhadjust.machine.proxy.ProxyThreadOutputs;
-import com.gtnhadjust.machine.threadedproxy.MatrixProcessGraphs.Edge;
-import com.gtnhadjust.machine.threadedproxy.MatrixProcessGraphs.Graph;
-import com.gtnhadjust.machine.threadedproxy.MatrixProcessGraphs.Node;
 import com.gtnhadjust.mixins.gtnr.ThreadedProxyOutputAccessor;
 import com.xyp.gtneverreset.common.machine.hatch.CrossRecipeMEPatternBuffer;
 import com.xyp.gtneverreset.common.machine.multiMachineBase.processing.RecipeThreadOutputs;
@@ -77,7 +74,7 @@ import gregtech.common.tileentities.machines.MTEHatchInputBusME;
 import gregtech.common.tileentities.machines.MTEHatchInputME;
 import gtPlusPlus.xmod.gregtech.api.metatileentity.implementations.MTEHatchReservoir;
 
-/** Pattern-backed nodes use the native recipe thread engine and graph-owned intermediate inventories. */
+/** One physical pattern slot defines one thread; crafting-buffer deliveries are never machine ingredients. */
 public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<ThreadedJointProxy>
     implements ISurvivalConstructable, ProxyLocatorHost, appeng.me.helpers.IGridProxyable {
 
@@ -94,13 +91,10 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     private final ProxyLocatorPool locatorPool = new ProxyLocatorPool();
     private int operationMode = 1;
     private boolean definitionsDirty = true;
-    int patternRevision;
     private boolean refreshRequested;
     private boolean hasWaterReservoir;
     private boolean previousWaterReservoir;
-    final MatrixProcessGraphs processes = new MatrixProcessGraphs();
-    final MatrixProcessEditor processEditor = new MatrixProcessEditor(this);
-    private final Map<String, int[]> taskRoutes = new LinkedHashMap<>();
+    private int maxOverclocks;
     private UUID wirelessOwner;
     private appeng.me.helpers.AENetworkProxy gridProxy;
     private final ThreadPatternInventory patterns = new ThreadPatternInventory(this);
@@ -308,11 +302,6 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     }
 
     @Override
-    public boolean supportsPowerPanel() {
-        return false;
-    }
-
-    @Override
     public boolean supportsVoidProtection() {
         return true;
     }
@@ -381,33 +370,25 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     protected void runMachine(IGregTechTileEntity tile, long tick) {
         // Definition visibility is independent of the work switch; paused machines still show installed patterns.
         if (definitionsDirty || tile.hasInventoryBeenModified() || tile.hasWorkJustBeenEnabled()) refreshDefinitions();
-        if (tile.isAllowedToWork()) flushProcessExports();
+        if (!tile.isAllowedToWork()) {
+            updateDisplay();
+            return;
+        }
         long power = runningPower();
         if (power > 0) {
             mEfficiency = 10000;
             lEUt = -power;
-            if (power > getMaxInputEu()) {
-                stopMachine(ShutDownReasonRegistry.POWER_LOSS);
-                return;
-            }
-            if (!onRunningTick(getControllerSlot())) {
+            if (power > getMaxInputEu() || !onRunningTick(getControllerSlot())) {
+                if (tile.isAllowedToWork()) stopMachine(ShutDownReasonRegistry.POWER_LOSS);
                 return;
             }
         }
-        for (Graph graph : processes.graphs.values()) graph.actualRate(tick);
-        for (var entry : tasks.entrySet()) {
-            RecipeThreadTask task = entry.getValue();
-            if (task.isFinished()) continue;
-            task.advance();
-            if (task.isFinished()) processEditor.recordTarget(entry.getKey(), task.getOutputs(), tick);
-        }
+        for (RecipeThreadTask task : tasks.values()) if (!task.isFinished()) task.advance();
         boolean completed = false;
-        for (Iterator<Map.Entry<String, RecipeThreadTask>> it = tasks.entrySet()
+        for (Iterator<RecipeThreadTask> it = tasks.values()
             .iterator(); it.hasNext();) {
-            var entry = it.next();
-            RecipeThreadTask task = entry.getValue();
-            if (task.isFinished() && finishNode(entry.getKey(), task, tile.isAllowedToWork())) {
-                taskRoutes.remove(entry.getKey());
+            RecipeThreadTask task = it.next();
+            if (task.isFinished() && flushOutputs(task.getOutputs())) {
                 it.remove();
                 recipesDone += task.getParallels();
                 outputAfterRecipe();
@@ -417,203 +398,57 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         runInfo.keySet()
             .retainAll(tasks.keySet());
         if (!tasks.isEmpty() || completed) markDirty();
-        if (tile.isAllowedToWork()
-            && (completed || tick % 5 == 0 || tile.hasInventoryBeenModified() || tile.hasWorkJustBeenEnabled()))
+        if (completed || tick % 5 == 0 || tile.hasInventoryBeenModified() || tile.hasWorkJustBeenEnabled())
             startThreads();
         updateDisplay();
     }
 
-    /** Visit graphs in rotating order; within each graph prioritize the target and downstream consumers. */
+    /** Launch in physical slot order using resources remaining after each committed thread. */
     private void startThreads() {
-        if (canEditLocators() || processes.graphs.isEmpty()) return;
-        List<Graph> graphs = new ArrayList<>(processes.graphs.values());
-        int first = Math.floorMod(processes.nextGraph, graphs.size());
-        boolean admitted = false;
+        refreshDefinitions();
+        if (canEditLocators() || definitions.isEmpty()) return;
         startRecipeProcessing();
         try {
             long remaining = Math.max(0, getMaxInputEu() - runningPower());
-            List<AENetworkProxy> networks = GTNHAdjust.gtnrVirtualTools ? toolNetworks() : Collections.emptyList();
-            for (int g = 0; g < graphs.size(); g++) {
-                Graph graph = graphs.get((first + g) % graphs.size());
-                if (graph.paused || !graph.nodes.containsKey(graph.target)) continue;
-                List<Node> order = new ArrayList<>(graph.nodes.values());
-                int cursor = Math.floorMod(graph.round++, order.size());
-                Collections.rotate(order, -cursor);
-                var buffered = new java.util.HashSet<Integer>();
-                for (Edge edge : graph.edges.values()) if (edge.amount > 0) buffered.add(edge.destination);
-                order.sort(
-                    java.util.Comparator.comparingInt(
-                        node -> node.id == graph.target ? 0
-                            : graph.targetChain.contains(node.id) ? (buffered.contains(node.id) ? 1 : 2)
-                                : buffered.contains(node.id) ? 3 : 4));
-                for (Node node : order) {
-                    boolean idle = !tasks.containsKey(node.key());
-                    remaining -= launchNode(graph, node, remaining, networks);
-                    if (!admitted && idle && tasks.containsKey(node.key())) {
-                        admitted = true;
-                        processes.nextGraph = (first + g + 1) % graphs.size();
-                    }
+            long voltage = getMaxInputVoltage();
+            List<AENetworkProxy> toolNetworks = GTNHAdjust.gtnrVirtualTools ? toolNetworks() : Collections.emptyList();
+            for (Definition definition : definitions) {
+                if (tasks.containsKey(definition.key)) continue;
+                CheckRecipeResult source = locatorPool.checkStart(this, definition.map, definition.recipe.recipe);
+                if (!source.wasSuccessful()) {
+                    failures.put(definition.key, new Failure(source));
+                    continue;
                 }
+                ThreadInputs input = selectInputs(definition, getStoredInputs(), getStoredFluids(), toolNetworks);
+                if (!hasReadyInputs(input)) continue;
+                ThreadPatternSettings settings = ThreadPatternSettings
+                    .read(patterns.getStackInSlot(Integer.parseInt(definition.key)));
+                long budget = settings.power < 0 ? remaining : Math.min(remaining, settings.power);
+                if (definition.execution.mEUt > budget
+                    || definition.execution.mEUt > OverclockCalculator.getMaxAllowedRecipeEUt(voltage, 1)) {
+                    failures.put(
+                        definition.key,
+                        new Failure(CheckRecipeResultRegistry.insufficientPower(definition.execution.mEUt)));
+                    continue;
+                }
+                int oc = Math.min(maxOverclocks, settings.oc < 0 ? maxOverclocks : settings.oc);
+                ThreadedProxyAllocation.Plan plan = ThreadedProxyAllocation
+                    .plan(definition.execution.mEUt, definition.execution.mDuration, voltage, oc);
+                while (plan.eut > budget && oc > 0) {
+                    oc = Math.max(0, Math.min(oc - 1, plan.overclocks - 1));
+                    plan = ThreadedProxyAllocation
+                        .plan(definition.execution.mEUt, definition.execution.mDuration, voltage, oc);
+                }
+                int parallel = Math
+                    .min(getTrueParallel(), settings.parallel < 0 ? Integer.MAX_VALUE : settings.parallel);
+                if (plan.eut > 0) parallel = (int) Math.min(parallel, budget / plan.eut);
+                if (parallel <= 0) continue;
+                ThreadedProxyMaterials.divide(Collections.singletonList(input));
+                remaining -= startThread(input, budget, parallel, plan);
             }
             updateSlots();
         } finally {
             endRecipeProcessing();
-        }
-    }
-
-    private long launchNode(Graph graph, Node node, long remaining, List<AENetworkProxy> networks) {
-        if (tasks.containsKey(node.key())) return 0;
-        Definition definition = nodeDefinition(node);
-        if (definition == null) {
-            failures.put(node.key(), new Failure("pattern_changed"));
-            return 0;
-        }
-        CheckRecipeResult source = locatorPool.checkStart(this, definition.map, definition.recipe.recipe);
-        if (!source.wasSuccessful()) {
-            failures.put(node.key(), new Failure(source));
-            return 0;
-        }
-        var outbound = graph.edges.values()
-            .stream()
-            .filter(edge -> edge.source == node.id)
-            .collect(Collectors.toList());
-        for (Edge edge : outbound) {
-            if (outbound.stream()
-                .noneMatch(other -> other.material.matches(edge.material) && other.space() > 0)) {
-                failures.put(node.key(), new Failure("buffer_full"));
-                return 0;
-            }
-        }
-        long budget = remaining;
-        var plan = nodePlan(definition, node.oc, budget);
-        if (plan == null) {
-            failures
-                .put(node.key(), new Failure(CheckRecipeResultRegistry.insufficientPower(definition.execution.mEUt)));
-            return 0;
-        }
-        int parallel = scaled(node.parallel, processes.parallelMultiplier);
-        if (plan.eut > 0) parallel = (int) Math.min(parallel, budget / plan.eut);
-
-        List<Edge> incoming = graph.edges.values()
-            .stream()
-            .filter(edge -> edge.destination == node.id)
-            .collect(Collectors.toList());
-        List<ItemStack> items = new ArrayList<>(getStoredInputs());
-        List<FluidStack> fluids = new ArrayList<>(getStoredFluids());
-        List<Runnable> debits = new ArrayList<>();
-        for (Edge edge : incoming) {
-            if (edge.material.item != null) {
-                ItemStack material = edge.material.item;
-                var association = GTOreDictUnificator.getAssociation(material);
-                items.removeIf(
-                    stack -> stack != null && (edge.material.matches(stack)
-                        || Arrays.stream(definition.execution.getCachedCombinedItemInputs())
-                            .anyMatch(
-                                required -> required.inputAmount > 0 && required.matchesRecipe(association, material)
-                                    && required.matchesRecipe(GTOreDictUnificator.getAssociation(stack), stack))));
-                if (edge.amount == 0) continue;
-                ItemStack view = GTUtility.copyAmountUnsafe((int) edge.amount, material);
-                items.add(view);
-                long before = edge.amount;
-                debits.add(() -> edge.amount -= before - view.stackSize);
-            } else {
-                fluids.removeIf(stack -> fluidPortMatches(definition, edge.material.fluid, stack));
-                if (edge.amount == 0) continue;
-                FluidStack view = edge.material.fluid.copy();
-                view.amount = (int) edge.amount;
-                fluids.add(view);
-                long before = edge.amount;
-                debits.add(() -> edge.amount -= before - view.amount);
-            }
-        }
-        ThreadInputs input = selectInputs(definition, items, fluids, networks);
-        if (!hasReadyInputs(input, node.key())) return 0;
-        ThreadedProxyMaterials.divide(Collections.singletonList(input));
-        long power = startThread(node.key(), input, budget, parallel, plan);
-        if (tasks.containsKey(node.key())) {
-            debits.forEach(Runnable::run);
-            taskRoutes.put(
-                node.key(),
-                outbound.stream()
-                    .mapToInt(edge -> edge.id)
-                    .toArray());
-        }
-        return power;
-    }
-
-    private static boolean fluidPortMatches(Definition definition, FluidStack port, FluidStack candidate) {
-        if (candidate == null) return false;
-        if (port.isFluidEqual(candidate)) return true;
-        GTRecipe recipe = definition.execution;
-        if (recipe.mAltFluidInputs == null) return false;
-        for (int i = 0; i < recipe.mFluidInputs.length && i < recipe.mAltFluidInputs.length; i++) {
-            if (!port.isFluidEqual(recipe.mFluidInputs[i]) || recipe.mAltFluidInputs[i] == null) continue;
-            for (FluidStack alternative : recipe.mAltFluidInputs[i])
-                if (candidate.isFluidEqual(alternative)) return true;
-        }
-        return false;
-    }
-
-    static int scaled(int value, int multiplier) {
-        return (int) Math.min(Integer.MAX_VALUE, (long) value * multiplier);
-    }
-
-    Definition nodeDefinition(Node node) {
-        return node.slot >= 0 && node.slot < patterns.getSlots() && node.matches(patterns.getStackInSlot(node.slot))
-            ? definitionIndex.get(Integer.toString(node.slot))
-            : null;
-    }
-
-    ThreadedProxyAllocation.Plan nodePlan(Definition definition, int overclocks, long budget) {
-        long voltage = getMaxInputVoltage();
-        if (definition.execution.mEUt > budget
-            || definition.execution.mEUt > OverclockCalculator.getMaxAllowedRecipeEUt(voltage, 1)) return null;
-        int oc = scaled(overclocks, processes.overclockMultiplier);
-        var plan = ThreadedProxyAllocation.plan(definition.execution.mEUt, definition.execution.mDuration, voltage, oc);
-        while (plan.eut > budget && oc > 0) {
-            oc = Math.max(0, Math.min(oc - 1, plan.overclocks - 1));
-            plan = ThreadedProxyAllocation.plan(definition.execution.mEUt, definition.execution.mDuration, voltage, oc);
-        }
-        return plan.eut <= budget ? plan : null;
-    }
-
-    String nodeState(Node node) {
-        RecipeThreadTask task = tasks.get(node.key());
-        if (task != null) {
-            if (task.isFinished()) return "output_wait";
-            var info = runInfo.get(node.key());
-            return task.getProgress() + "/"
-                + task.getDuration()
-                + "t · "
-                + task.getEUt()
-                + "EU/t"
-                + (info == null ? "" : " · " + info.parallel + "P/" + info.overclocks + "OC");
-        }
-        Failure failure = failures.get(node.key());
-        if (failure != null && failure.result != null) return failure.result.getDisplayString();
-        return failure == null ? "idle" : failure.reason;
-    }
-
-    private boolean finishNode(String key, RecipeThreadTask task, boolean working) {
-        int[] routes = taskRoutes.get(key);
-        if (routes != null && routes.length > 0 && !processes.route(routes, task.getOutputs())) return false;
-        if (working) return flushOutputs(task.getOutputs());
-        NBTTagCompound remaining = task.getOutputs()
-            .save();
-        if (remaining.getTagList("items", 10)
-            .tagCount()
-            + remaining.getTagList("fluids", 10)
-                .tagCount()
-            > 0) processes.exports.add(RecipeThreadOutputs.load(remaining));
-        return true;
-    }
-
-    private void flushProcessExports() {
-        for (Iterator<RecipeThreadOutputs> it = processes.exports.iterator(); it.hasNext();) {
-            if (flushOutputs(it.next())) {
-                it.remove();
-                markDirty();
-            }
         }
     }
 
@@ -690,12 +525,11 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     }
 
     /** Commits ordinary material consumption only after power, duration and the output ledger have been accepted. */
-    private long startThread(String key, ThreadInputs input, long budget, int parallel,
-        ThreadedProxyAllocation.Plan plan) {
+    private long startThread(ThreadInputs input, long budget, int parallel, ThreadedProxyAllocation.Plan plan) {
         Definition definition = input.definition;
         ProxyPatternRecipe match = definition.recipe;
         // Another admitted recipe may consume an item that this recipe uses as a non-consumed catalyst.
-        if (!hasReadyInputs(input, key)) return 0;
+        if (!hasReadyInputs(input)) return 0;
         if (budget < definition.execution.mEUt) return 0;
         ThreadedProxyProcessingLogic logic = (ThreadedProxyProcessingLogic) processingLogic;
         setupProcessingLogic(logic);
@@ -711,8 +545,9 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             CheckRecipeResult result = logic.process();
             long eut = logic.getCalculatedEut();
             if (!result.wasSuccessful() || eut < 0 || eut > budget || !logic.canCommitInputs()) {
-                failures
-                    .put(key, new Failure(!result.wasSuccessful() ? result : CheckRecipeResultRegistry.INTERNAL_ERROR));
+                failures.put(
+                    definition.key,
+                    new Failure(!result.wasSuccessful() ? result : CheckRecipeResultRegistry.INTERNAL_ERROR));
                 if (GTNHAdjust.debug && mTotalRunTime % 200 < 5) GTNHAdjust.LOG.info(
                     "[threaded-proxy] cannot start {}: result={}, EU/t={}, budget={}, voltage={}",
                     definition.label,
@@ -729,15 +564,15 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 logic.getCurrentParallels(),
                 logic.pendingOutputs());
             if (!logic.commitInputs()) {
-                failures.put(key, new Failure("inputs_changed"));
+                failures.put(definition.key, new Failure("inputs_changed"));
                 return 0;
             }
             input.share.commit();
-            tasks.put(key, task);
+            tasks.put(definition.key, task);
             runInfo.put(
-                key,
+                definition.key,
                 ThreadedProxyDisplay.RunInfo.create(match, task, logic.concurrentParallel(), plan.overclocks));
-            failures.remove(key);
+            failures.remove(definition.key);
             markDirty();
             if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
                 "[threaded-proxy] start {}: map={}, operations={}, duration={}, EU/t={}, concurrent={}, OC={}/{}, exact={}",
@@ -748,7 +583,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 eut,
                 logic.concurrentParallel(),
                 plan.overclocks,
-                plan.overclocks,
+                maxOverclocks,
                 match.exact);
             return eut;
         } finally {
@@ -778,7 +613,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
     }
 
     /** Excludes material-starved definitions before distributing power, including their required real tools. */
-    private boolean hasReadyInputs(ThreadInputs input, String key) {
+    private boolean hasReadyInputs(ThreadInputs input) {
         boolean tools = hasNonConsumedFluids(input);
         for (RecipeItemInput required : input.definition.execution.getCachedCombinedItemInputs())
             if (required.inputAmount == 0 && Arrays.stream(input.items)
@@ -788,7 +623,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 tools = false;
         boolean ready = tools
             && input.definition.execution.maxParallelCalculatedByInputs(1, input.fluids, input.items) >= 1;
-        if (!ready) failures.put(key, new Failure(tools ? "materials" : "catalyst"));
+        if (!ready) failures.put(input.definition.key, new Failure(tools ? "materials" : "catalyst"));
         if (!ready && GTNHAdjust.debug && mTotalRunTime % 200 < 5) GTNHAdjust.LOG.info(
             "[threaded-proxy] waiting for materials/tools {}: items={}, fluids={}",
             input.definition.label,
@@ -815,7 +650,6 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         if (!changed) return;
         previousWaterReservoir = hasWaterReservoir;
         snapshot = current;
-        patternRevision++;
         definitionsDirty = false;
         java.util.Set<String> allowed = locatorPool.recipeMaps()
             .stream()
@@ -846,6 +680,18 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             }
             ProxyPatternRecipe recipe = ProxyPatternRecipe.find(map, details);
             if (recipe != null) {
+                ItemStack installed = patterns.getStackInSlot(Integer.parseInt(slot.key));
+                if (!installed.getTagCompound()
+                    .getCompoundTag(ThreadPatternSettings.KEY)
+                    .getBoolean("resolved")) {
+                    ThreadPatternSettings initial = ThreadPatternSettings.read(installed);
+                    initial.power = recipe.recipe.mEUt;
+                    initial.write(installed);
+                    installed.getTagCompound()
+                        .getCompoundTag(ThreadPatternSettings.KEY)
+                        .setBoolean("resolved", true);
+                    markDirty();
+                }
                 Definition definition = new Definition(
                     slot.key,
                     slot.label,
@@ -857,6 +703,10 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
                 definitionIndex.put(slot.key, definition);
                 if (!allowed.contains(name))
                     failures.put(slot.key, new Failure(allowed.isEmpty() ? "no_locator" : "wrong_map"));
+                if (tasks.containsKey(slot.key) && !runInfo.containsKey(slot.key)) {
+                    runInfo.put(slot.key, ThreadedProxyDisplay.RunInfo.recover(recipe, tasks.get(slot.key)));
+                    markDirty();
+                }
                 if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
                     "[threaded-proxy] matched {}: map={}, exact={}, recipeItems={}, recipeFluids={}, virtualTools={}, retainedItemOutputs={}, retainedFluidOutputs={}",
                     slot.label,
@@ -909,7 +759,6 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             return;
         int discarded = tasks.size();
         tasks.clear();
-        taskRoutes.clear();
         runInfo.clear();
         failures.clear();
         ((ThreadedProxyProcessingLogic) processingLogic).discardPreparedRecipe();
@@ -925,6 +774,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         lEUt = 0;
         mProgresstime = 0;
         mMaxProgresstime = 0;
+        if (!getBaseMetaTileEntity().isAllowedToWork()) return;
         for (RecipeThreadTask task : tasks.values()) if (!task.isFinished()) {
             mProgresstime = task.getProgress();
             mMaxProgresstime = task.getDuration();
@@ -940,12 +790,11 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         tag.setTag("gtnhadjustLocatorInventory", locatorInventory.serializeNBT());
         tag.setTag("gtnhadjustPatterns", patterns.serializeNBT());
         tag.setInteger("gtnhadjustProxyOperation", operationMode);
-        tag.setTag("matrixProcesses", processes.save());
+        tag.setInteger("threadedProxyMaxOverclocks", maxOverclocks);
         NBTTagList saved = new NBTTagList();
         tasks.forEach((key, task) -> {
             NBTTagCompound entry = task.save();
             entry.setString("patternSlot", key);
-            if (taskRoutes.containsKey(key)) entry.setIntArray("routes", taskRoutes.get(key));
             if (runInfo.containsKey(key)) entry.setTag(
                 "view",
                 runInfo.get(key)
@@ -964,9 +813,8 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             locatorInventory.deserializeNBT(tag.getCompoundTag("gtnhadjustLocatorInventory"));
         operationMode = !tag.hasKey("gtnhadjustProxyOperation") ? 1 : tag.getInteger("gtnhadjustProxyOperation");
         onLocatorInventoryChanged();
-        processes.load(tag.getCompoundTag("matrixProcesses"));
+        maxOverclocks = Math.max(0, tag.getInteger("threadedProxyMaxOverclocks"));
         tasks.clear();
-        taskRoutes.clear();
         runInfo.clear();
         NBTTagList saved = tag.getTagList(THREADS, 10);
         // Old versions saved tasks after power failure. Use GT's persisted shutdown state, not the work toggle alone.
@@ -985,7 +833,6 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         for (int i = 0; i < saved.tagCount(); i++) {
             NBTTagCompound entry = saved.getCompoundTagAt(i);
             tasks.put(entry.getString("patternSlot"), RecipeThreadTask.load(entry));
-            taskRoutes.put(entry.getString("patternSlot"), entry.getIntArray("routes"));
             if (entry.hasKey("view")) runInfo
                 .put(entry.getString("patternSlot"), ThreadedProxyDisplay.RunInfo.load(entry.getCompoundTag("view")));
         }
@@ -999,7 +846,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         tag.setTag("gtnhadjustLocatorInventory", locatorInventory.serializeNBT());
         tag.setTag("gtnhadjustPatterns", patterns.serializeNBT());
         tag.setInteger("gtnhadjustProxyOperation", operationMode);
-        tag.setTag("matrixProcesses", processes.save());
+        tag.setInteger("threadedProxyMaxOverclocks", maxOverclocks);
     }
 
     @Override
@@ -1077,12 +924,44 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         return definition == null ? null : definition.recipe;
     }
 
-    boolean canEditProcesses() {
-        return canEditLocators();
+    /** Only target and budget edits run the one-shot estimate calculator. */
+    void editPattern(int slot, int field, String expression) {
+        if (!canEditLocators() || slot < 0 || slot >= patterns.getSlots()) return;
+        ItemStack stack = patterns.getStackInSlot(slot);
+        if (stack == null) return;
+        ThreadPatternSettings settings = ThreadPatternSettings.read(stack);
+        double value = ThreadParameterExpression.parse(expression);
+        if (!Double.isFinite(value) || value < -1 || (value != -1 && value <= 0 && field != 3)) return;
+        if (field == 0) settings.target = value;
+        if (field == 1) settings.power = value == -1 ? -1 : (long) Math.min(Long.MAX_VALUE, value);
+        if (field == 2) settings.parallel = value == -1 ? -1 : (int) Math.min(Integer.MAX_VALUE, value);
+        if (field == 3) settings.oc = value == -1 ? -1 : (int) Math.min(Integer.MAX_VALUE, value);
+        ProxyPatternRecipe recipe = patternRecipe(slot);
+        if ((field == 0 || field == 1) && recipe != null) settings.tune(recipe, getTrueParallel());
+        settings.write(stack);
+        // A user-entered budget takes precedence even if the locator has not resolved this recipe yet.
+        if (field == 1) stack.getTagCompound()
+            .getCompoundTag(ThreadPatternSettings.KEY)
+            .setBoolean("resolved", true);
+        patternsChanged();
+        if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
+            "[threaded-proxy] pattern #{} settings: field={}, target={}/s, budget={} EU/t, parallel={}, OC={}",
+            slot + 1,
+            field,
+            settings.target,
+            settings.power,
+            settings.parallel,
+            settings.oc);
     }
 
-    int overclockMultiplier() {
-        return processes.overclockMultiplier;
+    int getMaxOverclocks() {
+        return maxOverclocks;
+    }
+
+    /** OC changes affect the next launch, leaving committed task parameters intact. */
+    void setMaxOverclocks(int value) {
+        maxOverclocks = Math.max(0, value);
+        markDirty();
     }
 
     Collection<RecipeThreadTask> threadTasks() {
@@ -1101,30 +980,43 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
         return hasWaterReservoir;
     }
 
-    /** Summarize graph nodes in the terminal status view. */
+    /**
+     * Every installed slot gets a row, including invalid or idle definitions; removed but unfinished tasks follow them.
+     */
     List<ThreadedProxyDisplay.Row> threadRows() {
         List<ThreadedProxyDisplay.Row> rows = new ArrayList<>();
-        int index = 0;
-        for (Graph graph : processes.graphs.values()) {
-            for (Node node : graph.nodes.values()) {
-                index++;
-                RecipeThreadTask task = tasks.get(node.key());
-                if (task != null) {
-                    rows.add(ThreadedProxyDisplay.Row.running(index, task, runInfo.get(node.key()), false));
-                    continue;
-                }
-                Failure failure = failures.get(node.key());
-                String reason = graph.paused || !isAllowedToWork() ? "paused"
-                    : failure == null ? "queued" : failure.reason;
-                ThreadedProxyDisplay.RunInfo product = null;
-                for (PatternSlot slot : snapshot) if (slot.key.equals(Integer.toString(node.slot))) {
-                    product = slot.firstProduct;
-                    break;
-                }
-                rows.add(
-                    ThreadedProxyDisplay.Row.idle(index, reason, failure == null ? null : failure.result, product));
+        java.util.Set<String> shown = new java.util.HashSet<>();
+        boolean paused = !getBaseMetaTileEntity().isAllowedToWork();
+        for (int i = 0; i < snapshot.size(); i++) {
+            PatternSlot slot = snapshot.get(i);
+            shown.add(slot.key);
+            RecipeThreadTask task = tasks.get(slot.key);
+            if (task != null) {
+                rows.add(ThreadedProxyDisplay.Row.running(i + 1, task, runInfo.get(slot.key), paused));
+                continue;
             }
+            Failure failure = failures.get(slot.key);
+            if (definitionIndex.containsKey(slot.key)) {
+                if (paused) failure = new Failure("paused");
+            }
+            rows.add(
+                ThreadedProxyDisplay.Row.idle(
+                    i + 1,
+                    failure == null ? "queued" : failure.reason,
+                    failure == null ? null : failure.result,
+                    slot.firstProduct));
         }
+        tasks.forEach((key, task) -> {
+            if (!shown.contains(key)) rows.add(
+                new ThreadedProxyDisplay.Row(
+                    rows.size() + 1,
+                    "removed",
+                    null,
+                    runInfo.get(key),
+                    task.getProgress(),
+                    task.getDuration(),
+                    task.getEUt()));
+        });
         return rows;
     }
 
@@ -1134,7 +1026,7 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             tasks.size(),
             snapshot.size(),
             definitions.size(),
-            processes.overclockMultiplier);
+            maxOverclocks);
         return hasWaterReservoir ? text + "\n" + StatCollector.translateToLocal("gtnhadjust.threaded_proxy.reservoir")
             : text;
     }
@@ -1222,6 +1114,11 @@ public final class ThreadedJointProxy extends MTEExtendedPowerMultiBlockBase<Thr
             this.map = map;
             this.recipe = recipe;
             execution = recipe.executionRecipe(reservoir);
+            if (!GTNHAdjust.threadedProxyVoidUnlistedOutputs) {
+                itemOutputs.set(0, execution.mOutputs.length);
+                fluidOutputs.set(0, execution.mFluidOutputs.length);
+                return;
+            }
             for (IAEStack<?> encoded : encodedOutputs) {
                 if (encoded == null || encoded.getStackSize() <= 0) continue;
                 if (encoded instanceof IAEItemStack item) {
