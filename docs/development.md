@@ -1,6 +1,6 @@
 # 开发与构建
 
-基线：GTNH 2.9.0、GTNR 0.1.48、GTNRLib 0.1.35；开发使用 Java 25。
+基线：GTNH 2.9.0、GTNR 0.1.51、GTNRLib 0.1.35；开发使用 Java 25。
 
 ## 项目结构
 
@@ -28,7 +28,7 @@ $env:TMP = $env:TEMP
 
 构建产物位于 `build/libs/`。NEI 提示及收藏配方编译还需将客户端的 `CodeChickenCore-1.4.22.jar` 和 `ae2fc-1.5.116-gtnh.jar` 分别保存为 `ref/libs/codechickencore-instance.jar` 和 `ref/libs/ae2fc-instance.jar`。YSMU 兼容编译还需将客户端的 `gtnrlib-0.1.35.jar` 和 `ysmu-1.9.jar` 复制到 `ref/libs/` 对应文件名；它们仅供编译，不打包进模组。开发约定和本机环境见 [AGENTS.md](../AGENTS.md)；参考仓库位于不提交的 `ref/`。
 
-Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅助任务使用相应的旧版 Java 工具链，并可将其下载到上述项目内的 Gradle 缓存。当前模组使用示例的 Jabel 模式生成 Java 8 字节码。CropsNH、GregTech 和 Waila 编译依赖通过 GTNH 2.9.0 清单解析。构建还需要将 GT-Never-Reset 0.1.48 正式包保存为不提交的 `ref/libs/gtneverreset-0.1.48.jar`。
+Gradle 由 Java 25 启动；示例构建链会为 Minecraft 源码及其他辅助任务使用相应的旧版 Java 工具链，并可将其下载到上述项目内的 Gradle 缓存。当前模组使用示例的 Jabel 模式生成 Java 8 字节码。CropsNH、GregTech 和 Waila 编译依赖通过 GTNH 2.9.0 清单解析。将 [GT-Never-Reset 0.1.51 正式包](https://github.com/ikkkkkkkuuu/GT-Never-Reset/releases/tag/0.1.51)保存为不提交的 `ref/libs/gtneverreset-0.1.51.jar`。
 
 同样将实例中的 `sciencenotleisure-dev-290-fde37b9871fd-f93edbe8c425.jar` 复制为 `ref/libs/gtnl-instance.jar`；已验证文件的 SHA-256 为 `977335c74149afdbf280f15506fb59bd1b97e126acb3807be770d0e0b3374840`。
 

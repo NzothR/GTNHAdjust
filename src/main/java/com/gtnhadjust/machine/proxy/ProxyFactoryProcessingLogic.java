@@ -1,7 +1,9 @@
 package com.gtnhadjust.machine.proxy;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
@@ -21,6 +23,7 @@ import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.storage.data.IAEStack;
 import gregtech.api.enums.GTValues;
+import gregtech.api.logic.ProcessingLogic;
 import gregtech.api.objects.ItemData;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.RecipeMaps;
@@ -42,6 +45,7 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     private CheckRecipeResult sourceFailureResult;
     private IDualInputInventoryWithPattern traceInventory;
     private IDualInputInventoryWithPattern activePatternInventory;
+    private final List<Runnable> bulkDebits = new ArrayList<>();
     private String tracePattern;
     private int wirelessDuration;
     private double wirelessEUtModifier;
@@ -55,6 +59,7 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     @Override
     public boolean tryCachePossibleRecipesFromPattern(IDualInputInventoryWithPattern inventory) {
         resetPatternInventory();
+        bulkDebits.clear();
         traceInventory = inventory;
         activePatternInventory = inventory;
         tracePattern = null;
@@ -92,6 +97,32 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
     }
 
     @Override
+    public ProcessingLogic setInputItems(ItemStack... items) {
+        if (!(activePatternInventory instanceof MatrixBulkPatternBuffer.BulkSlot slot))
+            return super.setInputItems(items);
+        List<ItemStack> expanded = new ArrayList<>(Arrays.asList(items));
+        slot.extendItems(expanded, bulkDebits, this);
+        return super.setInputItems(expanded.toArray(GTValues.emptyItemStackArray));
+    }
+
+    @Override
+    public ProcessingLogic setInputFluids(FluidStack... fluids) {
+        if (!(activePatternInventory instanceof MatrixBulkPatternBuffer.BulkSlot slot))
+            return super.setInputFluids(fluids);
+        List<FluidStack> expanded = new ArrayList<>(Arrays.asList(fluids));
+        slot.extendFluids(expanded, bulkDebits, this);
+        return super.setInputFluids(expanded.toArray(GTValues.emptyFluidStackArray));
+    }
+
+    void commitBulkDebits() {
+        bulkDebits.forEach(Runnable::run);
+    }
+
+    void clearBulkDebits() {
+        bulkDebits.clear();
+    }
+
+    @Override
     @Nonnull
     protected CheckRecipeResult processRecipe() {
         CheckRecipeResult result = CheckRecipeResultRegistry.NO_RECIPE;
@@ -102,6 +133,7 @@ public final class ProxyFactoryProcessingLogic extends RecipeThreadProcessingLog
                     : super.processRecipe();
             return result;
         } finally {
+            if (!result.wasSuccessful()) bulkDebits.clear();
             if (activePatternInventory != null) controller.recordPatternResult(
                 activePatternInventory,
                 pattern,

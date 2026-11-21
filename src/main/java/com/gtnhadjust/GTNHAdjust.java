@@ -76,6 +76,8 @@ public class GTNHAdjust {
     private int superFragmentMteId = 31990;
     private int lootSimulatorMteId = 31992;
     private int proxyFactoryMteId = 31993;
+    private int matrixBulkBufferMteId = 31997;
+    private boolean matrixBulkBufferEnabled;
     private int threadedProxyMteId = 31994;
     private boolean recipePoolDebuggerEnabled;
     private int recipePoolDebuggerMteId;
@@ -257,6 +259,18 @@ public class GTNHAdjust {
             2048,
             32766,
             "Proxy joint factory controller ID. Restart required; clients and servers must match.");
+        matrixBulkBufferEnabled = config.getBoolean(
+            "matrixBulkPatternBuffer",
+            "enabled",
+            true,
+            "Register the Matrix Bulk Pattern Input Assembly. Restart required; client and server must match.");
+        matrixBulkBufferMteId = config.getInt(
+            "mteId",
+            "matrixBulkPatternBuffer",
+            31997,
+            2048,
+            32766,
+            "Stable Matrix Bulk Pattern Input Assembly ID. Restart required; client and server must match.");
         threadedProxyMteId = config.getInt(
             "mteId",
             "threadedJointProxy",
@@ -319,8 +333,10 @@ public class GTNHAdjust {
         if (FeatureConfig.get().threadedJointProxy && Loader.isModLoaded("gtneverreset")
             && Loader.isModLoaded("sciencenotleisure")
             && Loader.isModLoaded("gregtech")) ThreadedProxyRegistration.registerMachine(threadedProxyMteId);
-        if (FeatureConfig.get().proxyFactory && Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech"))
+        if (FeatureConfig.get().proxyFactory && Loader.isModLoaded("gtneverreset") && Loader.isModLoaded("gregtech")) {
             ProxyFactoryRegistration.registerMachine(proxyFactoryMteId);
+            if (matrixBulkBufferEnabled) ProxyFactoryRegistration.registerBulkBuffer(matrixBulkBufferMteId);
+        }
         if (FeatureConfig.get().lootSimulator && Loader.isModLoaded("gregtech")
             && Loader.isModLoaded("kubatech")
             && Loader.isModLoaded("mobsinfo")

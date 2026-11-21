@@ -5,6 +5,7 @@ import net.minecraft.item.ItemStack;
 import com.gtnhadjust.GTNHAdjust;
 import com.xyp.gtneverreset.utils.enums.GTNRItemList;
 
+import appeng.api.AEApi;
 import cpw.mods.fml.common.registry.GameRegistry;
 import gregtech.api.GregTechAPI;
 import gregtech.api.enums.GTValues;
@@ -17,6 +18,7 @@ import gregtech.api.util.GTUtility;
 public final class ProxyFactoryRegistration {
 
     private static ItemStack controller;
+    private static ItemStack bulkBuffer;
     private static MachineLocatorItem locator;
 
     private ProxyFactoryRegistration() {}
@@ -34,6 +36,16 @@ public final class ProxyFactoryRegistration {
         controller = new ProxyFactory(id, "gtnhadjust.proxy_factory", "Pattern Integration Matrix").getStackForm(1);
     }
 
+    public static void registerBulkBuffer(int id) {
+        if (id < 0 || id >= GregTechAPI.METATILEENTITIES.length || GregTechAPI.METATILEENTITIES[id] != null)
+            throw new IllegalStateException("Matrix bulk pattern buffer MTE ID is already in use: " + id);
+        bulkBuffer = new MatrixBulkPatternBuffer(id).getStackForm(1);
+        AEApi.instance()
+            .registries()
+            .interfaceTerminal()
+            .register(MatrixBulkPatternBuffer.class);
+    }
+
     /** Supply a detached controller stack for upgrade recipes. */
     public static ItemStack controllerStack() {
         return controller == null ? null : controller.copy();
@@ -44,6 +56,10 @@ public final class ProxyFactoryRegistration {
         if (controller == null || original == null
             || !GTModHandler.addShapelessCraftingRecipe(controller.copy(), new Object[] { original }))
             GTNHAdjust.LOG.warn("Proxy joint factory controller crafting recipe could not be registered");
+        if (bulkBuffer != null && !GTModHandler.addShapelessCraftingRecipe(
+            bulkBuffer.copy(),
+            new Object[] { GTNRItemList.CrossRecipeMEPatternBuffer.get(1) }))
+            GTNHAdjust.LOG.warn("Matrix bulk pattern buffer crafting recipe could not be registered");
     }
 
     /** Register once when either proxy is enabled, independently of the proxy factory controller recipe. */
