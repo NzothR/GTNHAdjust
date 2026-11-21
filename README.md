@@ -8,7 +8,7 @@
 | --- | --- |
 | Minecraft / Forge | GTNH 2.9.0 使用的 1.7.10 环境 |
 | GregTech | 5.09.54.265，包含 GT++ 与 TecTech |
-| GT-Never-Reset / GTNRLib | **0.1.48 / 0.1.35**，机器、终端和样板功能 |
+| GT-Never-Reset / GTNRLib | **0.1.51 / 0.1.35**，机器、终端和样板功能 |
 | GT-Not-Leisure / GTNLLib | GTNH 实例的 **dev-290 / 1.1.5**，机器制作、温室及兼容功能 |
 | AE2 / NEI / ModularUI2 / StructureLib | 使用 GTNH 2.9.0 及上述扩展模组对应版本 |
 | 按功能使用的模组 | BetterQuesting、Forestry、Ender IO、KubaTech、MobsInfo、RemoteIO、NotEnoughEnergistics、NECH、GTSteamReborn、YSMU、TST 等 |
@@ -40,6 +40,8 @@
 两种代理都要求定位来源在新线程启动时已加载、身份正确且结构成型。高炉配方检查实际炉温，支持诸神锻炉高炉模块的有效加工炉温；代理工厂另支持 TST 梦魇工作台转换加工样板。
 
 样板集成矩阵计算并行时，会合计配方中分在多个槽位的同种固定流体。例如红日之将军恩情配件厂配方的三栏熔融金合计需要 366,768 L。沿用 `proxyFactory` 开关，适配 GTNH 2.9.0，两端同步更新并重启。
+
+将一个 GTNR 跨配方样板输入总成放入工作台，即可无序合成「矩阵大批量跨配方样板输入总成 (ME)」。把新总成装到样板集成矩阵上，放入原有加工样板。样板处理和下单缩放沿用 GTNR。矩阵每批可读取每种物品或流体最多 274,877,906,816 单位，实际加工量由库存、配方、供电和并行上限决定，开工时从总成扣除实耗。适配 GTNH 2.9.0 和 GTNR 0.1.51，随 `proxyFactory` 和 `gtnhadjust.cfg` 中的 `matrixBulkPatternBuffer.enabled` 启用，默认开启，MTE ID 默认 31997。两端同步更新并重启。
 
 样板集成矩阵和样板演算矩阵可以用定位器互相中转。读取中转代理的主机栏时，只采用其中直连普通多方块的记录，跳过其中的代理记录和回指。线程启动时检查中转代理和最终主机，两者都须已加载、身份一致且结构成型，炉温等要求仍由最终主机提供。`proxyFactory.indirectLocators` 默认开启，适配 GTNH 2.9.0、GTNR 0.1.48／0.1.50，两端同步并重启。
 

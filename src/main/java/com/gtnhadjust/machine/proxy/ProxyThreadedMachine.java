@@ -263,6 +263,7 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
                 java.util.Arrays.toString(task.getOutputs().fluids),
                 java.util.Arrays.toString(task.getOutputs().fluidAmounts));
             if (!logic.commitInputs()) return CheckRecipeResultRegistry.INTERNAL_ERROR;
+            if (logic instanceof ProxyFactoryProcessingLogic proxyLogic) proxyLogic.commitBulkDebits();
             committed = true;
             threadTasks.put(slot, task);
             if (GTNHAdjust.debug) GTNHAdjust.LOG.info(
@@ -279,6 +280,7 @@ public abstract class ProxyThreadedMachine<T extends ProxyThreadedMachine<T>> ex
             return CheckRecipeResultRegistry.SUCCESSFUL;
         } finally {
             if (!committed) setSingleRecipeCheck(previousRecipeCheck);
+            if (logic instanceof ProxyFactoryProcessingLogic proxyLogic) proxyLogic.clearBulkDebits();
             logic.finishRecipe();
             useRemainingPower = false;
             preparingThread = -1;

@@ -68,6 +68,8 @@
 | `threadedJointProxy.voidUnlistedOutputs` | `true` | 多线程代理丢弃启动样板未列出的物品和流体；两端同步并重启 |
 | `threadedJointProxy.exportIngredients` | `true` | 样板栏按钮追加物品和流体标记到 ME 输入舱空槽，跳过已有标记；GTNH 2.9.0，两端同步并重启 |
 | `proxyFactory.wirelessPower` | `true` | 代理工厂 UEV+ 玻璃且无能源仓时无线供电 |
+| `matrixBulkPatternBuffer.enabled` | `true` | `gtnhadjust.cfg` 中的矩阵大批量总成开关，需同时开启 `proxyFactory`；GTNR 0.1.51，两端同步并重启 |
+| `mteId.matrixBulkPatternBuffer` | `31997` | 矩阵大批量总成 ID；两端一致，使用后保持原值 |
 | `proxyFactory.locatorSlots` | `128` | 两种代理共用的定位器容量，范围 1–32730 |
 | `proxyFactory.locatorNavigation` | `true` | 定位器空气右键高亮与潜行传送 |
 | `proxyFactory.indirectLocators` | `true` | 两种代理可通过一台中转代理读取直连多方块定位器；两端同步并重启 |
